@@ -41,6 +41,11 @@ public class ReporterFactory
 		return (T)proxyInstance;
 	}
 
+	/**
+		This method is provided for unit test purposes.  It lets you define
+		a stats object for a specific metric call.  See the unit tests
+		in ReporterFactoryTest to see how to use this method.
+	*/
 	public static <T> T setStatsForMetric(Object stats, Class<T> reporterClass)
 	{
 		ReportingInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new ReportingInvocationHandler());
