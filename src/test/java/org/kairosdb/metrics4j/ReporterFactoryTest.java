@@ -51,7 +51,7 @@ class ReporterFactoryTest
 		//Instantiate some class you want to test
 		TestCallReport callReport = new TestCallReport();
 
-		//mock the counter and register it with ReporterFactory for a specify call
+		//mock the counter and register it with ReporterFactory for a specific call
 		Counter myCounter = mock(Counter.class);
 		ReporterFactory.setStatsForMetric(myCounter, TestReporter.class).reportSize("localhost");
 
