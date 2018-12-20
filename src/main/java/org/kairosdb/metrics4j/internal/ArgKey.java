@@ -1,4 +1,4 @@
-package org.kairosdb.metrics4j;
+package org.kairosdb.metrics4j.internal;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

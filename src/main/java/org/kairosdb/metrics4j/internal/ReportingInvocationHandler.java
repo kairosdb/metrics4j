@@ -1,8 +1,7 @@
-package org.kairosdb.metrics4j;
+package org.kairosdb.metrics4j.internal;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
