@@ -11,9 +11,9 @@ public class Counter implements ReportableStats
 	private final AtomicLong m_count = new AtomicLong(0);
 
 
-	public void add(long count)
+	public long add(long count)
 	{
-		m_count.addAndGet(count);
+		return m_count.addAndGet(count);
 	}
 
 	public Counter reset()
