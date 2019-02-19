@@ -7,15 +7,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ReportingInvocationHandler implements InvocationHandler
 {
-	Map<ArgKey, Object> statsMap = new ConcurrentHashMap<>();
+	private final Map<ArgKey, StatsContainer> m_statsMap = new ConcurrentHashMap<>();
+
+	public ReportingInvocationHandler()
+	{
+	}
 
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
 	{
 		ArgKey key = new ArgKey(method, args);
 
-		Object ret = statsMap.computeIfAbsent(key, (ArgKey k) -> getStatsObject(k));
+		StatsContainer ret = m_statsMap.computeIfAbsent(key, (ArgKey k) ->
+				new StatsContainer(getStatsObject(k), method.getDeclaringClass().getName(), method.getName()));
 
-		return ret;
+		return ret.getStatsObject();
 	}
 
 	public void setStatsObject(ArgKey key, Object statsObject)
@@ -28,7 +33,7 @@ public class ReportingInvocationHandler implements InvocationHandler
 					" does not match return type for method "+key.getMethod().getName()+" which should be "+returnType.getName());
 		}
 
-		statsMap.put(key, statsObject);
+		m_statsMap.put(key, new StatsContainer(statsObject, key.getMethod().getDeclaringClass().getName(), key.getMethod().getName()));
 	}
 
 	private Object getStatsObject(ArgKey k)
