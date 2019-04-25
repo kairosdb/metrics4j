@@ -1,4 +1,4 @@
-package org.kairosdb.metrics4j.reporter;
+package org.kairosdb.metrics4j.reporting;
 
 public abstract class MetricValue
 {
@@ -8,7 +8,7 @@ public abstract class MetricValue
 
 	private final String m_type;
 
-	protected MetricValue(String type)
+	public MetricValue(String type)
 	{
 		m_type = type;
 	}

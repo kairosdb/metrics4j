@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Used to add an argument list (ie Object[]) as a key to a hashmap
+ * Used to put an argument list (ie Object[]) as a key to a hashmap
  */
 public class ArgKey
 {

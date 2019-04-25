@@ -1,7 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
-import org.kairosdb.metrics4j.reporter.MetricValue;
-import org.kairosdb.metrics4j.reporter.ReportedMetric;
+import org.kairosdb.metrics4j.reporting.MetricValue;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.util.Map;
 

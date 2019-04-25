@@ -1,12 +1,14 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.collectors.ReportableMetric;
+
 public class StatsContainer
 {
 	private final Object m_statsObject;
 	private final String m_className;
 	private final String m_methodName;
 
-	public StatsContainer(Object statsObject, String klass, String method)
+	public StatsContainer(ReportableMetric statsObject, String klass, String method)
 	{
 		m_statsObject = statsObject;
 		m_className = klass;

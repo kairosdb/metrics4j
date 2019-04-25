@@ -1,10 +1,10 @@
-package org.kairosdb.metrics4j.reporter;
+package org.kairosdb.metrics4j.reporting;
 
 public class DoubleValue extends MetricValue
 {
 	private final double m_value;
 
-	protected DoubleValue(double value)
+	public DoubleValue(double value)
 	{
 		super(TYPE_DOUBLE);
 		m_value = value;

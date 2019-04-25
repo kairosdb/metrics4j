@@ -1,4 +1,4 @@
-package org.kairosdb.metrics4j.reporter;
+package org.kairosdb.metrics4j.reporting;
 
 import java.util.Map;
 
