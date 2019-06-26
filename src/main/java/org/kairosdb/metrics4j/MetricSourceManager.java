@@ -1,9 +1,11 @@
 package org.kairosdb.metrics4j;
 
+import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.ReportableMetric;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -14,7 +16,7 @@ import java.util.function.LongSupplier;
 /**
  Need to put methods to set various components programatically.
 
- I kairos I want to set the reporter as a plugin to kairos that sends
+ In kairos I want to set the reporter as a plugin to kairos that sends
  events using the event bus, but the configuration will reference this
  reporter by name in config even though no class will be defined in config.
 
@@ -22,6 +24,27 @@ import java.util.function.LongSupplier;
 public class MetricSourceManager
 {
 	private static Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
+
+	private static MetricConfig s_metricConfig;
+
+	public static MetricConfig getMetricConfig()
+	{
+		if (s_metricConfig == null)
+		{
+			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			InputStream configInputStream = contextClassLoader.getResourceAsStream("metrics4j.xml");
+			try
+			{
+				s_metricConfig = MetricConfig.parseConfig(configInputStream);
+			}
+			catch (Exception e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+		return s_metricConfig;
+	}
 
 	public static <T> T getSource(Class<T> tClass)
 	{
@@ -40,11 +63,8 @@ public class MetricSourceManager
 		//gets data every 10 min.  Challenge is in the collectors objects if they reset
 		//any state or not
 
-		//Need to make the ReporterFactory return mocked objects for testing
-		//Would like unit tests be able to verify that a metric was sent.
-		//Maybe an env variable will determine if objects returned are mocks
 
-		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> new SourceInvocationHandler());
+		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
 
 		//not sure if we should cache proxy instances or create new ones each time.
 		Object proxyInstance = Proxy.newProxyInstance(tClass.getClassLoader(), new Class[]{tClass},
@@ -73,17 +93,22 @@ public class MetricSourceManager
 		a collectors object for a specific metric call.  See the unit tests
 		in ReporterFactoryTest to see how to use this method.
 	*/
-	public static <T> T setStatsForSource(ReportableMetric stats, Class<T> reporterClass)
+	public static <T> T setCollectorForSource(ReportableMetric stats, Class<T> reporterClass)
 	{
-		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler());
+		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
 
 		Object proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
 				(proxy, method, args) -> {
-					handler.setStatsObject(new ArgKey(method, args), stats);
+					handler.setCollector(new ArgKey(method, args), stats);
 					return null;
 				});
 
 		return (T)proxyInstance;
+	}
+
+	public MetricsContext getMetricsContext()
+	{
+		return null;
 	}
 
 }

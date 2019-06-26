@@ -1,7 +1,9 @@
 package org.kairosdb.metrics4j.internal;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -16,6 +18,20 @@ public class ArgKey
 	{
 		m_method = method;
 		m_args = args;
+	}
+
+	public List<String> getConfigPath()
+	{
+		List<String> ret = new ArrayList<>();
+		String[] split = m_method.getDeclaringClass().getName().split("\\.");
+		for (String s : split)
+		{
+			ret.add(s);
+		}
+
+		ret.add(m_method.getName());
+
+		return ret;
 	}
 
 	public Method getMethod()

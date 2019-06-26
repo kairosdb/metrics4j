@@ -5,7 +5,7 @@ import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
-import org.kairosdb.metrics4j.collectors.SimpleCounter;
+import org.kairosdb.metrics4j.collectors.LongCounter;
 
 import java.time.Duration;
 
@@ -36,9 +36,9 @@ class MetricSourceManagerTest
 	{
 		TestMetricSource reporter = MetricSourceManager.getSource(TestMetricSource.class);
 
-		SimpleCounter myCounter = new SimpleCounter();
+		LongCounter myCounter = new LongCounter();
 
-		MetricSourceManager.setStatsForSource(myCounter, TestMetricSource.class).reportSize("localhost");
+		MetricSourceManager.setCollectorForSource(myCounter, TestMetricSource.class).reportSize("localhost");
 
 		//make sure we get our object back for the same method call
 		assertThat(reporter.reportSize("localhost")).isSameAs(myCounter);
@@ -56,8 +56,8 @@ class MetricSourceManagerTest
 		TestCallReport callReport = new TestCallReport();
 
 		//mock the counter and register it with ReporterFactory for a specific call
-		SimpleCounter myCounter = mock(SimpleCounter.class);
-		MetricSourceManager.setStatsForSource(myCounter, TestMetricSource.class).reportSize("localhost");
+		LongCounter myCounter = mock(LongCounter.class);
+		MetricSourceManager.setCollectorForSource(myCounter, TestMetricSource.class).reportSize("localhost");
 
 		//Run test class method that will report a value
 		callReport.callReport("localhost", 42);

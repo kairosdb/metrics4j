@@ -16,6 +16,9 @@ class MetricConfigTest
 	{
 		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("test_config.xml");
 
-		MetricConfig.parseConfig(is);
+		MetricConfig metricConfig = MetricConfig.parseConfig(is);
+
+		System.out.println(metricConfig.getSink("slf4j"));
+
 	}
 }

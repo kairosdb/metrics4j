@@ -1,13 +1,15 @@
 package org.kairosdb.metrics4j.collectors;
 
+import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
+import java.time.Duration;
 import java.util.HashMap;
 
-public class SimpleMetric implements ReportableMetric
+public class SimpleMetric implements DurationCollector, ReportableMetric
 {
 	private long m_min;
 	private long m_max;
@@ -75,6 +77,24 @@ public class SimpleMetric implements ReportableMetric
 		fields.put("avg", new DoubleValue(data.avg));
 
 		reportedMetric.setFields(fields);
+	}
+
+	@Override
+	public void put(Duration duration)
+	{
+
+	}
+
+	@Override
+	public Collector clone()
+	{
+		return null;
+	}
+
+	@Override
+	public void init(MetricsContext context)
+	{
+
 	}
 
 	public static class Data

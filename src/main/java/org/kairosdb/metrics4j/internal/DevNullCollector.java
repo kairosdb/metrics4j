@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
@@ -29,5 +31,16 @@ public class DevNullCollector implements LongCollector, DoubleCollector, Duratio
 	public void reportMetric(ReportedMetric reportedMetric)
 	{
 
+	}
+
+	@Override
+	public void init(MetricsContext context)
+	{
+	}
+
+	@Override
+	public Collector clone()
+	{
+		return this;
 	}
 }

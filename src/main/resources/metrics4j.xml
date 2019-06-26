@@ -10,32 +10,35 @@ One or more sinks
 Each sinks must be configured with one trigger
 -->
 <metrics4j>
-	<source name="ROOT">
+	<sources>
 		<!-- defaults are declared at the root -->
-		<stats name="Counter" class="org.kairosdb.metrics4j.collectors.SimpleCounter"/>
-
+		<formatter ref="template"/>
+		<trigger ref="myTrigger"/>
 		<source name="org" configuration="strict"> <!-- strict requires a configuration for every collectors, no default behavior -->
 			<source name="kairosdb">
 				<source name="metrics">
 					<source name="BlastMetrics">
-						<stats name="Timer" class="org.kairosdb.metrics4j.collectors.SuperTimer"/>
+						<collector ref="Counter"/>
 					</source>
 					<sink ref="slf4j"/>
 					<sink ref="riemann"/>
 				</source>
 			</source>
 		</source>
-	</source>
+	</sources>
 	<sinks>
 		<sink name="slf4j" class="org.kairosdb.metrics4j.sinks.Slf4JMetricSink"/>
+		<sink name="riemann" class="org.kairosdb.metrics4j.sinks.Slf4JMetricSink"/>
 	</sinks>
 	<collectors>
-
+		<collector name="Counter" class="org.kairosdb.metrics4j.collectors.LongCounter"/>
+		<!--<collector name="Timer" class="org.kairosdb.metrics4j.collectors.SuperTimer"/>-->
 	</collectors>
 	<formatters>
-
+		<formatter name="template" class="org.kairosdb.metrics4j.formatters.TemplateFormatter"
+			template="metric4j.${className}.${methodName}.${tag.host}.${field}"/>
 	</formatters>
-	<trigger>
-
-	</trigger>
+	<triggers>
+		<trigger name="myTrigger" class="org.kairosdb.metrics4j.triggers.IntervalTrigger" interval="5" unit="SECONDS"/>
+	</triggers>
 </metrics4j>
