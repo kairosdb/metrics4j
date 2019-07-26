@@ -6,7 +6,7 @@ import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.ReportableMetric;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
 
@@ -28,7 +28,7 @@ public class DevNullCollector implements LongCollector, DoubleCollector, Duratio
 	}
 
 	@Override
-	public void reportMetric(ReportedMetric reportedMetric)
+	public void reportMetric(MetricReporter reportedMetric)
 	{
 
 	}

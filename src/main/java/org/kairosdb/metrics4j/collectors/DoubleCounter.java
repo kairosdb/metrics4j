@@ -2,6 +2,7 @@ package org.kairosdb.metrics4j.collectors;
 
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.util.Collections;
@@ -33,11 +34,11 @@ public class DoubleCounter implements DoubleCollector, ReportableMetric
 	}
 
 	@Override
-	public void reportMetric(ReportedMetric reportedMetric)
+	public void reportMetric(MetricReporter metricReporter)
 	{
 		synchronized (m_counterLock)
 		{
-			reportedMetric.setFields(Collections.singletonMap("count", new DoubleValue(m_count)));
+			metricReporter.put("count", new DoubleValue(m_count));
 		}
 	}
 }

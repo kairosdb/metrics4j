@@ -1,9 +1,15 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.annotation.Key;
+import org.kairosdb.metrics4j.configuration.ConfigurationException;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -42,6 +48,39 @@ public class ArgKey
 	public Object[] getArgs()
 	{
 		return m_args;
+	}
+
+	public Map<String, String> getTags()
+	{
+
+		if (m_args.length == 0)
+			return new HashMap<>();
+		else
+		{
+			Map<String, String> ret = new HashMap<>();
+			Annotation[][] parameterAnnotations = m_method.getParameterAnnotations();
+			for (int i = 0; i < parameterAnnotations.length; i ++)
+			{
+				String tagKey = null;
+
+				Annotation[] annotations = parameterAnnotations[i];
+				for (Annotation annotation : annotations)
+				{
+					if (annotation instanceof Key)
+					{
+						Key key = (Key)annotation;
+						tagKey = key.value();
+					}
+				}
+
+				if (tagKey == null)
+					throw new ConfigurationException("Parameter "+m_method.getParameters()[i].getName()+" on method "+m_method.getName()+" has not been annotated with @Key()");
+
+				ret.put(tagKey, (String)m_args[i]);
+			}
+
+			return ret;
+		}
 	}
 
 	@Override

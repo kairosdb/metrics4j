@@ -19,7 +19,8 @@ class TemplateFormatterTest
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("this.is.my.super.special.metric");
 	}
@@ -32,7 +33,8 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.MyClass.value");
 	}
@@ -45,7 +47,8 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("MyClass.value");
 	}
@@ -58,7 +61,8 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.MyClass");
 	}
@@ -71,7 +75,8 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.work_machine");
 	}
@@ -84,7 +89,8 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.");
 	}
@@ -99,7 +105,8 @@ class TemplateFormatterTest
 		reportedMetric.setClassName("MyClass");
 		reportedMetric.setMethodName("myMethod");
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.MyClass.myMethod.work_machine");
 	}
@@ -114,7 +121,8 @@ class TemplateFormatterTest
 		reportedMetric.setClassName("MyClass");
 		reportedMetric.setMethodName("myMethod");
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
-		templateFormatter.formatReportedMetric(reportedMetric, "value");
+		reportedMetric.setFieldName("value");
+		templateFormatter.formatReportedMetric(reportedMetric);
 
 		assertThat(reportedMetric.getMetricName()).isEqualTo("metric4j.MyClass.myMethod.work_machine.value");
 	}

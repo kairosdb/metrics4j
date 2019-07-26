@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.collectors;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
@@ -64,22 +65,27 @@ public class SimpleStats implements LongCollector, ReportableMetric
 	}
 
 	@Override
-	public void reportMetric(ReportedMetric reportedMetric)
+	public void reportMetric(MetricReporter metricReporter)
 	{
 		synchronized (m_dataLock)
 		{
 			if (m_count != 0)
 			{
 				Map<String, MetricValue> values = new HashMap<>();
-				values.put("min", new LongValue(m_min));
-				values.put("max", new LongValue(m_max));
-				values.put("sum", new LongValue(m_sum));
-				values.put("count", new LongValue(m_count));
-				values.put("avg", new DoubleValue(((double)m_sum)/((double)m_count)));
-				reportedMetric.setFields(values);
+				metricReporter.put("min", new LongValue(m_min));
+				metricReporter.put("max", new LongValue(m_max));
+				metricReporter.put("sum", new LongValue(m_sum));
+				metricReporter.put("count", new LongValue(m_count));
+				metricReporter.put("avg", new DoubleValue(((double)m_sum)/((double)m_count)));
 			}
 			else
-				reportedMetric.setFields(s_emptyValues);
+			{
+				metricReporter.put("min", new LongValue(0L));
+				metricReporter.put("max", new LongValue(0L));
+				metricReporter.put("sum", new LongValue(0L));
+				metricReporter.put("count", new LongValue(0L));
+				metricReporter.put("avg", new DoubleValue(0.0));
+			}
 
 			reset();
 		}

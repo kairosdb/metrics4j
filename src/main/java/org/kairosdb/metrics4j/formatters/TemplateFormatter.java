@@ -82,12 +82,12 @@ public class TemplateFormatter implements Formatter
 	}
 
 	@Override
-	public void formatReportedMetric(ReportedMetric reportedMetric, String field)
+	public void formatReportedMetric(ReportedMetric reportedMetric)
 	{
 		StringBuilder sb = new StringBuilder();
 		for (TemplateFragment templateFragment : m_templateFragmentList)
 		{
-			templateFragment.append(sb, reportedMetric, field);
+			templateFragment.append(sb, reportedMetric);
 		}
 
 		reportedMetric.setMetricName(sb.toString());
@@ -95,7 +95,7 @@ public class TemplateFormatter implements Formatter
 
 	private interface TemplateFragment
 	{
-		void append(StringBuilder sb, ReportedMetric reportedMetric, String field);
+		void append(StringBuilder sb, ReportedMetric reportedMetric);
 	}
 
 	private static class StaticTemplateFragment implements TemplateFragment
@@ -108,7 +108,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, String field)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric)
 		{
 			sb.append(m_fragment);
 		}
@@ -124,7 +124,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, String field)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric)
 		{
 			sb.append(m_property.apply(reportedMetric));
 		}
@@ -140,7 +140,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, String field)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric)
 		{
 			String tagValue = reportedMetric.getTags().get(m_tag);
 			if (tagValue != null)
@@ -151,9 +151,9 @@ public class TemplateFormatter implements Formatter
 	private static class FieldTemplateFragment implements TemplateFragment
 	{
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, String field)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric)
 		{
-			sb.append(field);
+			sb.append(reportedMetric.getFieldName());
 		}
 	}
 }

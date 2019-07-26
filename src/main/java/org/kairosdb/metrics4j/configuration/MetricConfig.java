@@ -3,6 +3,8 @@ package org.kairosdb.metrics4j.configuration;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.SinkQueue;
+import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.triggers.Trigger;
@@ -27,20 +29,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class MetricConfig
 {
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
 
-	private final Map<String, MetricSink> m_sinks;
+	private final Map<String, SinkQueue> m_sinks;
 	private final Map<String, Collector> m_collectors;
 	private final Map<String, Formatter> m_formatters;
-	private final Map<String, Trigger> m_triggers;
-	private final Map<List<String>, MetricSink> m_mappedSinks;
+	private final Map<String, TriggerMetricCollection> m_triggers;
+	private final Map<List<String>, List<SinkQueue>> m_mappedSinks;
 	private final Map<List<String>, Collector> m_mappedCollectors;
 	private final Map<List<String>, Formatter> m_mappedFormatters;
-	private final Map<List<String>, Trigger> m_mappedTriggers;
+	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 	private final MetricsContext m_context;
 
 	private static Element getFirstElement(Element parent, String tag)
@@ -99,6 +102,11 @@ public class MetricConfig
 		return copy;
 	}
 
+	/**
+	 Recursively parse through the sources elements
+	 @param root
+	 @param path
+	 */
 	private void parseSources(Element root, List<String> path)
 	{
 		if (root == null)
@@ -121,8 +129,20 @@ public class MetricConfig
 					parseSources(element, appendSourceName(path, name));
 				}
 
+				//todo add some attribute to a sink that prevents inheriting sinks
 				if ("sink".equals(nodeName))
 				{
+					//need to map to a list of sinks as there can be more than one
+					Element sinkElm = (Element)node;
+					String ref = sinkElm.getAttribute("ref");
+
+					SinkQueue sinkQueue = m_sinks.get(ref);
+					if (sinkQueue == null)
+						throw new MissingReferenceException("sink", ref);
+
+					//todo allow to map sinks/collectors/formatters/triggers through public api call for unit tests
+					List<SinkQueue> sinkQueues = m_mappedSinks.computeIfAbsent(path, (k) -> new ArrayList<>());
+					sinkQueues.add(sinkQueue);
 				}
 
 				if ("collector".equals(nodeName))
@@ -139,6 +159,14 @@ public class MetricConfig
 
 				if ("formatter".equals(nodeName))
 				{
+					Element collectorElm = (Element)node;
+					String ref = collectorElm.getAttribute("ref");
+
+					Formatter formatter = m_formatters.get(ref);
+					if (formatter == null)
+						throw new MissingReferenceException("formatter", ref);
+
+					m_mappedFormatters.put(path, formatter);
 				}
 
 				if ("trigger".equals(nodeName))
@@ -146,9 +174,9 @@ public class MetricConfig
 					Element triggerElm = (Element)node;
 					String ref = triggerElm.getAttribute("ref");
 
-					Trigger trigger = m_triggers.get(ref);
+					TriggerMetricCollection trigger = m_triggers.get(ref);
 					if (trigger == null)
-						throw new MissingReferenceException("collector", ref);
+						throw new MissingReferenceException("trigger", ref);
 
 					m_mappedTriggers.put(path, trigger);
 				}
@@ -157,6 +185,14 @@ public class MetricConfig
 		}
 	}
 
+	/**
+	 Parse through the root level elements of the metrics4j xml file
+	 @param inputStream
+	 @return
+	 @throws ParserConfigurationException
+	 @throws IOException
+	 @throws SAXException
+	 */
 	public static MetricConfig parseConfig(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException
 	{
 		MetricConfig ret = new MetricConfig();
@@ -215,7 +251,7 @@ public class MetricConfig
 	public void registerSink(String name, MetricSink sink)
 	{
 		sink.init(m_context);
-		m_sinks.put(name, sink);
+		m_sinks.put(name, new SinkQueue(sink));
 	}
 
 	public void registerCollector(String name, Collector collector)
@@ -233,28 +269,59 @@ public class MetricConfig
 	public void registerTrigger(String name, Trigger trigger)
 	{
 		trigger.init(m_context);
-		m_triggers.put(name, trigger);
+		m_triggers.put(name, new TriggerMetricCollection(trigger));
 	}
 
 	public MetricSink getSink(String name)
 	{
-		return m_sinks.get(name);
+		return m_sinks.get(name).getSink();
 	}
 
-	public Collector getCollectorForKey(ArgKey key)
+	private <R> R findObject(ArgKey key, Function<List<String>, R> getter)
 	{
-		Collector ret = null;
+		R ret = null;
 		List<String> configPath = key.getConfigPath();
 		for (int i = configPath.size(); i >= 0; i--)
 		{
 			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			ret = m_mappedCollectors.get(searchPath);
+			ret = getter.apply(searchPath);
 			if (ret != null)
 				break;
 		}
 
 		return ret;
 	}
+
+	public Collector getCollectorForKey(ArgKey key)
+	{
+		return findObject(key, m_mappedCollectors::get);
+	}
+
+	public Formatter getFormatterForKey(ArgKey key)
+	{
+		return findObject(key, m_mappedFormatters::get);
+	}
+
+	public List<SinkQueue> getSinkQueues(ArgKey key)
+	{
+		List<SinkQueue> ret = new ArrayList<>();
+		List<String> configPath = key.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+			List<SinkQueue> sinkQueues = m_mappedSinks.get(searchPath);
+			if (sinkQueues != null)
+				ret.addAll(sinkQueues);
+		}
+
+		return ret;
+	}
+
+	public TriggerMetricCollection getTriggerForKey(ArgKey key)
+	{
+		return findObject(key, m_mappedTriggers::get);
+	}
+
 
 	public Collector getCollector(String name)
 	{
@@ -270,7 +337,7 @@ public class MetricConfig
 
 	public Trigger getTrigger(String name)
 	{
-		return m_triggers.get(name);
+		return m_triggers.get(name).getTrigger();
 	}
 
 	public MetricsContext getContext()

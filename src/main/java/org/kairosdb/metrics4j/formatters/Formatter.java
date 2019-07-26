@@ -5,5 +5,5 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 public interface Formatter extends PostConstruct
 {
-	void formatReportedMetric(ReportedMetric reportedMetric, String field);
+	void formatReportedMetric(ReportedMetric reportedMetric);
 }

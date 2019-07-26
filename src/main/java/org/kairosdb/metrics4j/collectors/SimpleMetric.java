@@ -3,11 +3,9 @@ package org.kairosdb.metrics4j.collectors;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
-import org.kairosdb.metrics4j.reporting.MetricValue;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
-import java.util.HashMap;
 
 public class SimpleMetric implements DurationCollector, ReportableMetric
 {
@@ -66,17 +64,14 @@ public class SimpleMetric implements DurationCollector, ReportableMetric
 	}
 
 	@Override
-	public void reportMetric(ReportedMetric reportedMetric)
+	public void reportMetric(MetricReporter metricReporter)
 	{
 		Data data = getAndClear();
-		HashMap<String, MetricValue> fields = new HashMap<>();
-		fields.put("min", new DoubleValue(data.min));
-		fields.put("max", new DoubleValue(data.max));
-		fields.put("sum", new DoubleValue(data.sum));
-		fields.put("count", new LongValue(data.count));
-		fields.put("avg", new DoubleValue(data.avg));
-
-		reportedMetric.setFields(fields);
+		metricReporter.put("min", new DoubleValue(data.min));
+		metricReporter.put("max", new DoubleValue(data.max));
+		metricReporter.put("sum", new DoubleValue(data.sum));
+		metricReporter.put("count", new LongValue(data.count));
+		metricReporter.put("avg", new DoubleValue(data.avg));
 	}
 
 	@Override

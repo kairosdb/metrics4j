@@ -2,6 +2,7 @@ package org.kairosdb.metrics4j.collectors;
 
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.LongValue;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -38,9 +39,9 @@ public class LongCounter implements LongCollector, ReportableMetric
 
 
 	@Override
-	public void reportMetric(ReportedMetric reportedMetric)
+	public void reportMetric(MetricReporter metricReporter)
 	{
-		reportedMetric.setFields(Collections.singletonMap("count", new LongValue(m_count.longValue())));
+		metricReporter.put("count", new LongValue(m_count.longValue()));
 	}
 
 	@Override

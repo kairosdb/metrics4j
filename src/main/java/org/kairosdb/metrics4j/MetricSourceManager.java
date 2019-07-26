@@ -63,6 +63,7 @@ public class MetricSourceManager
 		//gets data every 10 min.  Challenge is in the collectors objects if they reset
 		//any state or not
 
+		//todo need to do some validation on tClass, makes ure all methods only take strings and are annotated with Keys
 
 		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
 

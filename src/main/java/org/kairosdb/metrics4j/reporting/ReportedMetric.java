@@ -1,16 +1,17 @@
 package org.kairosdb.metrics4j.reporting;
 
+import java.time.Instant;
 import java.util.Map;
 
 public interface ReportedMetric
 {
-	long getTime();
+	Instant getTime();
 
-	ReportedMetric setTime(long time);
+	ReportedMetric setTime(Instant time);
 
 	String getMetricName();
 
-	ReportedMetric setMetricName(String metricName);
+	ReportedMetric setMetricName(String name);
 
 	String getClassName();
 
@@ -24,7 +25,11 @@ public interface ReportedMetric
 
 	ReportedMetric setTags(Map<String, String> tags);
 
-	Map<String, MetricValue> getFields();
+	String getFieldName();
 
-	ReportedMetric setFields(Map<String, MetricValue> fields);
+	ReportedMetric setFieldName(String name);
+
+	MetricValue getValue();
+
+	ReportedMetric setValue(MetricValue value);
 }
