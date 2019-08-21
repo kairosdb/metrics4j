@@ -5,6 +5,8 @@ import org.kairosdb.metrics4j.triggers.MetricCollection;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,6 +22,9 @@ public class TriggerMetricCollection implements MetricCollection
 	public TriggerMetricCollection(Trigger trigger)
 	{
 		m_trigger = trigger;
+		m_trigger.setMetricCollection(this);
+		m_collectors = new ArrayList<>();
+		m_sinkQueues = new HashSet<>();
 	}
 
 	public Trigger getTrigger()
@@ -35,10 +40,8 @@ public class TriggerMetricCollection implements MetricCollection
 	}
 
 	@Override
-	public void reportMetrics()
+	public void reportMetrics(Instant now)
 	{
-		Instant now = Instant.now();
-
 		for (CollectorContainer collector : m_collectors)
 		{
 			//maybe just pass a timestamp into this

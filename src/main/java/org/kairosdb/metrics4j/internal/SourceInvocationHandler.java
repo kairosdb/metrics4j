@@ -4,15 +4,20 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.ReportableMetric;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SourceInvocationHandler implements InvocationHandler
 {
+	private static Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
+
 	private final Map<ArgKey, ReportableMetric> m_statsMap = new ConcurrentHashMap<>();
 	private final MetricConfig m_config;
 
@@ -49,11 +54,18 @@ public class SourceInvocationHandler implements InvocationHandler
 		Class<?> returnType = key.getMethod().getReturnType();
 		Collector ret = null;
 
-		Collector collector = m_config.getCollectorForKey(key);
+		Iterator<Collector> collectors = m_config.getCollectorsForKey(key);
 
-		if (collector != null)
+		while (collectors.hasNext())
 		{
-			if (!returnType.isAssignableFrom(collector.getClass()))
+			Collector collector = collectors.next();
+
+			/**
+			 If the key matches exactly the collector then we error if it doesn't
+			 match the return type
+			 */
+
+			if (returnType.isInstance(collector))
 			{
 				//Need to make a copy specific to this method arguments
 				ret = collector.clone();
@@ -72,15 +84,16 @@ public class SourceInvocationHandler implements InvocationHandler
 
 				TriggerMetricCollection trigger = m_config.getTriggerForKey(key);
 				trigger.addCollector(collectorContainer);
-
 			}
-			else
+			/*else
 			{
 				throw new ClassCastException("Unable to cast "+collector.getClass()+" to return type " + returnType.getName());
-			}
+			}*/
 		}
-		else
+
+		if (ret == null)
 		{
+			log.info("Unable to find collector for "+key);
 			ret = new DevNullCollector();
 		}
 

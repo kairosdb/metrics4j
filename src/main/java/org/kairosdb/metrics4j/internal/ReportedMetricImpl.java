@@ -5,6 +5,7 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 
 public class ReportedMetricImpl implements ReportedMetric
 {
@@ -108,4 +109,24 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ReportedMetricImpl that = (ReportedMetricImpl) o;
+		return Objects.equals(m_time, that.m_time) &&
+				Objects.equals(m_metricName, that.m_metricName) &&
+				Objects.equals(m_className, that.m_className) &&
+				Objects.equals(m_methodName, that.m_methodName) &&
+				Objects.equals(m_tags, that.m_tags) &&
+				Objects.equals(m_fieldName, that.m_fieldName) &&
+				Objects.equals(m_value, that.m_value);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(m_time, m_metricName, m_className, m_methodName, m_tags, m_fieldName, m_value);
+	}
 }

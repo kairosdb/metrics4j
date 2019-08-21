@@ -53,7 +53,7 @@ public class ArgKey
 	public Map<String, String> getTags()
 	{
 
-		if (m_args.length == 0)
+		if (m_args == null || m_args.length == 0)
 			return new HashMap<>();
 		else
 		{
@@ -81,6 +81,12 @@ public class ArgKey
 
 			return ret;
 		}
+	}
+
+	@Override
+	public String toString()
+	{
+		return m_method.getDeclaringClass().getName() + "." + m_method.getName();
 	}
 
 	@Override

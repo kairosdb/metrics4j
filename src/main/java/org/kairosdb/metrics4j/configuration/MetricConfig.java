@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -41,7 +42,7 @@ public class MetricConfig
 	private final Map<String, Formatter> m_formatters;
 	private final Map<String, TriggerMetricCollection> m_triggers;
 	private final Map<List<String>, List<SinkQueue>> m_mappedSinks;
-	private final Map<List<String>, Collector> m_mappedCollectors;
+	private final Map<List<String>, List<Collector>> m_mappedCollectors;
 	private final Map<List<String>, Formatter> m_mappedFormatters;
 	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 	private final MetricsContext m_context;
@@ -121,65 +122,53 @@ public class MetricConfig
 				Node node = childNodes.item(i);
 				String nodeName = node.getNodeName();
 
-				if ("source".equals(nodeName))
+				if (node instanceof Element)
 				{
-					Element element = (Element) node;
-					String name = element.getAttribute("name");
+					if ("source".equals(nodeName))
+					{
+						Element element = (Element) node;
+						String name = element.getAttribute("name");
 
-					parseSources(element, appendSourceName(path, name));
+						parseSources(element, appendSourceName(path, name));
+					}
+					else
+
+						//todo add some attribute to a sink that prevents inheriting sinks
+						if ("sink".equals(nodeName))
+						{
+							//need to map to a list of sinks as there can be more than one
+							Element sinkElm = (Element) node;
+							String ref = sinkElm.getAttribute("ref");
+
+							addSinkToPath(ref, path);
+						}
+						else if ("collector".equals(nodeName))
+						{
+							Element collectorElm = (Element) node;
+							String ref = collectorElm.getAttribute("ref");
+
+							addCollectorToPath(ref, path);
+						}
+						else if ("formatter".equals(nodeName))
+						{
+							Element collectorElm = (Element) node;
+							String ref = collectorElm.getAttribute("ref");
+
+							addFormatterToPath(ref, path);
+						}
+						else if ("trigger".equals(nodeName))
+						{
+							Element triggerElm = (Element) node;
+							String ref = triggerElm.getAttribute("ref");
+
+							addTriggerToPath(ref, path);
+						}
+						else
+						{
+							throw new ConfigurationException("Unknown configuration element: " + nodeName);
+						}
 				}
 
-				//todo add some attribute to a sink that prevents inheriting sinks
-				if ("sink".equals(nodeName))
-				{
-					//need to map to a list of sinks as there can be more than one
-					Element sinkElm = (Element)node;
-					String ref = sinkElm.getAttribute("ref");
-
-					SinkQueue sinkQueue = m_sinks.get(ref);
-					if (sinkQueue == null)
-						throw new MissingReferenceException("sink", ref);
-
-					//todo allow to map sinks/collectors/formatters/triggers through public api call for unit tests
-					List<SinkQueue> sinkQueues = m_mappedSinks.computeIfAbsent(path, (k) -> new ArrayList<>());
-					sinkQueues.add(sinkQueue);
-				}
-
-				if ("collector".equals(nodeName))
-				{
-					Element collectorElm = (Element)node;
-					String ref = collectorElm.getAttribute("ref");
-
-					Collector collector = m_collectors.get(ref);
-					if (collector == null)
-						throw new MissingReferenceException("collector", ref);
-
-					m_mappedCollectors.put(path, collector);
-				}
-
-				if ("formatter".equals(nodeName))
-				{
-					Element collectorElm = (Element)node;
-					String ref = collectorElm.getAttribute("ref");
-
-					Formatter formatter = m_formatters.get(ref);
-					if (formatter == null)
-						throw new MissingReferenceException("formatter", ref);
-
-					m_mappedFormatters.put(path, formatter);
-				}
-
-				if ("trigger".equals(nodeName))
-				{
-					Element triggerElm = (Element)node;
-					String ref = triggerElm.getAttribute("ref");
-
-					TriggerMetricCollection trigger = m_triggers.get(ref);
-					if (trigger == null)
-						throw new MissingReferenceException("trigger", ref);
-
-					m_mappedTriggers.put(path, trigger);
-				}
 
 			}
 		}
@@ -235,7 +224,7 @@ public class MetricConfig
 	}
 
 
-	private MetricConfig()
+	/*package*/ MetricConfig()
 	{
 		m_sinks = new HashMap<>();
 		m_collectors = new HashMap<>();
@@ -246,6 +235,44 @@ public class MetricConfig
 		m_mappedFormatters = new HashMap<>();
 		m_mappedSinks = new HashMap<>();
 		m_mappedTriggers = new HashMap<>();
+	}
+
+	public void addCollectorToPath(String name, List<String> path)
+	{
+		Collector collector = m_collectors.get(name);
+		if (collector == null)
+			throw new MissingReferenceException("collector", name);
+
+		List<Collector> collectors = m_mappedCollectors.computeIfAbsent(path, (k) -> new ArrayList<>());
+		collectors.add(collector);
+	}
+
+	public void addSinkToPath(String name, List<String> path)
+	{
+		SinkQueue sinkQueue = m_sinks.get(name);
+		if (sinkQueue == null)
+			throw new MissingReferenceException("sink", name);
+
+		List<SinkQueue> sinkQueues = m_mappedSinks.computeIfAbsent(path, (k) -> new ArrayList<>());
+		sinkQueues.add(sinkQueue);
+	}
+
+	public void addFormatterToPath(String name, List<String> path)
+	{
+		Formatter formatter = m_formatters.get(name);
+		if (formatter == null)
+			throw new MissingReferenceException("formatter", name);
+
+		m_mappedFormatters.put(path, formatter);
+	}
+
+	public void addTriggerToPath(String name, List<String> path)
+	{
+		TriggerMetricCollection trigger = m_triggers.get(name);
+		if (trigger == null)
+			throw new MissingReferenceException("trigger", name);
+
+		m_mappedTriggers.put(path, trigger);
 	}
 
 	public void registerSink(String name, MetricSink sink)
@@ -277,6 +304,7 @@ public class MetricConfig
 		return m_sinks.get(name).getSink();
 	}
 
+
 	private <R> R findObject(ArgKey key, Function<List<String>, R> getter)
 	{
 		R ret = null;
@@ -292,9 +320,19 @@ public class MetricConfig
 		return ret;
 	}
 
-	public Collector getCollectorForKey(ArgKey key)
+	public Iterator<Collector> getCollectorsForKey(ArgKey key)
 	{
-		return findObject(key, m_mappedCollectors::get);
+		List<Collector> ret = new ArrayList<>();
+		List<String> configPath = key.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+			List<Collector> collectors = m_mappedCollectors.get(searchPath);
+			if (collectors != null)
+				ret.addAll(collectors);
+		}
+
+		return ret.iterator();
 	}
 
 	public Formatter getFormatterForKey(ArgKey key)

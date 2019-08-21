@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -39,7 +40,7 @@ public class IntervalTrigger implements Trigger, Runnable
 	{
 		try
 		{
-			m_collection.reportMetrics();
+			m_collection.reportMetrics(Instant.now());
 		}
 		catch (Throwable e)
 		{

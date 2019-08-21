@@ -1,13 +1,16 @@
 package org.kairosdb.metrics4j.collectors;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Duration;
 
-public class SimpleMetric implements DurationCollector, ReportableMetric
+@XmlRootElement(name = "collector")
+public class SimpleTimerMetric extends TimerCollector implements DurationCollector, ReportableMetric
 {
 	private long m_min;
 	private long m_max;
@@ -15,7 +18,7 @@ public class SimpleMetric implements DurationCollector, ReportableMetric
 	private long m_count;
 	private final Object m_dataLock = new Object();
 
-	public SimpleMetric()
+	public SimpleTimerMetric()
 	{
 		clear();
 	}
@@ -48,7 +51,7 @@ public class SimpleMetric implements DurationCollector, ReportableMetric
 		return m_count;
 	}
 
-	public Data getAndClear()
+	private Data getAndClear()
 	{
 		synchronized (m_dataLock)
 		{
@@ -79,6 +82,7 @@ public class SimpleMetric implements DurationCollector, ReportableMetric
 	{
 
 	}
+
 
 	@Override
 	public Collector clone()

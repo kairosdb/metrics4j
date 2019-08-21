@@ -27,6 +27,15 @@ public class MetricSourceManager
 
 	private static MetricConfig s_metricConfig;
 
+	/**
+	 For testing purposes only, not to be used in production
+	 @param config
+	 */
+	public static void setMetricConfig(MetricConfig config)
+	{
+		s_metricConfig = config;
+	}
+
 	public static MetricConfig getMetricConfig()
 	{
 		if (s_metricConfig == null)
