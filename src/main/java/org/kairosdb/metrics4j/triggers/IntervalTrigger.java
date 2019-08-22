@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Instant;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 @XmlRootElement(name = "trigger")
@@ -32,7 +33,16 @@ public class IntervalTrigger implements Trigger, Runnable
 	@Override
 	public void init(MetricsContext context)
 	{
-		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this, m_delay, m_delay, m_unit);
+		Executors.newSingleThreadScheduledExecutor(new ThreadFactory()
+		{
+			@Override
+			public Thread newThread(Runnable r)
+			{
+				Thread t = Executors.defaultThreadFactory().newThread(r);
+				t.setDaemon(true);
+				return t;
+			}
+		}).scheduleAtFixedRate(this, m_delay, m_delay, m_unit);
 	}
 
 	@Override
