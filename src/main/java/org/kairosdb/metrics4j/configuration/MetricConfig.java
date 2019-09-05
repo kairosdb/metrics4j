@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.configuration;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.NeverTrigger;
 import org.kairosdb.metrics4j.internal.SinkQueue;
 import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
 import org.kairosdb.metrics4j.sinks.MetricSink;
@@ -357,7 +358,13 @@ public class MetricConfig
 
 	public TriggerMetricCollection getTriggerForKey(ArgKey key)
 	{
-		return findObject(key, m_mappedTriggers::get);
+		TriggerMetricCollection triggerMetricCollection = findObject(key, m_mappedTriggers::get);
+		if (triggerMetricCollection == null)
+		{
+			triggerMetricCollection = new TriggerMetricCollection(new NeverTrigger());
+		}
+
+		return triggerMetricCollection;
 	}
 
 

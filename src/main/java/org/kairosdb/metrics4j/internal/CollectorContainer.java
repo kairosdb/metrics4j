@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class CollectorContainer
 {
@@ -21,7 +22,7 @@ public class CollectorContainer
 
 	public CollectorContainer(Collector collector, ArgKey argKey)
 	{
-		m_collector = collector;
+		m_collector = Objects.requireNonNull(collector);
 		m_argKey = argKey;
 		m_sinkQueueList = new ArrayList<>();
 	}

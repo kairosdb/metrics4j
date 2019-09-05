@@ -38,8 +38,8 @@ public class Slf4JMetricSink implements MetricSink
 	{
 		for (ReportedMetric metric : metrics)
 		{
-			m_logWrapper.log("metric={}.{}, time={}, value={}", metric.getMetricName(),
-					metric.getFieldName(), metric.getTime(), metric.getValue().getValueAsString());
+			m_logWrapper.log("metric={}, time={}, value={}", metric.getMetricName(),
+					metric.getTime(), metric.getValue().getValueAsString());
 		}
 	}
 
