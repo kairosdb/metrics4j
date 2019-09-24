@@ -5,12 +5,11 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class SimpleStats implements LongCollector, ReportableMetric
+public class SimpleStats implements LongCollector, MetricCollector
 {
 	private long m_min;
 	private long m_max;

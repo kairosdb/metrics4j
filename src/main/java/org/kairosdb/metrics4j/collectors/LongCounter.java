@@ -3,21 +3,29 @@ package org.kairosdb.metrics4j.collectors;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 
 
 @XmlRootElement(name = "collector")
-public class LongCounter implements LongCollector, ReportableMetric
+public class LongCounter implements LongCollector, MetricCollector
 {
 	private final AtomicLong m_count = new AtomicLong(0);
 
-	public LongCounter()
+	@XmlAttribute(name = "reset")
+	private boolean m_reset = false;
+
+	public LongCounter(boolean reset)
 	{
 		super();
+		m_reset = reset;
+	}
+
+	public LongCounter()
+	{
+		this(false);
 	}
 
 	/*@XmlElement
@@ -41,7 +49,14 @@ public class LongCounter implements LongCollector, ReportableMetric
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
 	{
-		metricReporter.put("count", new LongValue(m_count.longValue()));
+		long value;
+
+		if (m_reset)
+			value = m_count.getAndSet(0);
+		else
+			value = m_count.longValue();
+
+		metricReporter.put("count", new LongValue(value));
 	}
 
 	@Override
@@ -53,6 +68,6 @@ public class LongCounter implements LongCollector, ReportableMetric
 	@Override
 	public Collector clone()
 	{
-		return new LongCounter();
+		return new LongCounter(m_reset);
 	}
 }

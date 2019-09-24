@@ -1,9 +1,13 @@
 package org.kairosdb.metrics4j;
 
+import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.CollectorContainer;
+import org.kairosdb.metrics4j.internal.CustomArgKey;
+import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
-import org.kairosdb.metrics4j.collectors.ReportableMetric;
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
@@ -55,6 +59,14 @@ public class MetricSourceManager
 		return s_metricConfig;
 	}
 
+	public static void registerMetricCollector(MetricCollector collector)
+	{
+		ArgKey key = new CustomArgKey(collector);
+		CollectorContainer container = new CollectorContainer(collector, key);
+
+		s_metricConfig.assignCollector(key, container);
+	}
+
 	public static <T> T getSource(Class<T> tClass)
 	{
 		//Need to create invocationHandler for tClass using
@@ -103,13 +115,13 @@ public class MetricSourceManager
 		a collectors object for a specific metric call.  See the unit tests
 		in ReporterFactoryTest to see how to use this method.
 	*/
-	public static <T> T setCollectorForSource(ReportableMetric stats, Class<T> reporterClass)
+	public static <T> T setCollectorForSource(MetricCollector stats, Class<T> reporterClass)
 	{
 		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
 
 		Object proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
 				(proxy, method, args) -> {
-					handler.setCollector(new ArgKey(method, args), stats);
+					handler.setCollector(new MethodArgKey(method, args), stats);
 					return null;
 				});
 

@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
 import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
@@ -14,13 +15,13 @@ import java.util.Objects;
 
 public class CollectorContainer
 {
-	private final Collector m_collector;
+	private final MetricCollector m_collector;
 	private final ArgKey m_argKey;
 	private Formatter m_formatter;
 	private List<SinkQueue> m_sinkQueueList;
 	private Map<String, String> m_tags;
 
-	public CollectorContainer(Collector collector, ArgKey argKey)
+	public CollectorContainer(MetricCollector collector, ArgKey argKey)
 	{
 		m_collector = Objects.requireNonNull(collector);
 		m_argKey = argKey;
@@ -44,6 +45,16 @@ public class CollectorContainer
 		return m_sinkQueueList;
 	}
 
+	private void formatAndSink(ReportedMetric metric)
+	{
+		m_formatter.formatReportedMetric(metric);
+
+		for (SinkQueue sinkQueue : m_sinkQueueList)
+		{
+			sinkQueue.addMetric(metric);
+		}
+	}
+
 	public void reportMetrics(Instant now)
 	{
 		m_collector.reportMetric(new MetricReporter()
@@ -53,18 +64,27 @@ public class CollectorContainer
 			{
 				ReportedMetric reportedMetric = new ReportedMetricImpl();
 				reportedMetric.setTime(now)
-						.setClassName(m_argKey.getMethod().getDeclaringClass().getName())
-						.setMethodName(m_argKey.getMethod().getName())
+						.setClassName(m_argKey.getClassName())
+						.setMethodName(m_argKey.getMethodName())
 						.setTags(m_tags)
 						.setFieldName(field)
 						.setValue(value);
 
-				m_formatter.formatReportedMetric(reportedMetric);
+				formatAndSink(reportedMetric);
+			}
 
-				for (SinkQueue sinkQueue : m_sinkQueueList)
-				{
-					sinkQueue.addMetric(reportedMetric);
-				}
+			@Override
+			public void put(String field, MetricValue value, Instant time)
+			{
+				ReportedMetric reportedMetric = new ReportedMetricImpl();
+				reportedMetric.setTime(time)
+						.setClassName(m_argKey.getClassName())
+						.setMethodName(m_argKey.getMethodName())
+						.setTags(m_tags)
+						.setFieldName(field)
+						.setValue(value);
+
+				formatAndSink(reportedMetric);
 			}
 		});
 

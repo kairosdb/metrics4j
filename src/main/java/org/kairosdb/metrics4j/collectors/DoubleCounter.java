@@ -3,11 +3,8 @@ package org.kairosdb.metrics4j.collectors;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
-import java.util.Collections;
-
-public class DoubleCounter implements DoubleCollector, ReportableMetric
+public class DoubleCounter implements DoubleCollector, MetricCollector
 {
 	private double m_count;
 	private Object m_counterLock = new Object();

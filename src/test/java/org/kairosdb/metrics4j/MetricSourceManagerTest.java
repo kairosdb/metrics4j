@@ -56,14 +56,14 @@ class MetricSourceManagerTest
 		TestCallReport callReport = new TestCallReport();
 
 		//mock the counter and register it with ReporterFactory for a specific call
-		LongCounter myCounter = mock(LongCounter.class);
-		MetricSourceManager.setCollectorForSource(myCounter, TestMetricSource.class).reportSize("localhost");
+		LongCollector myCollector = mock(LongCollector.class);
+		MetricSourceManager.setCollectorForSource(myCollector, TestMetricSource.class).reportSize("localhost");
 
 		//Run test class method that will report a value
 		callReport.callReport("localhost", 42);
 
 		//Verify value was called on mock
-		verify(myCounter).put(42);
+		verify(myCollector).put(42);
 	}
 
 	public interface TestMetric

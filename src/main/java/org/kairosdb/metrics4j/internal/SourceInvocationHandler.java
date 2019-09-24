@@ -1,7 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
 import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.ReportableMetric;
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class SourceInvocationHandler implements InvocationHandler
 {
 	private static Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
 
-	private final Map<ArgKey, ReportableMetric> m_statsMap = new ConcurrentHashMap<>();
+	private final Map<MethodArgKey, MetricCollector> m_statsMap = new ConcurrentHashMap<>();
 	private final MetricConfig m_config;
 
 	public SourceInvocationHandler(MetricConfig config)
@@ -28,15 +28,15 @@ public class SourceInvocationHandler implements InvocationHandler
 
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
 	{
-		ArgKey key = new ArgKey(method, args);
+		MethodArgKey key = new MethodArgKey(method, args);
 
-		ReportableMetric ret = m_statsMap.computeIfAbsent(key, (ArgKey k) ->
+		MetricCollector ret = m_statsMap.computeIfAbsent(key, (MethodArgKey k) ->
 				lookupCollectorClass(k));
 
 		return ret;
 	}
 
-	public void setCollector(ArgKey key, ReportableMetric statsObject)
+	public void setCollector(MethodArgKey key, MetricCollector statsObject)
 	{
 		Class<?> returnType = key.getMethod().getReturnType();
 
@@ -49,7 +49,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		m_statsMap.put(key, statsObject);
 	}
 
-	private ReportableMetric lookupCollectorClass(ArgKey key)
+	private MetricCollector lookupCollectorClass(MethodArgKey key)
 	{
 		Class<?> returnType = key.getMethod().getReturnType();
 		Collector ret = null;
@@ -75,15 +75,7 @@ public class SourceInvocationHandler implements InvocationHandler
 
 				collectorContainer.setTags(key.getTags());
 
-				Formatter formatter = m_config.getFormatterForKey(key);
-				if (formatter != null)
-					collectorContainer.setFormatter(formatter);
-
-				List<SinkQueue> sinkQueues = m_config.getSinkQueues(key);
-				collectorContainer.addSinkQueue(sinkQueues);
-
-				TriggerMetricCollection trigger = m_config.getTriggerForKey(key);
-				trigger.addCollector(collectorContainer);
+				m_config.assignCollector(key, collectorContainer);
 			}
 			/*else
 			{

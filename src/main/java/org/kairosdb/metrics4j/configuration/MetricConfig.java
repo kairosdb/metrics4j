@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.configuration;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.CollectorContainer;
 import org.kairosdb.metrics4j.internal.NeverTrigger;
 import org.kairosdb.metrics4j.internal.SinkQueue;
 import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
@@ -23,9 +24,14 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,11 +48,14 @@ public class MetricConfig
 	private final Map<String, Collector> m_collectors;
 	private final Map<String, Formatter> m_formatters;
 	private final Map<String, TriggerMetricCollection> m_triggers;
+
 	private final Map<List<String>, List<SinkQueue>> m_mappedSinks;
 	private final Map<List<String>, List<Collector>> m_mappedCollectors;
 	private final Map<List<String>, Formatter> m_mappedFormatters;
 	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
+
 	private final MetricsContext m_context;
+	private final List<Closeable> m_closeables;
 
 	private static Element getFirstElement(Element parent, String tag)
 	{
@@ -68,14 +77,22 @@ public class MetricConfig
 
 		try
 		{
-			Class<?> pluginClass = MetricConfig.class.getClassLoader().loadClass(className);
+			ClassLoader pluginLoader = MetricConfig.class.getClassLoader();
+
+			String pluginFolder = classConfig.getAttribute("folder");
+			if (!pluginFolder.isEmpty())
+			{
+				pluginLoader = new PluginClassLoader(getJarsInPath(pluginFolder), pluginLoader);
+			}
+
+			Class<?> pluginClass = pluginLoader.loadClass(className);
 			JAXBContext context = JAXBContext.newInstance(pluginClass);
 
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 
 			ret = (T) unmarshaller.unmarshal(classConfig);
 		}
-		catch (ClassNotFoundException cnfe)
+		catch (ClassNotFoundException | MalformedURLException e)
 		{
 			throw new ConfigurationException("Unable to locate class '"+className+"' for configuration element '"+classConfig.getTagName()+"'");
 		}
@@ -83,7 +100,27 @@ public class MetricConfig
 		return ret;
 	}
 
-	private static <T> void registerStuff(Element parent, String childName, BiConsumer<String, T> register) throws JAXBException
+	private static URL[] getJarsInPath(String path) throws MalformedURLException
+	{
+		List<URL> jars = new ArrayList<URL>();
+		File libDir = new File(path);
+		File[] fileList = libDir.listFiles();
+		if(fileList != null)
+		{
+			for (File f : fileList)
+			{
+				if (f.getName().endsWith(".jar"))
+				{
+					jars.add(f.toURI().toURL());
+				}
+			}
+		}
+
+		//System.out.println(jars);
+		return jars.toArray(new URL[0]);
+	}
+
+	private <T> void registerStuff(Element parent, String childName, BiConsumer<String, T> register) throws JAXBException
 	{
 		NodeList childList = parent.getElementsByTagName(childName);
 
@@ -93,14 +130,21 @@ public class MetricConfig
 			T classInstance = loadClass(classElement);
 
 			register.accept(classElement.getAttribute("name"), classInstance);
+
+			if (classInstance instanceof Closeable)
+			{
+				m_closeables.add((Closeable)classInstance);
+			}
 		}
 	}
 
-	private static List<String> appendSourceName(List<String> parent, String child)
+	/*package*/ static List<String> appendSourceName(List<String> parent, String child)
 	{
 		List<String> copy = new ArrayList<>(parent);
 
-		copy.add(child);
+		String[] splitNames = child.split("\\.");
+
+		copy.addAll(Arrays.asList(splitNames));
 		return copy;
 	}
 
@@ -132,42 +176,39 @@ public class MetricConfig
 
 						parseSources(element, appendSourceName(path, name));
 					}
+					else if ("sink".equals(nodeName)) //todo add some attribute to a sink that prevents inheriting sinks
+					{
+						//need to map to a list of sinks as there can be more than one
+						Element sinkElm = (Element) node;
+						String ref = sinkElm.getAttribute("ref");
+
+						addSinkToPath(ref, path);
+					}
+					else if ("collector".equals(nodeName))
+					{
+						Element collectorElm = (Element) node;
+						String ref = collectorElm.getAttribute("ref");
+
+						addCollectorToPath(ref, path);
+					}
+					else if ("formatter".equals(nodeName))
+					{
+						Element collectorElm = (Element) node;
+						String ref = collectorElm.getAttribute("ref");
+
+						addFormatterToPath(ref, path);
+					}
+					else if ("trigger".equals(nodeName))
+					{
+						Element triggerElm = (Element) node;
+						String ref = triggerElm.getAttribute("ref");
+
+						addTriggerToPath(ref, path);
+					}
 					else
-
-						//todo add some attribute to a sink that prevents inheriting sinks
-						if ("sink".equals(nodeName))
-						{
-							//need to map to a list of sinks as there can be more than one
-							Element sinkElm = (Element) node;
-							String ref = sinkElm.getAttribute("ref");
-
-							addSinkToPath(ref, path);
-						}
-						else if ("collector".equals(nodeName))
-						{
-							Element collectorElm = (Element) node;
-							String ref = collectorElm.getAttribute("ref");
-
-							addCollectorToPath(ref, path);
-						}
-						else if ("formatter".equals(nodeName))
-						{
-							Element collectorElm = (Element) node;
-							String ref = collectorElm.getAttribute("ref");
-
-							addFormatterToPath(ref, path);
-						}
-						else if ("trigger".equals(nodeName))
-						{
-							Element triggerElm = (Element) node;
-							String ref = triggerElm.getAttribute("ref");
-
-							addTriggerToPath(ref, path);
-						}
-						else
-						{
-							throw new ConfigurationException("Unknown configuration element: " + nodeName);
-						}
+					{
+						throw new ConfigurationException("Unknown configuration element: " + nodeName);
+					}
 				}
 
 
@@ -200,16 +241,16 @@ public class MetricConfig
 			{
 				//Parse out the sinks
 				Element sinks = getFirstElement(root, "sinks");
-				registerStuff(sinks, "sink", ret::registerSink);
+				ret.registerStuff(sinks, "sink", ret::registerSink);
 
 				Element collectors = getFirstElement(root, "collectors");
-				registerStuff(collectors, "collector", ret::registerCollector);
+				ret.registerStuff(collectors, "collector", ret::registerCollector);
 
 				Element formatters = getFirstElement(root, "formatters");
-				registerStuff(formatters, "formatter", ret::registerFormatter);
+				ret.registerStuff(formatters, "formatter", ret::registerFormatter);
 
 				Element triggers = getFirstElement(root, "triggers");
-				registerStuff(triggers, "trigger", ret::registerTrigger);
+				ret.registerStuff(triggers, "trigger", ret::registerTrigger);
 
 				//todo parse through sources and add them to a map
 				ret.parseSources(getFirstElement(root, "sources"), new ArrayList<>());
@@ -236,6 +277,27 @@ public class MetricConfig
 		m_mappedFormatters = new HashMap<>();
 		m_mappedSinks = new HashMap<>();
 		m_mappedTriggers = new HashMap<>();
+		m_closeables = new ArrayList<>();
+
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+
+				for (Closeable closeable : m_closeables)
+				{
+					try
+					{
+						closeable.close();
+					}
+					catch (Exception e)
+					{
+						log.error("Error closing "+closeable.getClass().getName(), e);
+					}
+				}
+			}
+		}));
 	}
 
 	public void addCollectorToPath(String name, List<String> path)
@@ -388,5 +450,18 @@ public class MetricConfig
 	public MetricsContext getContext()
 	{
 		return m_context;
+	}
+
+	public void assignCollector(ArgKey key, CollectorContainer collectorContainer)
+	{
+		Formatter formatter = getFormatterForKey(key);
+		if (formatter != null)
+			collectorContainer.setFormatter(formatter);
+
+		List<SinkQueue> sinkQueues = getSinkQueues(key);
+		collectorContainer.addSinkQueue(sinkQueues);
+
+		TriggerMetricCollection trigger = getTriggerForKey(key);
+		trigger.addCollector(collectorContainer);
 	}
 }

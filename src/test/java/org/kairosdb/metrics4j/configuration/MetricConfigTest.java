@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.kairosdb.metrics4j.configuration.MetricConfig.appendSourceName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -123,5 +124,15 @@ class MetricConfigTest
 		LongCounter counter2 = source.countSomethingElse();
 
 		assertThat(counter1).isNotEqualTo(counter2);
+	}
+
+	@Test
+	public void test_appendSourceName()
+	{
+		List<String> path = createPath("org", "kairosdb");
+
+		List<String> newPath = appendSourceName(path, "test.MyClass.myMethod");
+
+		assertThat(newPath).containsExactly("org", "kairosdb", "test", "MyClass", "myMethod");
 	}
 }

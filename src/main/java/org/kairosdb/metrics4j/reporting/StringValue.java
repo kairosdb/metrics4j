@@ -2,25 +2,20 @@ package org.kairosdb.metrics4j.reporting;
 
 import java.util.Objects;
 
-public class LongValue extends MetricValue
+public class StringValue extends MetricValue
 {
-	private final long m_value;
+	private final String m_value;
 
-	public LongValue(long value)
+	public StringValue(String value)
 	{
-		super(TYPE_LONG);
+		super(TYPE_STRING);
 		m_value = value;
-	}
-
-	public long getValue()
-	{
-		return m_value;
 	}
 
 	@Override
 	public String getValueAsString()
 	{
-		return String.valueOf(m_value);
+		return m_value;
 	}
 
 	@Override
@@ -28,8 +23,8 @@ public class LongValue extends MetricValue
 	{
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		LongValue longValue = (LongValue) o;
-		return m_value == longValue.m_value;
+		StringValue that = (StringValue) o;
+		return Objects.equals(m_value, that.m_value);
 	}
 
 	@Override

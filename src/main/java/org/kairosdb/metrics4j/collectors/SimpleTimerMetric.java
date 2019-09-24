@@ -5,7 +5,6 @@ import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -13,7 +12,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 @XmlRootElement(name = "collector")
-public class SimpleTimerMetric extends TimerCollector implements DurationCollector, ReportableMetric
+public class SimpleTimerMetric extends TimerCollector implements DurationCollector, MetricCollector
 {
 	private Duration m_min;
 	private Duration m_max;

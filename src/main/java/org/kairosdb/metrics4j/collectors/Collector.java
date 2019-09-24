@@ -6,7 +6,7 @@ import org.kairosdb.metrics4j.PostConstruct;
 /**
  All collectors must be thread safe
  */
-public interface Collector extends PostConstruct, ReportableMetric
+public interface Collector extends PostConstruct, MetricCollector
 {
 	/**
 	 The first instance of a collector is unmarshalled from configuration using
