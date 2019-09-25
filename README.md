@@ -173,7 +173,7 @@ component you are including.  The folder attribute defines a location to find ja
 files that contain the component (collector, sink, etc).  These jars are loaded
 in a separate class loader and isolated to prevent conflicts.
 
-###Sources
+### Sources
 The purpose of sources is to associate a sink/collector/formatter/trigger with 
 the various sources of metrics throughout the application.
 
@@ -224,41 +224,41 @@ For each source (reportSize()) you can define a collector, a trigger, a formatte
 zero or more sinks.
 
 
-###Sinks
+### Sinks
 A sink defines a destination to send the metrics to.
 
-####Slf4JMetricSink
+#### Slf4JMetricSink
 Reports metrics to an Slf4j logger.  The logLevel attribute controls the log level.
 
-####TelnetSink
+#### TelnetSink
 
 
-###Collectors
+### Collectors
 A collector defines how to collect values from a source.  For reportSize() I could
 use a LongCounter or a LongGauge.  When looking for a collector for a source metrics4j
 will match the type so if you define both a LongCounter and a DoubleCounter it will 
 know to grab the LongCounter as it inherits from LongCollector.
 
-####DoubleCounter
+#### DoubleCounter
 
 
-####LongCounter
+#### LongCounter
 Counts up values to be reported.  The counter can be reset when values are reported
 by setting reset="true" in the xml
 
-####LongGauge
+#### LongGauge
 Simple gauge that reports the most recently received value.
 
-####SimpleStats
+#### SimpleStats
 This reports the min, max, sum, count and avg for the set of values received since
 last reporting.
 
-####SimpleTimerMetric
+#### SimpleTimerMetric
 
 
-####StringReporter
+#### StringReporter
 
-###Formatters
+### Formatters
 A formatter can change just about anything on a metric before it is reported.  
 The primary purpose is to format the name to your liking ie. underscore vs period
 in the name.  A formatter can also change the tags, timestamp and value.
@@ -274,11 +274,11 @@ field and specific tags.
   template="metric4j.${className}.${methodName}.${tag.status}.${field}"/>
 ```
 
-###Triggers
+### Triggers
 The trigger tells metrics4j when to gather the metrics from the collectors and 
 report to the sinks.
 
-####IntervalTrigger
+#### IntervalTrigger
 The IntervalTrigger lets you set a time for how often metrics are reported.  The
 following reports metrics every 5 seconds.  Units can be anything as specified in the
 java.util.concurrent.TimeUnit class.
