@@ -50,6 +50,7 @@ public class IntervalTrigger implements Trigger, Runnable
 	{
 		try
 		{
+			log.debug("Trigger collecting metrics");
 			m_collection.reportMetrics(Instant.now());
 		}
 		catch (Throwable e)

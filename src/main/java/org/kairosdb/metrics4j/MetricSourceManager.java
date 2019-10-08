@@ -38,6 +38,7 @@ public class MetricSourceManager
 	public static void setMetricConfig(MetricConfig config)
 	{
 		s_metricConfig = config;
+		s_invocationMap.clear();
 	}
 
 	public static MetricConfig getMetricConfig()
@@ -45,10 +46,11 @@ public class MetricSourceManager
 		if (s_metricConfig == null)
 		{
 			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			InputStream propertiesInputStream = contextClassLoader.getResourceAsStream("metrics4j.properties");
 			InputStream configInputStream = contextClassLoader.getResourceAsStream("metrics4j.xml");
 			try
 			{
-				s_metricConfig = MetricConfig.parseConfig(configInputStream);
+				s_metricConfig = MetricConfig.parseConfig(propertiesInputStream, configInputStream);
 			}
 			catch (Exception e)
 			{

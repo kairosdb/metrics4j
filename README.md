@@ -173,6 +173,11 @@ component you are including.  The folder attribute defines a location to find ja
 files that contain the component (collector, sink, etc).  These jars are loaded
 in a separate class loader and isolated to prevent conflicts.
 
+#### Configuration Parameters
+
+For any attribute or element value you can insert a parameter surrounded by ${ } that
+will be replaced by either a properties value or an environment value.
+
 ### Sources
 The purpose of sources is to associate a sink/collector/formatter/trigger with 
 the various sources of metrics throughout the application.
@@ -211,8 +216,8 @@ attribute is a dot delimited path or you can specify one path component per sour
 					<collector ref="Counter"/>
 				</source>
 			</source>
-		</source
-	<sources>
+		</source>
+	</sources>
 	...
 </metrics4j>
 ```
@@ -223,6 +228,30 @@ that is convenient for you.
 For each source (reportSize()) you can define a collector, a trigger, a formatter and 
 zero or more sinks.
 
+#### Additional tags
+At any level of the sources element you can add a tags element to define tags you 
+wish associated with the metrics at that level.
+
+```xml
+<metrics4j>
+	<sources>
+		<tags>
+			<tag key="host" value="localhost"/>
+		</tags>
+		<source name="org">
+			<source name="kairosdb">
+				<tags>
+					<tag key="host" value="localhost_override"/>
+				</tags>
+			</source>
+		</source>
+	</sources>
+	...
+</metrics4j>
+```
+
+The above example sets tags a two different levels and the more nested overrides
+those towards the root.
 
 ### Sinks
 A sink defines a destination to send the metrics to.

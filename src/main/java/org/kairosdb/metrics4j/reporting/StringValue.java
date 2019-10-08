@@ -32,4 +32,12 @@ public class StringValue extends MetricValue
 	{
 		return Objects.hash(m_value);
 	}
+
+	@Override
+	public String toString()
+	{
+		return "StringValue{" +
+				"value='" + m_value + '\'' +
+				'}';
+	}
 }

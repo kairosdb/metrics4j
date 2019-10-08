@@ -3,15 +3,15 @@ package org.kairosdb.metrics4j.internal;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
-import org.kairosdb.metrics4j.formatters.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SourceInvocationHandler implements InvocationHandler
@@ -64,7 +64,6 @@ public class SourceInvocationHandler implements InvocationHandler
 			 If the key matches exactly the collector then we error if it doesn't
 			 match the return type
 			 */
-
 			if (returnType.isInstance(collector))
 			{
 				//Need to make a copy specific to this method arguments
@@ -73,7 +72,9 @@ public class SourceInvocationHandler implements InvocationHandler
 				//associate collector with
 				CollectorContainer collectorContainer = new CollectorContainer(ret, key);
 
-				collectorContainer.setTags(key.getTags());
+				Map<String, String> tags = new HashMap<>(key.getTags());
+				tags.putAll(m_config.getTagsForKey(key));
+				collectorContainer.setTags(tags);
 
 				m_config.assignCollector(key, collectorContainer);
 			}

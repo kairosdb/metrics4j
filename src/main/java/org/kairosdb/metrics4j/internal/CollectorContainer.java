@@ -47,7 +47,8 @@ public class CollectorContainer
 
 	private void formatAndSink(ReportedMetric metric)
 	{
-		m_formatter.formatReportedMetric(metric);
+		if (m_formatter != null)
+			m_formatter.formatReportedMetric(metric);
 
 		for (SinkQueue sinkQueue : m_sinkQueueList)
 		{

@@ -129,4 +129,18 @@ public class ReportedMetricImpl implements ReportedMetric
 	{
 		return Objects.hash(m_time, m_metricName, m_className, m_methodName, m_tags, m_fieldName, m_value);
 	}
+
+	@Override
+	public String toString()
+	{
+		return "ReportedMetricImpl{" +
+				"m_time=" + m_time +
+				", m_metricName='" + m_metricName + '\'' +
+				", m_className='" + m_className + '\'' +
+				", m_methodName='" + m_methodName + '\'' +
+				", m_tags=" + m_tags +
+				", m_fieldName='" + m_fieldName + '\'' +
+				", m_value=" + m_value +
+				'}';
+	}
 }

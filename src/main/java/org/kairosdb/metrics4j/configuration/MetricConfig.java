@@ -4,6 +4,7 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
+import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.NeverTrigger;
 import org.kairosdb.metrics4j.internal.SinkQueue;
 import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
@@ -12,10 +13,13 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.triggers.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
@@ -36,14 +40,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MetricConfig
 {
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
+	private static final Pattern formatPattern = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
+	private Properties m_properties = new Properties();
 	private final Map<String, SinkQueue> m_sinks;
 	private final Map<String, Collector> m_collectors;
 	private final Map<String, Formatter> m_formatters;
@@ -54,8 +63,13 @@ public class MetricConfig
 	private final Map<List<String>, Formatter> m_mappedFormatters;
 	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 
+	private final Map<List<String>, Map<String, String>> m_mappedTags;
+
 	private final MetricsContext m_context;
 	private final List<Closeable> m_closeables;
+
+	private boolean m_shutdownOverride = false;
+
 
 	private static Element getFirstElement(Element parent, String tag)
 	{
@@ -70,7 +84,64 @@ public class MetricConfig
 		return (Element)ret;
 	}
 
-	private static <T> T loadClass(Element classConfig) throws JAXBException
+	private String formatValue(String value)
+	{
+		Matcher matcher = formatPattern.matcher(value);
+		StringBuilder sb = new StringBuilder();
+
+		int endLastMatch = 0;
+		while (matcher.find())
+		{
+			int start = matcher.start();
+			int end = matcher.end();
+
+			if (start != endLastMatch)
+			{
+				sb.append(value.substring(endLastMatch, start));
+			}
+
+			String token = matcher.group(1);
+
+			//todo look for values from properties file and from env
+			sb.append(m_properties.getProperty(token, "NOTHERE"));
+
+			endLastMatch = end;
+		}
+
+		sb.append(value.substring(endLastMatch));
+
+		return sb.toString();
+	}
+
+	private void processElement(Element classConfig)
+	{
+		NamedNodeMap attributes = classConfig.getAttributes();
+
+		for (int i = 0; i < attributes.getLength(); i++)
+		{
+			Attr attribute = (Attr)attributes.item(i);
+
+			attribute.setValue(formatValue(attribute.getValue()));
+		}
+
+
+		NodeList childNodes = classConfig.getChildNodes();
+
+		for (int i = 0; i < childNodes.getLength(); i++)
+		{
+			Node child = childNodes.item(i);
+			if (child instanceof Element)
+				processElement((Element)child);
+
+			if (child instanceof Text)
+			{
+				Text txtChild = (Text) child;
+				txtChild.replaceWholeText(formatValue(txtChild.getWholeText()));
+			}
+		}
+	}
+
+	private <T> T loadClass(Element classConfig) throws JAXBException
 	{
 		T ret = null;
 		String className = classConfig.getAttribute("class");
@@ -79,7 +150,10 @@ public class MetricConfig
 		{
 			ClassLoader pluginLoader = MetricConfig.class.getClassLoader();
 
+			processElement(classConfig);
+
 			String pluginFolder = classConfig.getAttribute("folder");
+
 			if (!pluginFolder.isEmpty())
 			{
 				pluginLoader = new PluginClassLoader(getJarsInPath(pluginFolder), pluginLoader);
@@ -205,6 +279,28 @@ public class MetricConfig
 
 						addTriggerToPath(ref, path);
 					}
+					else if ("tags".equals(nodeName))
+					{
+						Element tagsElm = (Element) node;
+						NodeList tags = tagsElm.getChildNodes();
+
+						Map<String, String> pathTags = m_mappedTags.computeIfAbsent(path, (k) -> new HashMap<>());
+
+						for (int j = 0; j < tags.getLength(); j++)
+						{
+							Node tag = tags.item(j);
+
+							if (tag instanceof Element)
+							{
+								Element tagElm = (Element)tag;
+
+								String key = tagElm.getAttribute("key");
+								String value = tagElm.getAttribute("value");
+
+								pathTags.put(key, value);
+							}
+						}
+					}
 					else
 					{
 						throw new ConfigurationException("Unknown configuration element: " + nodeName);
@@ -218,22 +314,33 @@ public class MetricConfig
 
 	/**
 	 Parse through the root level elements of the metrics4j xml file
-	 @param inputStream
+	 @param configInputStream
 	 @return
 	 @throws ParserConfigurationException
 	 @throws IOException
 	 @throws SAXException
 	 */
-	public static MetricConfig parseConfig(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException
+	public static MetricConfig parseConfig(InputStream propertiesInputStream, InputStream configInputStream) throws ParserConfigurationException, IOException, SAXException
 	{
+		//todo break up this method so it can be built in parts by unit tests
 		MetricConfig ret = new MetricConfig();
 
-		if (inputStream != null)
+		if (propertiesInputStream != null)
+		{
+			Properties props = new Properties();
+			props.load(propertiesInputStream);
+
+			ret.setProperties(props);
+		}
+
+		//todo add system properties and add env
+
+		if (configInputStream != null)
 		{
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			dbf.setNamespaceAware(true);
 			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document configDoc = db.parse(inputStream);
+			Document configDoc = db.parse(configInputStream);
 
 			Element root = configDoc.getDocumentElement();
 
@@ -266,7 +373,8 @@ public class MetricConfig
 	}
 
 
-	/*package*/ MetricConfig()
+	/*package*/
+	public MetricConfig()
 	{
 		m_sinks = new HashMap<>();
 		m_collectors = new HashMap<>();
@@ -278,26 +386,39 @@ public class MetricConfig
 		m_mappedSinks = new HashMap<>();
 		m_mappedTriggers = new HashMap<>();
 		m_closeables = new ArrayList<>();
+		m_mappedTags = new HashMap<>();
+
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-
-				for (Closeable closeable : m_closeables)
-				{
-					try
-					{
-						closeable.close();
-					}
-					catch (Exception e)
-					{
-						log.error("Error closing "+closeable.getClass().getName(), e);
-					}
-				}
+				if (!m_shutdownOverride)
+					shutdown();
 			}
 		}));
+	}
+
+	private void shutdown()
+	{
+		for (Closeable closeable : m_closeables)
+		{
+			try
+			{
+				closeable.close();
+			}
+			catch (Exception e)
+			{
+				log.error("Error closing "+closeable.getClass().getName(), e);
+			}
+		}
+	}
+
+	public ShutdownHookOverride getShutdownHookOverride()
+	{
+		m_shutdownOverride = true;
+		return MetricConfig.this::shutdown;
 	}
 
 	public void addCollectorToPath(String name, List<String> path)
@@ -383,17 +504,24 @@ public class MetricConfig
 		return ret;
 	}
 
-	public Iterator<Collector> getCollectorsForKey(ArgKey key)
+	private <R> List<R> findAllObjects(ArgKey key, Function<List<String>, List<R>> getter)
 	{
-		List<Collector> ret = new ArrayList<>();
+		List<R> ret = new ArrayList<>();
 		List<String> configPath = key.getConfigPath();
 		for (int i = configPath.size(); i >= 0; i--)
 		{
 			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			List<Collector> collectors = m_mappedCollectors.get(searchPath);
-			if (collectors != null)
-				ret.addAll(collectors);
+			List<R> objects = getter.apply(searchPath);
+			if (objects != null)
+				ret.addAll(objects);
 		}
+
+		return ret;
+	}
+
+	public Iterator<Collector> getCollectorsForKey(ArgKey key)
+	{
+		List<Collector> ret = findAllObjects(key, m_mappedCollectors::get);
 
 		return ret.iterator();
 	}
@@ -405,15 +533,7 @@ public class MetricConfig
 
 	public List<SinkQueue> getSinkQueues(ArgKey key)
 	{
-		List<SinkQueue> ret = new ArrayList<>();
-		List<String> configPath = key.getConfigPath();
-		for (int i = configPath.size(); i >= 0; i--)
-		{
-			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			List<SinkQueue> sinkQueues = m_mappedSinks.get(searchPath);
-			if (sinkQueues != null)
-				ret.addAll(sinkQueues);
-		}
+		List<SinkQueue> ret = findAllObjects(key, m_mappedSinks::get);
 
 		return ret;
 	}
@@ -452,6 +572,11 @@ public class MetricConfig
 		return m_context;
 	}
 
+	public void setProperties(Properties properties)
+	{
+		m_properties = properties;
+	}
+
 	public void assignCollector(ArgKey key, CollectorContainer collectorContainer)
 	{
 		Formatter formatter = getFormatterForKey(key);
@@ -463,5 +588,23 @@ public class MetricConfig
 
 		TriggerMetricCollection trigger = getTriggerForKey(key);
 		trigger.addCollector(collectorContainer);
+	}
+
+	public Map<String, String> getTagsForKey(MethodArgKey argKey)
+	{
+		Map<String, String> ret = new HashMap<>();
+		List<String> configPath = argKey.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+			Map<String, String> pathTags = m_mappedTags.getOrDefault(searchPath, new HashMap<>());
+
+			for (String key : pathTags.keySet())
+			{
+				ret.putIfAbsent(formatValue(key), formatValue(pathTags.get(key)));
+			}
+		}
+
+		return ret;
 	}
 }

@@ -20,4 +20,12 @@ public class DoubleValue extends MetricValue
 	{
 		return String.valueOf(m_value);
 	}
+
+	@Override
+	public String toString()
+	{
+		return "DoubleValue{" +
+				"value=" + m_value +
+				'}';
+	}
 }

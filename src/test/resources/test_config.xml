@@ -10,23 +10,24 @@ One or more sinks
 Each sinks must be configured with one trigger
 -->
 <metrics4j>
-	<sources name="ROOT">
+	<sources>
 		<!-- defaults are declared at the root -->
 		<collector ref="Counter"/>
 
-		<source name="org" configuration="strict"> <!-- strict requires a configuration for every collectors, no default behavior -->
+		<tags>
+			<tag key="host" value="localhost"/>
+		</tags>
+		<source name="org">
 			<source name="kairosdb">
-				<source name="metrics">
-					<source name="BlastMetrics">
-						<collector ref="Timer"/>
-					</source>
-					<sink ref="slf4j"/>
-				</source>
+				<tags>
+					<tag key="host" value="localhost_override"/>
+					<tag key="datacenter" value="dc-${dc_id}"/>
+				</tags>
 			</source>
 		</source>
 	</sources>
 	<sinks>
-		<sink name="slf4j" class="org.kairosdb.metrics4j.sinks.Slf4JMetricSink" logLevel="error"/>
+		<sink name="slf4j" class="org.kairosdb.metrics4j.sinks.Slf4JMetricSink" logLevel="${level}"/>
 	</sinks>
 	<collectors>
 		<collector name="Counter" class="org.kairosdb.metrics4j.collectors.LongCounter"/>

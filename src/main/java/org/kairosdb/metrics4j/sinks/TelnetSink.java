@@ -2,6 +2,8 @@ package org.kairosdb.metrics4j.sinks;
 
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,6 +17,7 @@ import java.util.Map;
 @XmlRootElement(name = "sink")
 public class TelnetSink implements MetricSink, Closeable
 {
+	private static final Logger logger = LoggerFactory.getLogger(TelnetSink.class);
 	public static final String SECONDS = "SECONDS";
 	public static final String MILLISECONDS = "MILLISECONDS";
 
@@ -36,11 +39,17 @@ public class TelnetSink implements MetricSink, Closeable
 	{
 		for (ReportedMetric metric : metrics)
 		{
+			logger.debug("Sending {} events via {}to {}", metrics.size(), m_command, m_host);
 			StringBuilder sb = new StringBuilder();
 			sb.append(m_command)
-					.append(metric.getMetricName()).append(" ")
-					.append(metric.getTime().toEpochMilli()).append(" ")
-					.append(metric.getValue().getValueAsString());
+					.append(metric.getMetricName()).append(" ");
+
+			if (m_resolution.equals(MILLISECONDS))
+				sb.append(metric.getTime().toEpochMilli());
+			else
+				sb.append(metric.getTime().getEpochSecond());
+
+			sb.append(" ").append(metric.getValue().getValueAsString());
 
 			for (Map.Entry<String, String> tag : metric.getTags().entrySet())
 			{
@@ -53,6 +62,7 @@ public class TelnetSink implements MetricSink, Closeable
 
 	private void sendText(String msg)
 	{
+		logger.debug(msg);
 		m_writer.println(msg);
 		m_writer.flush();
 	}

@@ -37,4 +37,12 @@ public class LongValue extends MetricValue
 	{
 		return Objects.hash(m_value);
 	}
+
+	@Override
+	public String toString()
+	{
+		return "LongValue{" +
+				"value=" + m_value +
+				'}';
+	}
 }
