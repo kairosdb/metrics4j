@@ -261,6 +261,24 @@ Reports metrics to an Slf4j logger.  The logLevel attribute controls the log lev
 
 #### TelnetSink
 
+Sends data using the telnet protocol supported by OpenTSDB and KairosDB.
+
+``` xml
+<sink name="telnet" class="org.kairosdb.metrics4j.sinks.TelnetSink" folder="plugins" host="localhost" port="4242" resolution="SECONDS"/>
+```
+
+The resolution attribute can be either SECONDS or MILLISECONDS sending either a put or putm
+respectively
+
+#### GraphitePlaintextSink
+
+Sends data using the plaintext protocol.  It takes three attributes for host, port
+and whether to include tags.
+
+``` xml
+<sink name="graphite" class="org.kairosdb.metrics4j.sinks.GraphitePlaintextSink" host="localhost" port="2003" include_tags="true"/>
+```
+
 
 ### Collectors
 A collector defines how to collect values from a source.  For reportSize() I could

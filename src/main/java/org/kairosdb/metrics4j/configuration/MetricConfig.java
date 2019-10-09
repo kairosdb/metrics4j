@@ -103,7 +103,7 @@ public class MetricConfig
 			String token = matcher.group(1);
 
 			//todo look for values from properties file and from env
-			sb.append(m_properties.getProperty(token, "NOTHERE"));
+			sb.append(m_properties.getProperty(token, "${"+token+"}"));
 
 			endLastMatch = end;
 		}
