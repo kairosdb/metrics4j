@@ -33,6 +33,10 @@ public abstract class TextSocketSink implements MetricSink, Closeable
 	{
 		logger.debug(msg);
 		m_writer.println(msg);
+	}
+
+	protected void flush()
+	{
 		m_writer.flush();
 	}
 

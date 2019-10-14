@@ -43,6 +43,8 @@ public class GraphitePlaintextSink extends TextSocketSink
 
 			sendText(sb.toString());
 		}
+
+		flush();
 	}
 
 	@Override

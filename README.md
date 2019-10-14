@@ -35,6 +35,8 @@ in a deployed application.
 
 # Section 1 (Developer)
 
+Checkout the short video I did on using Metrics4j in your application: https://youtu.be/9r-NvsIezUc
+
 ## Using the library
 Anyone wanting to instrument their code will only have to do three things.
 1.  Create an interface that describes the metric to report.
@@ -279,6 +281,17 @@ and whether to include tags.
 <sink name="graphite" class="org.kairosdb.metrics4j.sinks.GraphitePlaintextSink" host="localhost" port="2003" include_tags="true"/>
 ```
 
+#### InfluxSink
+
+TODO: https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_reference/
+
+#### PrometheusSink
+
+TODO: https://github.com/prometheus/client_java
+
+#### TimescaleDBSink
+
+TODO: https://docs.timescale.com/latest/using-timescaledb/writing-data
 
 ### Collectors
 A collector defines how to collect values from a source.  For reportSize() I could

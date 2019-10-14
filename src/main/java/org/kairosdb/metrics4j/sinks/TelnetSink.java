@@ -46,6 +46,8 @@ public class TelnetSink extends TextSocketSink
 
 			sendText(sb.toString());
 		}
+
+		flush();
 	}
 
 	@Override
