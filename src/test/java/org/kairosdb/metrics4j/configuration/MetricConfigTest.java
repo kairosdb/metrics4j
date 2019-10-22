@@ -135,4 +135,6 @@ class MetricConfigTest
 
 		assertThat(newPath).containsExactly("org", "kairosdb", "test", "MyClass", "myMethod");
 	}
+
+
 }

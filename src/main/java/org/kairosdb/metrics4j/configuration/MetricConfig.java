@@ -28,10 +28,14 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -64,11 +68,15 @@ public class MetricConfig
 	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 
 	private final Map<List<String>, Map<String, String>> m_mappedTags;
+	private final Map<List<String>, String> m_mappedMetricNames;
 
 	private final MetricsContext m_context;
 	private final List<Closeable> m_closeables;
 
 	private boolean m_shutdownOverride = false;
+	private boolean m_dumpMetrics = false;
+	private String m_dumpFile;
+	private Document m_dumpTree;
 
 
 	private static Element getFirstElement(Element parent, String tag)
@@ -247,8 +255,13 @@ public class MetricConfig
 					{
 						Element element = (Element) node;
 						String name = element.getAttribute("name");
+						String metricName = element.getAttribute("metric_name");
 
-						parseSources(element, appendSourceName(path, name));
+						List<String> newPath = appendSourceName(path, name);
+						if (!metricName.isEmpty())
+							m_mappedMetricNames.put(newPath, metricName);
+
+						parseSources(element, newPath);
 					}
 					else if ("sink".equals(nodeName)) //todo add some attribute to a sink that prevents inheriting sinks
 					{
@@ -348,19 +361,40 @@ public class MetricConfig
 			{
 				//Parse out the sinks
 				Element sinks = getFirstElement(root, "sinks");
-				ret.registerStuff(sinks, "sink", ret::registerSink);
+				if (sinks != null)
+					ret.registerStuff(sinks, "sink", ret::registerSink);
 
 				Element collectors = getFirstElement(root, "collectors");
-				ret.registerStuff(collectors, "collector", ret::registerCollector);
+				if (collectors != null)
+					ret.registerStuff(collectors, "collector", ret::registerCollector);
 
 				Element formatters = getFirstElement(root, "formatters");
-				ret.registerStuff(formatters, "formatter", ret::registerFormatter);
+				if (formatters != null)
+					ret.registerStuff(formatters, "formatter", ret::registerFormatter);
 
 				Element triggers = getFirstElement(root, "triggers");
-				ret.registerStuff(triggers, "trigger", ret::registerTrigger);
+				if (triggers != null)
+					ret.registerStuff(triggers, "trigger", ret::registerTrigger);
 
 				//todo parse through sources and add them to a map
-				ret.parseSources(getFirstElement(root, "sources"), new ArrayList<>());
+				Element sources = getFirstElement(root, "sources");
+				if (sources != null)
+				{
+					String dumpFile = sources.getAttribute("dump_file");
+					if (!dumpFile.isEmpty())
+					{
+						ret.m_dumpFile = dumpFile;
+						ret.m_dumpMetrics = true;
+						DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+						DocumentBuilder builder = builderFactory.newDocumentBuilder();
+						ret.m_dumpTree = builder.newDocument();
+						Element dumpRoot = ret.m_dumpTree.createElement("metrics4j");
+						ret.m_dumpTree.appendChild(dumpRoot);
+						Element dumpSources = ret.m_dumpTree.createElement("sources");
+						dumpRoot.appendChild(dumpSources);
+					}
+					ret.parseSources(sources, new ArrayList<>());
+				}
 			}
 			catch (JAXBException e)
 			{
@@ -387,6 +421,7 @@ public class MetricConfig
 		m_mappedTriggers = new HashMap<>();
 		m_closeables = new ArrayList<>();
 		m_mappedTags = new HashMap<>();
+		m_mappedMetricNames = new HashMap<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -402,6 +437,7 @@ public class MetricConfig
 
 	private void shutdown()
 	{
+		log.debug("Shutdown called for Metrics4j");
 		for (Closeable closeable : m_closeables)
 		{
 			try
@@ -411,6 +447,32 @@ public class MetricConfig
 			catch (Exception e)
 			{
 				log.error("Error closing "+closeable.getClass().getName(), e);
+			}
+		}
+
+		if (m_dumpFile != null)
+		{
+			log.debug("Writing dump file {}", m_dumpFile);
+			try
+			{
+				Transformer tf = TransformerFactory.newInstance().newTransformer();
+				tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+				tf.setOutputProperty(OutputKeys.INDENT, "yes");
+				tf.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+				FileWriter out = new FileWriter(m_dumpFile);
+				tf.transform(new DOMSource(m_dumpTree), new StreamResult(out));
+			}
+			catch (TransformerConfigurationException e)
+			{
+				e.printStackTrace();
+			}
+			catch (TransformerException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
 			}
 		}
 	}
@@ -531,6 +593,11 @@ public class MetricConfig
 		return findObject(key, m_mappedFormatters::get);
 	}
 
+	public String getMetricNameForKey(ArgKey key)
+	{
+		return m_mappedMetricNames.get(key.getConfigPath());
+	}
+
 	public List<SinkQueue> getSinkQueues(ArgKey key)
 	{
 		List<SinkQueue> ret = findAllObjects(key, m_mappedSinks::get);
@@ -606,5 +673,47 @@ public class MetricConfig
 		}
 
 		return ret;
+	}
+
+	public boolean isDumpMetrics()
+	{
+		return m_dumpMetrics;
+	}
+
+	/**
+	 Adds a source that will be dumped out on shutdown.
+	 @param src
+	 */
+	public void addDumpSource(String src)
+	{
+		String[] split = src.split("\\.");
+
+		Element root = m_dumpTree.getDocumentElement(); //gets metrics4j element
+		root = (Element)root.getFirstChild(); //gets sources element
+
+		for (String path : split)
+		{
+			Element nextChild = null;
+			NodeList childNodes = root.getChildNodes();
+
+			for (int i = 0; i < childNodes.getLength(); i++)
+			{
+				Element child = (Element)childNodes.item(i);
+				if (child.getAttribute("name").equals(path))
+				{
+					nextChild = child;
+					break;
+				}
+			}
+
+			if (nextChild == null)
+			{
+				nextChild = m_dumpTree.createElement("source");
+				nextChild.setAttribute("name", path);
+				root.appendChild(nextChild);
+			}
+
+			root = nextChild;
+		}
 	}
 }

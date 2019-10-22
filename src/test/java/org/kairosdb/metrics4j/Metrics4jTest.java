@@ -12,8 +12,6 @@ import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.sinks.MetricSink;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,12 +21,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.assertj.core.api.Assertions.*;
 
 public class Metrics4jTest
 {
@@ -75,11 +71,18 @@ public class Metrics4jTest
 		ReportedMetric expected = new ReportedMetricImpl();
 		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
 				.setMethodName("countSomething")
+				.setMetricName("my_metric.count_something")
 				.setTags(tags)
 				.setFieldName("count")
 				.setValue(new LongValue(42))
 				.setTime(now);
 
 		verify(m_sink1).reportMetrics(Collections.singletonList(expected));
+	}
+
+	@Test
+	public void test_metricNameAttribute() throws IOException, SAXException, ParserConfigurationException
+	{
+
 	}
 }

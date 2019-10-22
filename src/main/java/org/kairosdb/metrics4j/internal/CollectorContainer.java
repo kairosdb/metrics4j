@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ Wraps a collector and associates it with a formatter and a list of sinks to send
+ metrics to.  Also contains static tags to add to metric.
+ */
 public class CollectorContainer
 {
 	private final MetricCollector m_collector;
@@ -20,6 +24,7 @@ public class CollectorContainer
 	private Formatter m_formatter;
 	private List<SinkQueue> m_sinkQueueList;
 	private Map<String, String> m_tags;
+	private String m_metricName;
 
 	public CollectorContainer(MetricCollector collector, ArgKey argKey)
 	{
@@ -65,6 +70,7 @@ public class CollectorContainer
 			{
 				ReportedMetric reportedMetric = new ReportedMetricImpl();
 				reportedMetric.setTime(now)
+						.setMetricName(m_metricName)
 						.setClassName(m_argKey.getClassName())
 						.setMethodName(m_argKey.getMethodName())
 						.setTags(m_tags)
@@ -79,6 +85,7 @@ public class CollectorContainer
 			{
 				ReportedMetric reportedMetric = new ReportedMetricImpl();
 				reportedMetric.setTime(time)
+						.setMetricName(m_metricName)
 						.setClassName(m_argKey.getClassName())
 						.setMethodName(m_argKey.getMethodName())
 						.setTags(m_tags)
@@ -94,5 +101,10 @@ public class CollectorContainer
 	public void setTags(Map<String, String> tags)
 	{
 		m_tags = tags;
+	}
+
+	public void setMetricName(String metricName)
+	{
+		m_metricName = metricName;
 	}
 }

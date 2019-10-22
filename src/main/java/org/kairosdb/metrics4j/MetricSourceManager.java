@@ -1,17 +1,22 @@
 package org.kairosdb.metrics4j;
 
 import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
 import org.kairosdb.metrics4j.internal.CustomArgKey;
+import org.kairosdb.metrics4j.internal.LambdaArgKey;
 import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
@@ -88,7 +93,19 @@ public class MetricSourceManager
 
 		//todo need to do some validation on tClass, makes ure all methods only take strings and are annotated with Keys
 
-		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
+		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> {
+			MetricConfig metricConfig = getMetricConfig();
+			if (metricConfig.isDumpMetrics())
+			{
+				String className = klass.getName();
+				Method[] methods = klass.getMethods();
+				for (Method method : methods)
+				{
+					metricConfig.addDumpSource(className+"."+method.getName());
+				}
+			}
+			return new SourceInvocationHandler(getMetricConfig());
+		});
 
 		//not sure if we should cache proxy instances or create new ones each time.
 		Object proxyInstance = Proxy.newProxyInstance(tClass.getClassLoader(), new Class[]{tClass},
@@ -97,6 +114,12 @@ public class MetricSourceManager
 		return (T)proxyInstance;
 	}
 
+	/**
+	 For registering a class to gather metrics from.  Methods annotated with
+	 Reported will be called
+	 @param o
+	 @param tags
+	 */
 	public static void export(Object o, Map<String, String> tags)
 	{
 
@@ -104,6 +127,38 @@ public class MetricSourceManager
 
 	public static void export(String name, Map<String, String> tags, LongSupplier supplier)
 	{
+		ArgKey argKey = new LambdaArgKey(name);
+		MetricConfig metricConfig = getMetricConfig();
+		Iterator<Collector> collectors = metricConfig.getCollectorsForKey(argKey);
+
+		while (collectors.hasNext())
+		{
+			Collector collector = collectors.next();
+
+			/**
+			 If the key matches exactly the collector then we error if it doesn't
+			 match the return type
+			 */
+			if (collector instanceof LongCollector)
+			if (returnType.isInstance(collector))
+			{
+				//Need to make a copy specific to this method arguments
+				ret = collector.clone();
+
+				//associate collector with
+				CollectorContainer collectorContainer = new CollectorContainer(ret, key);
+
+				String metricName = m_config.getMetricNameForKey(key);
+				if (metricName != null)
+					collectorContainer.setMetricName(metricName);
+
+				Map<String, String> tags = new HashMap<>(key.getTags());
+				tags.putAll(m_config.getTagsForKey(key));
+				collectorContainer.setTags(tags);
+
+				m_config.assignCollector(key, collectorContainer);
+			}
+		}
 
 	}
 
@@ -119,7 +174,9 @@ public class MetricSourceManager
 	*/
 	public static <T> T setCollectorForSource(MetricCollector stats, Class<T> reporterClass)
 	{
-		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(getMetricConfig()));
+		MetricConfig metricConfig = getMetricConfig();
+
+		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(metricConfig));
 
 		Object proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
 				(proxy, method, args) -> {

@@ -230,6 +230,20 @@ that is convenient for you.
 For each source (reportSize()) you can define a collector, a trigger, a formatter and 
 zero or more sinks.
 
+##### Getting available sources
+
+You may have just downloaded a project and are unsure what sources are available
+to configure.  You can dump all sources by specifying the dump_file attribute on 
+the sources tag like so:
+
+```xml
+<metrics4j>
+	<sources dump_file="dump_sources.xml"/>
+</metrics4j>
+```
+
+TODO: add annotation that shows up as comments in the dump file
+
 #### Additional tags
 At any level of the sources element you can add a tags element to define tags you 
 wish associated with the metrics at that level.

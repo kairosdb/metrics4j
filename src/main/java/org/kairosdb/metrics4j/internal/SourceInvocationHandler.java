@@ -72,6 +72,10 @@ public class SourceInvocationHandler implements InvocationHandler
 				//associate collector with
 				CollectorContainer collectorContainer = new CollectorContainer(ret, key);
 
+				String metricName = m_config.getMetricNameForKey(key);
+				if (metricName != null)
+					collectorContainer.setMetricName(metricName);
+
 				Map<String, String> tags = new HashMap<>(key.getTags());
 				tags.putAll(m_config.getTagsForKey(key));
 				collectorContainer.setTags(tags);
