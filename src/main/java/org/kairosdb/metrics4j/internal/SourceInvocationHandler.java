@@ -69,18 +69,7 @@ public class SourceInvocationHandler implements InvocationHandler
 				//Need to make a copy specific to this method arguments
 				ret = collector.clone();
 
-				//associate collector with
-				CollectorContainer collectorContainer = new CollectorContainer(ret, key);
-
-				String metricName = m_config.getMetricNameForKey(key);
-				if (metricName != null)
-					collectorContainer.setMetricName(metricName);
-
-				Map<String, String> tags = new HashMap<>(key.getTags());
-				tags.putAll(m_config.getTagsForKey(key));
-				collectorContainer.setTags(tags);
-
-				m_config.assignCollector(key, collectorContainer);
+				m_config.assignCollector(key, ret, key.getTags());
 			}
 			/*else
 			{

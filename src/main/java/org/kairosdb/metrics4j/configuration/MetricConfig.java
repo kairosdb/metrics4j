@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.configuration;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
@@ -644,8 +645,19 @@ public class MetricConfig
 		m_properties = properties;
 	}
 
-	public void assignCollector(ArgKey key, CollectorContainer collectorContainer)
+
+	public void assignCollector(ArgKey key, MetricCollector collector, Map<String, String> collectorTags)
 	{
+		CollectorContainer collectorContainer = new CollectorContainer(collector, key);
+
+		String metricName = getMetricNameForKey(key);
+		if (metricName != null)
+			collectorContainer.setMetricName(metricName);
+
+		Map<String, String> tags = new HashMap<>(collectorTags);
+		tags.putAll(getTagsForKey(key));
+		collectorContainer.setTags(tags);
+
 		Formatter formatter = getFormatterForKey(key);
 		if (formatter != null)
 			collectorContainer.setFormatter(formatter);
@@ -657,7 +669,7 @@ public class MetricConfig
 		trigger.addCollector(collectorContainer);
 	}
 
-	public Map<String, String> getTagsForKey(MethodArgKey argKey)
+	public Map<String, String> getTagsForKey(ArgKey argKey)
 	{
 		Map<String, String> ret = new HashMap<>();
 		List<String> configPath = argKey.getConfigPath();

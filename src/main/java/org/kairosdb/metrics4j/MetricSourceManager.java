@@ -6,7 +6,9 @@ import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
 import org.kairosdb.metrics4j.internal.CustomArgKey;
+import org.kairosdb.metrics4j.internal.DoubleLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.LambdaArgKey;
+import org.kairosdb.metrics4j.internal.LongLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
@@ -69,9 +71,8 @@ public class MetricSourceManager
 	public static void registerMetricCollector(MetricCollector collector)
 	{
 		ArgKey key = new CustomArgKey(collector);
-		CollectorContainer container = new CollectorContainer(collector, key);
 
-		s_metricConfig.assignCollector(key, container);
+		s_metricConfig.assignCollector(key, collector, new HashMap<>());
 	}
 
 	public static <T> T getSource(Class<T> tClass)
@@ -122,49 +123,27 @@ public class MetricSourceManager
 	 */
 	public static void export(Object o, Map<String, String> tags)
 	{
-
+		//todo check object annotated with @Reported and add collector for them
 	}
 
 	public static void export(String name, Map<String, String> tags, LongSupplier supplier)
 	{
-		ArgKey argKey = new LambdaArgKey(name);
+		ArgKey key = new LambdaArgKey(name);
 		MetricConfig metricConfig = getMetricConfig();
-		Iterator<Collector> collectors = metricConfig.getCollectorsForKey(argKey);
 
-		while (collectors.hasNext())
-		{
-			Collector collector = collectors.next();
+		MetricCollector collector = new LongLambdaCollectorAdaptor(supplier);
 
-			/**
-			 If the key matches exactly the collector then we error if it doesn't
-			 match the return type
-			 */
-			if (collector instanceof LongCollector)
-			if (returnType.isInstance(collector))
-			{
-				//Need to make a copy specific to this method arguments
-				ret = collector.clone();
-
-				//associate collector with
-				CollectorContainer collectorContainer = new CollectorContainer(ret, key);
-
-				String metricName = m_config.getMetricNameForKey(key);
-				if (metricName != null)
-					collectorContainer.setMetricName(metricName);
-
-				Map<String, String> tags = new HashMap<>(key.getTags());
-				tags.putAll(m_config.getTagsForKey(key));
-				collectorContainer.setTags(tags);
-
-				m_config.assignCollector(key, collectorContainer);
-			}
-		}
-
+		metricConfig.assignCollector(key, collector, tags);
 	}
 
 	public static void export(String name, Map<String, String> tags, DoubleSupplier supplier)
 	{
+		ArgKey key = new LambdaArgKey(name);
+		MetricConfig metricConfig = getMetricConfig();
 
+		MetricCollector collector = new DoubleLambdaCollectorAdaptor(supplier);
+
+		metricConfig.assignCollector(key, collector, tags);
 	}
 
 	/**
