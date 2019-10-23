@@ -648,6 +648,7 @@ public class MetricConfig
 
 	public void assignCollector(ArgKey key, MetricCollector collector, Map<String, String> collectorTags)
 	{
+		//todo make sure assignment doesn't already exist
 		CollectorContainer collectorContainer = new CollectorContainer(collector, key);
 
 		String metricName = getMetricNameForKey(key);
