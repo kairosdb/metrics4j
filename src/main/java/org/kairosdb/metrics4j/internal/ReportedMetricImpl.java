@@ -14,6 +14,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	private String m_className;
 	private String m_methodName;
 	private Map<String, String> m_tags;
+	private Map<String, String> m_props;
 	private String m_fieldName;
 	private MetricValue m_value;
 
@@ -110,6 +111,19 @@ public class ReportedMetricImpl implements ReportedMetric
 	}
 
 	@Override
+	public Map<String, String> getProps()
+	{
+		return m_props;
+	}
+
+	@Override
+	public ReportedMetric setProps(Map<String, String> props)
+	{
+		m_props = props;
+		return this;
+	}
+
+	@Override
 	public boolean equals(Object o)
 	{
 		if (this == o) return true;
@@ -120,6 +134,7 @@ public class ReportedMetricImpl implements ReportedMetric
 				Objects.equals(m_className, that.m_className) &&
 				Objects.equals(m_methodName, that.m_methodName) &&
 				Objects.equals(m_tags, that.m_tags) &&
+				Objects.equals(m_props, that.m_props) &&
 				Objects.equals(m_fieldName, that.m_fieldName) &&
 				Objects.equals(m_value, that.m_value);
 	}
@@ -127,7 +142,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(m_time, m_metricName, m_className, m_methodName, m_tags, m_fieldName, m_value);
+		return Objects.hash(m_time, m_metricName, m_className, m_methodName, m_tags, m_props, m_fieldName, m_value);
 	}
 
 	@Override
@@ -139,6 +154,7 @@ public class ReportedMetricImpl implements ReportedMetric
 				", m_className='" + m_className + '\'' +
 				", m_methodName='" + m_methodName + '\'' +
 				", m_tags=" + m_tags +
+				", m_props=" + m_props +
 				", m_fieldName='" + m_fieldName + '\'' +
 				", m_value=" + m_value +
 				'}';

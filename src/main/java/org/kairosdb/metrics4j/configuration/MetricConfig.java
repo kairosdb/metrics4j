@@ -5,7 +5,6 @@ import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
-import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.NeverTrigger;
 import org.kairosdb.metrics4j.internal.SinkQueue;
 import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
@@ -69,6 +68,7 @@ public class MetricConfig
 	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 
 	private final Map<List<String>, Map<String, String>> m_mappedTags;
+	private final Map<List<String>, Map<String, String>> m_mappedProps;
 	private final Map<List<String>, String> m_mappedMetricNames;
 
 	private final MetricsContext m_context;
@@ -293,27 +293,25 @@ public class MetricConfig
 
 						addTriggerToPath(ref, path);
 					}
-					else if ("tags".equals(nodeName))
+					else if ("tag".equals(nodeName))
 					{
-						Element tagsElm = (Element) node;
-						NodeList tags = tagsElm.getChildNodes();
+						Element tagElm = (Element) node;
+
+						String key = tagElm.getAttribute("key");
+						String value = tagElm.getAttribute("value");
 
 						Map<String, String> pathTags = m_mappedTags.computeIfAbsent(path, (k) -> new HashMap<>());
+						pathTags.put(key, value);
+					}
+					else if ("prop".equals(nodeName))
+					{
+						Element propElm = (Element) node;
 
-						for (int j = 0; j < tags.getLength(); j++)
-						{
-							Node tag = tags.item(j);
+						String key = propElm.getAttribute("key");
+						String value = propElm.getAttribute("value");
 
-							if (tag instanceof Element)
-							{
-								Element tagElm = (Element)tag;
-
-								String key = tagElm.getAttribute("key");
-								String value = tagElm.getAttribute("value");
-
-								pathTags.put(key, value);
-							}
-						}
+						Map<String, String> pathProps = m_mappedProps.computeIfAbsent(path, (k) -> new HashMap<>());
+						pathProps.put(key, value);
 					}
 					else
 					{
@@ -422,6 +420,7 @@ public class MetricConfig
 		m_mappedTriggers = new HashMap<>();
 		m_closeables = new ArrayList<>();
 		m_mappedTags = new HashMap<>();
+		m_mappedProps = new HashMap<>();
 		m_mappedMetricNames = new HashMap<>();
 
 
@@ -659,6 +658,10 @@ public class MetricConfig
 		tags.putAll(getTagsForKey(key));
 		collectorContainer.setTags(tags);
 
+		Map<String, String> props = new HashMap<>();
+		props.putAll(getPropsForKey(key));
+		collectorContainer.setProps(props);
+
 		Formatter formatter = getFormatterForKey(key);
 		if (formatter != null)
 			collectorContainer.setFormatter(formatter);
@@ -682,6 +685,24 @@ public class MetricConfig
 			for (String key : pathTags.keySet())
 			{
 				ret.putIfAbsent(formatValue(key), formatValue(pathTags.get(key)));
+			}
+		}
+
+		return ret;
+	}
+
+	public Map<String, String> getPropsForKey(ArgKey argKey)
+	{
+		Map<String, String> ret = new HashMap<>();
+		List<String> configPath = argKey.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+			Map<String, String> pathProps = m_mappedProps.getOrDefault(searchPath, new HashMap<>());
+
+			for (String key : pathProps.keySet())
+			{
+				ret.putIfAbsent(formatValue(key), formatValue(pathProps.get(key)));
 			}
 		}
 

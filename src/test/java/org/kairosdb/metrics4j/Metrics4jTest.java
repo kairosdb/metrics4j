@@ -73,6 +73,7 @@ public class Metrics4jTest
 				.setMethodName("countSomething")
 				.setMetricName("my_metric.count_something")
 				.setTags(tags)
+				.setProps(Collections.singletonMap("statsd:type", "c"))
 				.setFieldName("count")
 				.setValue(new LongValue(42))
 				.setTime(now);

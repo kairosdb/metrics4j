@@ -24,6 +24,7 @@ public class CollectorContainer
 	private Formatter m_formatter;
 	private List<SinkQueue> m_sinkQueueList;
 	private Map<String, String> m_tags;
+	private Map<String, String> m_props;
 	private String m_metricName;
 
 	public CollectorContainer(MetricCollector collector, ArgKey argKey)
@@ -74,6 +75,7 @@ public class CollectorContainer
 						.setClassName(m_argKey.getClassName())
 						.setMethodName(m_argKey.getMethodName())
 						.setTags(m_tags)
+						.setProps(m_props)
 						.setFieldName(field)
 						.setValue(value);
 
@@ -89,6 +91,7 @@ public class CollectorContainer
 						.setClassName(m_argKey.getClassName())
 						.setMethodName(m_argKey.getMethodName())
 						.setTags(m_tags)
+						.setProps(m_props)
 						.setFieldName(field)
 						.setValue(value);
 
@@ -106,5 +109,10 @@ public class CollectorContainer
 	public void setMetricName(String metricName)
 	{
 		m_metricName = metricName;
+	}
+
+	public void setProps(Map<String, String> props)
+	{
+		m_props = props;
 	}
 }

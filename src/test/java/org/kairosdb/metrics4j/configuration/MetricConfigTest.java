@@ -97,7 +97,8 @@ class MetricConfigTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
 				.setValue(new LongValue(1))
-				.setTags(new HashMap<>());
+				.setTags(new HashMap<>())
+				.setProps(new HashMap<>());
 
 		verify(m_sink1).init(any());
 

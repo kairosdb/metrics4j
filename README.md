@@ -230,6 +230,24 @@ that is convenient for you.
 For each source (reportSize()) you can define a collector, a trigger, a formatter and 
 zero or more sinks.
 
+###### Tags
+Tags gives you a way to add tags to your metric to be sent off.  The tag element can
+be defined at any level under sources.
+```xml
+<source name="foo">
+	<tag key="host" value="localhost"/>
+</source>
+```
+
+###### Props
+Props (properties) are a way to pass context information to formatters or sinks about
+the metric.  For example you way want to tell the statsd sink that the value is a counter
+```xml
+<source name="foo">
+	<prop key="statsd:type" value="c"/>
+</source>
+```
+
 ##### Getting available sources
 
 You may have just downloaded a project and are unsure what sources are available

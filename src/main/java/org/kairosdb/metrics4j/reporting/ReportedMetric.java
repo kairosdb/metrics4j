@@ -32,4 +32,8 @@ public interface ReportedMetric
 	MetricValue getValue();
 
 	ReportedMetric setValue(MetricValue value);
+
+	Map<String, String> getProps();
+
+	ReportedMetric setProps(Map<String, String> props);
 }

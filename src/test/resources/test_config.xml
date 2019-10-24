@@ -14,19 +14,16 @@ Each sinks must be configured with one trigger
 		<!-- defaults are declared at the root -->
 		<collector ref="Counter"/>
 
-		<tags>
-			<tag key="host" value="localhost"/>
-		</tags>
+		<tag key="host" value="localhost"/>
 		<source name="org">
 			<source name="kairosdb">
-				<tags>
-					<tag key="host" value="localhost_override"/>
-					<tag key="datacenter" value="dc-${dc_id}"/>
-				</tags>
+				<tag key="host" value="localhost_override"/>
+				<tag key="datacenter" value="dc-${dc_id}"/>
 			</source>
 		</source>
 		<source name="org.kairosdb.metrics4j.configuration.TestSource">
 			<source name="countSomething" metric_name="my_metric.count_something"/>
+			<prop key="statsd:type" value="c"/>
 		</source>
 	</sources>
 	<sinks>
