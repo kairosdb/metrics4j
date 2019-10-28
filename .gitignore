@@ -4,7 +4,7 @@
 var/*
 target/*
 build/*
-*/target/*
+**/target/*
 .gradle/*
 out/*
 dependency.txt

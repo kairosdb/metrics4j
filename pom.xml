@@ -5,8 +5,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.kairosdb</groupId>
-	<artifactId>metrics4j</artifactId>
+	<artifactId>metrics4j-all</artifactId>
 	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -25,14 +27,13 @@
 		</plugins>
 	</build>
 
+	<modules>
+		<module>metrics4j</module>
+		<module>plugins/kairosdb</module>
+	</modules>
+
 
 	<dependencies>
-		<!--<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>2.11.1</version>
-			<type>pom</type>
-		</dependency>-->
 
 		<dependency>
 			<groupId>org.slf4j</groupId>

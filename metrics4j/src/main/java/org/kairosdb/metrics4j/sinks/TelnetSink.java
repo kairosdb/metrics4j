@@ -26,7 +26,7 @@ public class TelnetSink extends TextSocketSink
 	public void reportMetrics(List<ReportedMetric> metrics)
 	{
 		logger.debug("Sending {} events via {}to {}", metrics.size(), m_command, m_host);
-		
+
 		for (ReportedMetric metric : metrics)
 		{
 			StringBuilder sb = new StringBuilder();
