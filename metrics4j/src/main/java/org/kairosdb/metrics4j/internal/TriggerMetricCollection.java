@@ -17,7 +17,7 @@ public class TriggerMetricCollection implements MetricCollection
 {
 	private final Trigger m_trigger;
 	private List<CollectorContainer> m_collectors;
-	private Set<SinkQueue> m_sinkQueues;
+	private Set<SinkQueue> m_sinkQueues; //we use this to flush the sinks when we are done.
 
 	public TriggerMetricCollection(Trigger trigger)
 	{

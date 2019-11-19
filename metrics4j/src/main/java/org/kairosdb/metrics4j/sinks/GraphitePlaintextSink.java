@@ -1,6 +1,8 @@
 package org.kairosdb.metrics4j.sinks;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import java.util.Map;
 public class GraphitePlaintextSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(GraphitePlaintextSink.class);
+	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 
 	@XmlAttribute(name = "include_tags", required = false)
 	private boolean m_includeTags = true;
@@ -26,25 +29,35 @@ public class GraphitePlaintextSink extends TextSocketSink
 
 		for (ReportedMetric metric : metrics)
 		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(metric.getMetricName());
-
-			if (m_includeTags)
+			for (ReportedMetric.Sample sample : metric.getSamples())
 			{
-				for (Map.Entry<String, String> tag : metric.getTags().entrySet())
+				StringBuilder sb = new StringBuilder();
+				sb.append(metric.getMetricName());
+
+				if (m_includeTags)
 				{
-					sb.append(";").append(tag.getKey()).append("=").append(tag.getValue());
+					for (Map.Entry<String, String> tag : metric.getTags().entrySet())
+					{
+						sb.append(";").append(tag.getKey()).append("=").append(tag.getValue());
+					}
 				}
+
+				sb.append(" ").append(sample.getValue().getValueAsString());
+
+				sb.append(" ").append(sample.getTime().getEpochSecond());
+
+				sendText(sb.toString());
 			}
 
-			sb.append(" ").append(metric.getValue().getValueAsString());
-
-			sb.append(" ").append(metric.getTime().getEpochSecond());
-
-			sendText(sb.toString());
 		}
 
 		flush();
+	}
+
+	@Override
+	public Formatter getDefaultFormatter()
+	{
+		return DEFAULT_FORMATTER;
 	}
 
 	@Override

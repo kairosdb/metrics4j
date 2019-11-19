@@ -72,7 +72,7 @@ public class MetricSourceManager
 	{
 		ArgKey key = new CustomArgKey(collector);
 
-		s_metricConfig.assignCollector(key, collector, new HashMap<>());
+		getMetricConfig().getContext().assignCollector(key, collector, new HashMap<>(), new HashMap<>(), null);
 	}
 
 	public static <T> T getSource(Class<T> tClass)
@@ -126,24 +126,35 @@ public class MetricSourceManager
 		//todo check object annotated with @Reported and add collector for them
 	}
 
-	public static void export(String name, Map<String, String> tags, LongSupplier supplier)
+	public static void export(String name, Map<String, String> tags, String help, LongSupplier supplier)
 	{
 		ArgKey key = new LambdaArgKey(name);
 		MetricConfig metricConfig = getMetricConfig();
 
 		MetricCollector collector = new LongLambdaCollectorAdaptor(supplier);
 
-		metricConfig.assignCollector(key, collector, tags);
+		MetricsContext context = metricConfig.getContext();
+
+		Map<String, String> configTags = metricConfig.getTagsForKey(key);
+		if (tags != null)
+			configTags.putAll(tags);
+
+		context.assignCollector(key, collector, configTags, metricConfig.getPropsForKey(key), null);
 	}
 
-	public static void export(String name, Map<String, String> tags, DoubleSupplier supplier)
+	public static void export(String name, Map<String, String> tags, String help, DoubleSupplier supplier)
 	{
 		ArgKey key = new LambdaArgKey(name);
 		MetricConfig metricConfig = getMetricConfig();
+		MetricsContext context = metricConfig.getContext();
 
 		MetricCollector collector = new DoubleLambdaCollectorAdaptor(supplier);
 
-		metricConfig.assignCollector(key, collector, tags);
+		Map<String, String> configTags = metricConfig.getTagsForKey(key);
+		if (tags != null)
+			configTags.putAll(tags);
+
+		context.assignCollector(key, collector, configTags, metricConfig.getPropsForKey(key), null);
 	}
 
 	/**

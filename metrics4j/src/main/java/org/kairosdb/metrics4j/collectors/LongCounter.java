@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 @XmlRootElement(name = "collector")
-public class LongCounter implements LongCollector, MetricCollector
+public class LongCounter implements LongCollector
 {
 	private final AtomicLong m_count = new AtomicLong(0);
 

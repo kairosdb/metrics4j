@@ -1,5 +1,10 @@
 package org.kairosdb.metrics4j.reporting;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class DoubleValue extends MetricValue
 {
 	private final double m_value;
@@ -21,11 +26,4 @@ public class DoubleValue extends MetricValue
 		return String.valueOf(m_value);
 	}
 
-	@Override
-	public String toString()
-	{
-		return "DoubleValue{" +
-				"value=" + m_value +
-				'}';
-	}
 }

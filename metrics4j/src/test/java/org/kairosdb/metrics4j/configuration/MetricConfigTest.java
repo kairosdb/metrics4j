@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.collectors.DoubleCounter;
 import org.kairosdb.metrics4j.collectors.LongCounter;
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
+import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
@@ -26,9 +29,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 class MetricConfigTest
 {
+	private MetricsContextImpl m_context;
 	private MetricConfig m_metricConfig;
 	private TestTrigger m_testTrigger;
 	private MetricSink m_sink1;
@@ -36,17 +41,20 @@ class MetricConfigTest
 	@BeforeEach
 	public void registerComponents()
 	{
-		m_metricConfig = new MetricConfig();
+		m_context = new MetricsContextImpl();
+		m_metricConfig = new MetricConfig(m_context);
 		MetricSourceManager.setMetricConfig(m_metricConfig);
 		m_testTrigger = new TestTrigger();
 
 		m_sink1 = mock(MetricSink.class);
 
-		m_metricConfig.registerTrigger("trigger", m_testTrigger);
-		m_metricConfig.registerFormatter("formatter", new TestFormatter());
-		m_metricConfig.registerCollector("long", new LongCounter());
-		m_metricConfig.registerCollector("double", new DoubleCounter());
-		m_metricConfig.registerSink("sink1", m_sink1);
+		when(m_sink1.getDefaultFormatter()).thenReturn(new DefaultFormatter());
+
+		m_context.registerTrigger("trigger", m_testTrigger);
+		m_context.registerFormatter("formatter", new TestFormatter());
+		m_context.registerCollector("long", new LongCounter());
+		m_context.registerCollector("double", new DoubleCounter());
+		m_context.registerSink("sink1", m_sink1);
 	}
 
 
@@ -57,7 +65,7 @@ class MetricConfigTest
 
 		MetricConfig metricConfig = MetricConfig.parseConfig(null, is);
 
-		System.out.println(metricConfig.getSink("slf4j"));
+		System.out.println(m_context.getSink("slf4j"));
 
 	}
 
@@ -77,11 +85,11 @@ class MetricConfigTest
 	public void testDoubleCollectors()
 	{
 		List<String> rootPath = createPath();
-		m_metricConfig.addSinkToPath("sink1", rootPath);
-		m_metricConfig.addTriggerToPath("trigger", rootPath);
-		m_metricConfig.addFormatterToPath("formatter", rootPath);
-		m_metricConfig.addCollectorToPath("long", rootPath);
-		m_metricConfig.addCollectorToPath("double", createPath("org", "kairosdb"));
+		m_context.addSinkToPath("sink1", rootPath);
+		m_context.addTriggerToPath("trigger", rootPath);
+		m_context.addFormatterToPath("formatter", rootPath);
+		m_context.addCollectorToPath("long", rootPath);
+		m_context.addCollectorToPath("double", createPath("org", "kairosdb"));
 
 		TestSource source = MetricSourceManager.getSource(TestSource.class);
 
@@ -91,33 +99,34 @@ class MetricConfigTest
 		m_testTrigger.triggerCollection(now);
 
 		ReportedMetric metric = new ReportedMetricImpl()
-				.setFieldName("count")
-				.setMetricName("org.kairosdb.metrics4j.configuration.TestSource.countSomething.count")
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
-				.setValue(new LongValue(1))
 				.setTags(new HashMap<>())
-				.setProps(new HashMap<>());
+				.setProps(new HashMap<>()).addSample("count", new LongValue(1));
+
+		FormattedMetric formattedMetric = new FormattedMetric(metric);
+		formattedMetric.addSample(metric.getSamples().get(0), "org.kairosdb.metrics4j.configuration.TestSource.countSomething.count");
 
 		verify(m_sink1).init(any());
 
 		ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 
 		verify(m_sink1).reportMetrics(captor.capture());
+		verify(m_sink1).getDefaultFormatter();
 		verifyNoMoreInteractions(m_sink1);
 
-		assertThat(captor.getValue().get(0)).isEqualToComparingFieldByFieldRecursively(metric);
+		assertThat(captor.getValue().get(0)).isEqualTo(formattedMetric);
 	}
 
 	@Test
 	public void test_ensureCollectorsAreCloned()
 	{
 		List<String> rootPath = createPath();
-		m_metricConfig.addSinkToPath("sink1", rootPath);
-		m_metricConfig.addTriggerToPath("trigger", rootPath);
-		m_metricConfig.addFormatterToPath("formatter", rootPath);
-		m_metricConfig.addCollectorToPath("long", rootPath);
+		m_context.addSinkToPath("sink1", rootPath);
+		m_context.addTriggerToPath("trigger", rootPath);
+		m_context.addFormatterToPath("formatter", rootPath);
+		m_context.addCollectorToPath("long", rootPath);
 
 		TestSource source = MetricSourceManager.getSource(TestSource.class);
 

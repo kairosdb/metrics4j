@@ -5,12 +5,9 @@ import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CollectorContainer;
-import org.kairosdb.metrics4j.internal.NeverTrigger;
+import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.kairosdb.metrics4j.internal.SinkQueue;
 import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
-import org.kairosdb.metrics4j.sinks.MetricSink;
-import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.triggers.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
@@ -41,12 +38,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,21 +52,12 @@ public class MetricConfig
 	private static final Pattern formatPattern = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
 	private Properties m_properties = new Properties();
-	private final Map<String, SinkQueue> m_sinks;
-	private final Map<String, Collector> m_collectors;
-	private final Map<String, Formatter> m_formatters;
-	private final Map<String, TriggerMetricCollection> m_triggers;
-
-	private final Map<List<String>, List<SinkQueue>> m_mappedSinks;
-	private final Map<List<String>, List<Collector>> m_mappedCollectors;
-	private final Map<List<String>, Formatter> m_mappedFormatters;
-	private final Map<List<String>, TriggerMetricCollection> m_mappedTriggers;
 
 	private final Map<List<String>, Map<String, String>> m_mappedTags;
 	private final Map<List<String>, Map<String, String>> m_mappedProps;
 	private final Map<List<String>, String> m_mappedMetricNames;
 
-	private final MetricsContext m_context;
+	private final MetricsContextImpl m_context;
 	private final List<Closeable> m_closeables;
 
 	private boolean m_shutdownOverride = false;
@@ -106,7 +92,7 @@ public class MetricConfig
 
 			if (start != endLastMatch)
 			{
-				sb.append(value.substring(endLastMatch, start));
+				sb.append(value, endLastMatch, start);
 			}
 
 			String token = matcher.group(1);
@@ -270,28 +256,29 @@ public class MetricConfig
 						Element sinkElm = (Element) node;
 						String ref = sinkElm.getAttribute("ref");
 
-						addSinkToPath(ref, path);
+						m_context.addSinkToPath(ref, path);
 					}
 					else if ("collector".equals(nodeName))
 					{
 						Element collectorElm = (Element) node;
 						String ref = collectorElm.getAttribute("ref");
 
-						addCollectorToPath(ref, path);
+						m_context.addCollectorToPath(ref, path);
 					}
 					else if ("formatter".equals(nodeName))
 					{
 						Element collectorElm = (Element) node;
 						String ref = collectorElm.getAttribute("ref");
+						String sink = collectorElm.getAttribute("sink");
 
-						addFormatterToPath(ref, path);
+						m_context.addFormatterToPath(ref, path);
 					}
 					else if ("trigger".equals(nodeName))
 					{
 						Element triggerElm = (Element) node;
 						String ref = triggerElm.getAttribute("ref");
 
-						addTriggerToPath(ref, path);
+						m_context.addTriggerToPath(ref, path);
 					}
 					else if ("tag".equals(nodeName))
 					{
@@ -335,7 +322,9 @@ public class MetricConfig
 	public static MetricConfig parseConfig(InputStream propertiesInputStream, InputStream configInputStream) throws ParserConfigurationException, IOException, SAXException
 	{
 		//todo break up this method so it can be built in parts by unit tests
-		MetricConfig ret = new MetricConfig();
+		MetricsContextImpl context = new MetricsContextImpl();
+		MetricConfig ret = new MetricConfig(context);
+
 
 		if (propertiesInputStream != null)
 		{
@@ -361,19 +350,19 @@ public class MetricConfig
 				//Parse out the sinks
 				Element sinks = getFirstElement(root, "sinks");
 				if (sinks != null)
-					ret.registerStuff(sinks, "sink", ret::registerSink);
+					ret.registerStuff(sinks, "sink", context::registerSink);
 
 				Element collectors = getFirstElement(root, "collectors");
 				if (collectors != null)
-					ret.registerStuff(collectors, "collector", ret::registerCollector);
+					ret.registerStuff(collectors, "collector", context::registerCollector);
 
 				Element formatters = getFirstElement(root, "formatters");
 				if (formatters != null)
-					ret.registerStuff(formatters, "formatter", ret::registerFormatter);
+					ret.registerStuff(formatters, "formatter", context::registerFormatter);
 
 				Element triggers = getFirstElement(root, "triggers");
 				if (triggers != null)
-					ret.registerStuff(triggers, "trigger", ret::registerTrigger);
+					ret.registerStuff(triggers, "trigger", context::registerTrigger);
 
 				//todo parse through sources and add them to a map
 				Element sources = getFirstElement(root, "sources");
@@ -407,17 +396,9 @@ public class MetricConfig
 
 
 	/*package*/
-	public MetricConfig()
+	public MetricConfig(MetricsContextImpl context)
 	{
-		m_sinks = new HashMap<>();
-		m_collectors = new HashMap<>();
-		m_formatters = new HashMap<>();
-		m_triggers = new HashMap<>();
-		m_context = new MetricsContext();
-		m_mappedCollectors = new HashMap<>();
-		m_mappedFormatters = new HashMap<>();
-		m_mappedSinks = new HashMap<>();
-		m_mappedTriggers = new HashMap<>();
+		m_context = context;
 		m_closeables = new ArrayList<>();
 		m_mappedTags = new HashMap<>();
 		m_mappedProps = new HashMap<>();
@@ -483,156 +464,22 @@ public class MetricConfig
 		return MetricConfig.this::shutdown;
 	}
 
-	public void addCollectorToPath(String name, List<String> path)
-	{
-		Collector collector = m_collectors.get(name);
-		if (collector == null)
-			throw new MissingReferenceException("collector", name);
-
-		List<Collector> collectors = m_mappedCollectors.computeIfAbsent(path, (k) -> new ArrayList<>());
-		collectors.add(collector);
-	}
-
-	public void addSinkToPath(String name, List<String> path)
-	{
-		SinkQueue sinkQueue = m_sinks.get(name);
-		if (sinkQueue == null)
-			throw new MissingReferenceException("sink", name);
-
-		List<SinkQueue> sinkQueues = m_mappedSinks.computeIfAbsent(path, (k) -> new ArrayList<>());
-		sinkQueues.add(sinkQueue);
-	}
-
-	public void addFormatterToPath(String name, List<String> path)
-	{
-		Formatter formatter = m_formatters.get(name);
-		if (formatter == null)
-			throw new MissingReferenceException("formatter", name);
-
-		m_mappedFormatters.put(path, formatter);
-	}
-
-	public void addTriggerToPath(String name, List<String> path)
-	{
-		TriggerMetricCollection trigger = m_triggers.get(name);
-		if (trigger == null)
-			throw new MissingReferenceException("trigger", name);
-
-		m_mappedTriggers.put(path, trigger);
-	}
-
-	public void registerSink(String name, MetricSink sink)
-	{
-		sink.init(m_context);
-		m_sinks.put(name, new SinkQueue(sink));
-	}
-
-	public void registerCollector(String name, Collector collector)
-	{
-		collector.init(m_context);
-		m_collectors.put(name, collector);
-	}
-
-	public void registerFormatter(String name, Formatter formatter)
-	{
-		formatter.init(m_context);
-		m_formatters.put(name, formatter);
-	}
-
-	public void registerTrigger(String name, Trigger trigger)
-	{
-		trigger.init(m_context);
-		m_triggers.put(name, new TriggerMetricCollection(trigger));
-	}
-
-	public MetricSink getSink(String name)
-	{
-		return m_sinks.get(name).getSink();
-	}
 
 
-	private <R> R findObject(ArgKey key, Function<List<String>, R> getter)
-	{
-		R ret = null;
-		List<String> configPath = key.getConfigPath();
-		for (int i = configPath.size(); i >= 0; i--)
-		{
-			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			ret = getter.apply(searchPath);
-			if (ret != null)
-				break;
-		}
 
-		return ret;
-	}
 
-	private <R> List<R> findAllObjects(ArgKey key, Function<List<String>, List<R>> getter)
-	{
-		List<R> ret = new ArrayList<>();
-		List<String> configPath = key.getConfigPath();
-		for (int i = configPath.size(); i >= 0; i--)
-		{
-			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			List<R> objects = getter.apply(searchPath);
-			if (objects != null)
-				ret.addAll(objects);
-		}
 
-		return ret;
-	}
-
-	public Iterator<Collector> getCollectorsForKey(ArgKey key)
-	{
-		List<Collector> ret = findAllObjects(key, m_mappedCollectors::get);
-
-		return ret.iterator();
-	}
-
-	public Formatter getFormatterForKey(ArgKey key)
-	{
-		return findObject(key, m_mappedFormatters::get);
-	}
 
 	public String getMetricNameForKey(ArgKey key)
 	{
 		return m_mappedMetricNames.get(key.getConfigPath());
 	}
 
-	public List<SinkQueue> getSinkQueues(ArgKey key)
-	{
-		List<SinkQueue> ret = findAllObjects(key, m_mappedSinks::get);
-
-		return ret;
-	}
-
-	public TriggerMetricCollection getTriggerForKey(ArgKey key)
-	{
-		TriggerMetricCollection triggerMetricCollection = findObject(key, m_mappedTriggers::get);
-		if (triggerMetricCollection == null)
-		{
-			triggerMetricCollection = new TriggerMetricCollection(new NeverTrigger());
-		}
-
-		return triggerMetricCollection;
-	}
 
 
-	public Collector getCollector(String name)
-	{
-		Collector collector = m_collectors.get(name);
-		//todo clone collector
-		return collector;
-	}
 
-	public Formatter getFormatter(String name)
-	{
-		return m_formatters.get(name);
-	}
 
-	public Trigger getTrigger(String name)
-	{
-		return m_triggers.get(name).getTrigger();
-	}
+
 
 	public MetricsContext getContext()
 	{
@@ -645,34 +492,11 @@ public class MetricConfig
 	}
 
 
-	public void assignCollector(ArgKey key, MetricCollector collector, Map<String, String> collectorTags)
-	{
-		//todo make sure assignment doesn't already exist
-		CollectorContainer collectorContainer = new CollectorContainer(collector, key);
-
-		String metricName = getMetricNameForKey(key);
-		if (metricName != null)
-			collectorContainer.setMetricName(metricName);
-
-		Map<String, String> tags = new HashMap<>(collectorTags);
-		tags.putAll(getTagsForKey(key));
-		collectorContainer.setTags(tags);
-
-		Map<String, String> props = new HashMap<>();
-		props.putAll(getPropsForKey(key));
-		collectorContainer.setProps(props);
-
-		Formatter formatter = getFormatterForKey(key);
-		if (formatter != null)
-			collectorContainer.setFormatter(formatter);
-
-		List<SinkQueue> sinkQueues = getSinkQueues(key);
-		collectorContainer.addSinkQueue(sinkQueues);
-
-		TriggerMetricCollection trigger = getTriggerForKey(key);
-		trigger.addCollector(collectorContainer);
-	}
-
+	/**
+	 Returns a map of tags that you can modify
+	 @param argKey
+	 @return
+	 */
 	public Map<String, String> getTagsForKey(ArgKey argKey)
 	{
 		Map<String, String> ret = new HashMap<>();

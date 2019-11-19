@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
 
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@ToString
+@EqualsAndHashCode
 public class MethodArgKey implements ArgKey
 {
 	private final Method m_method;
@@ -96,28 +100,5 @@ public class MethodArgKey implements ArgKey
 	public String toString()
 	{
 		return m_method.getDeclaringClass().getName() + "." + m_method.getName();
-	}
-
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		MethodArgKey argKey = (MethodArgKey) o;
-		return Objects.equals(m_method, argKey.m_method) &&
-				Arrays.equals(m_args, argKey.m_args);
-	}
-
-	@Override
-	public int hashCode()
-	{
-
-		int result = Objects.hash(m_method);
-		result = 31 * result + Arrays.hashCode(m_args);
-		return result;
 	}
 }

@@ -8,10 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SourceInvocationHandler implements InvocationHandler
@@ -49,12 +47,17 @@ public class SourceInvocationHandler implements InvocationHandler
 		m_statsMap.put(key, statsObject);
 	}
 
+	/**
+	 Called once for each unique key.  Results are cached
+	 @param key
+	 @return
+	 */
 	private MetricCollector lookupCollectorClass(MethodArgKey key)
 	{
 		Class<?> returnType = key.getMethod().getReturnType();
 		Collector ret = null;
 
-		Iterator<Collector> collectors = m_config.getCollectorsForKey(key);
+		Iterator<Collector> collectors = m_config.getContext().getCollectorsForKey(key).iterator();
 
 		while (collectors.hasNext())
 		{
@@ -69,7 +72,11 @@ public class SourceInvocationHandler implements InvocationHandler
 				//Need to make a copy specific to this method arguments
 				ret = collector.clone();
 
-				m_config.assignCollector(key, ret, key.getTags());
+				Map<String, String> tagsForKey = m_config.getTagsForKey(key);
+				tagsForKey.putAll(key.getTags());
+
+				m_config.getContext().assignCollector(key, ret, tagsForKey, m_config.getPropsForKey(key),
+						m_config.getMetricNameForKey(key));
 			}
 			/*else
 			{

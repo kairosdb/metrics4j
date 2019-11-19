@@ -10,12 +10,14 @@ import java.util.List;
 public class SinkQueue
 {
 	private final MetricSink m_sink;
+	private final String m_sinkName;
 	private List<ReportedMetric> m_metricList;
 	private Object m_queueLock = new Object();
 
-	public SinkQueue(MetricSink sink)
+	public SinkQueue(MetricSink sink, String sinkName)
 	{
 		m_sink = sink;
+		m_sinkName = sinkName;
 		m_metricList = new ArrayList<>();
 	}
 
@@ -33,6 +35,11 @@ public class SinkQueue
 	public MetricSink getSink()
 	{
 		return m_sink;
+	}
+
+	public String getSinkName()
+	{
+		return m_sinkName;
 	}
 
 	public void addMetric(ReportedMetric reportedMetric)

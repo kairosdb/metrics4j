@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.sinks;
 
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import java.util.List;
 public class StatsDTCPSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(StatsDTCPSink.class);
+	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 	//need param to identify udp chunk size
 
 	@Override
@@ -20,18 +23,27 @@ public class StatsDTCPSink extends TextSocketSink
 		//<bucket>:<value>|<type>|<sample rate>
 		for (ReportedMetric metric : metrics)
 		{
-			String type = metric.getProps().getOrDefault("statsd:type", "g");
-			StringBuilder sb = new StringBuilder();
+			for (ReportedMetric.Sample sample : metric.getSamples())
+			{
+				String type = metric.getProps().getOrDefault("statsd:type", "g");
+				StringBuilder sb = new StringBuilder();
 
-			sb.append(metric.getMetricName())
-					.append(":")
-					.append(metric.getValue().getValueAsString())
-					.append("|")
-					.append(type);
+				sb.append(metric.getMetricName())
+						.append(":")
+						.append(sample.getValue().getValueAsString())
+						.append("|")
+						.append(type);
 
-			sendText(sb.toString());
+				sendText(sb.toString());
+			}
 		}
 
 		flush();
+	}
+
+	@Override
+	public Formatter getDefaultFormatter()
+	{
+		return DEFAULT_FORMATTER;
 	}
 }

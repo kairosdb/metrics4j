@@ -29,23 +29,27 @@ public class TelnetSink extends TextSocketSink
 
 		for (ReportedMetric metric : metrics)
 		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(m_command)
-					.append(metric.getMetricName()).append(" ");
-
-			if (m_resolution.equals(MILLISECONDS))
-				sb.append(metric.getTime().toEpochMilli());
-			else
-				sb.append(metric.getTime().getEpochSecond());
-
-			sb.append(" ").append(metric.getValue().getValueAsString());
-
-			for (Map.Entry<String, String> tag : metric.getTags().entrySet())
+			for (ReportedMetric.Sample sample : metric.getSamples())
 			{
-				sb.append(" ").append(tag.getKey()).append("=").append(tag.getValue());
+				StringBuilder sb = new StringBuilder();
+				sb.append(m_command)
+						.append(metric.getMetricName()).append(" ");
+
+				if (m_resolution.equals(MILLISECONDS))
+					sb.append(sample.getTime().toEpochMilli());
+				else
+					sb.append(sample.getTime().getEpochSecond());
+
+				sb.append(" ").append(sample.getValue().getValueAsString());
+
+				for (Map.Entry<String, String> tag : metric.getTags().entrySet())
+				{
+					sb.append(" ").append(tag.getKey()).append("=").append(tag.getValue());
+				}
+
+				sendText(sb.toString());
 			}
 
-			sendText(sb.toString());
 		}
 
 		flush();

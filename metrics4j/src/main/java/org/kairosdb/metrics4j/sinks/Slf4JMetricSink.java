@@ -1,6 +1,9 @@
 package org.kairosdb.metrics4j.sinks;
 
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
@@ -13,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+@ToString
 @XmlRootElement(name = "sink")
 public class Slf4JMetricSink implements MetricSink
 {
 	private static Logger logger = LoggerFactory.getLogger(Slf4JMetricSink.class);
+	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 	private static String TRACE = "trace";
 	private static String DEBUG = "debug";
 	private static String INFO = "info";
@@ -38,9 +43,19 @@ public class Slf4JMetricSink implements MetricSink
 	{
 		for (ReportedMetric metric : metrics)
 		{
-			m_logWrapper.log("metric={}, time={}, value={}", metric.getMetricName(),
-					metric.getTime(), metric.getValue().getValueAsString());
+			for (ReportedMetric.Sample sample : metric.getSamples())
+			{
+				m_logWrapper.log("metric={}, time={}, value={}", metric.getMetricName(),
+						sample.getTime(), sample.getValue().getValueAsString());
+			}
+
 		}
+	}
+
+	@Override
+	public Formatter getDefaultFormatter()
+	{
+		return DEFAULT_FORMATTER;
 	}
 
 	@Override
@@ -66,14 +81,6 @@ public class Slf4JMetricSink implements MetricSink
 	public String getLogLevel()
 	{
 		return m_logLevel;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "Slf4JMetricSink{" +
-				"m_logLevel='" + m_logLevel + '\'' +
-				'}';
 	}
 
 	private interface LogWrapper

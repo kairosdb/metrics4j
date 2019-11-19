@@ -30,6 +30,8 @@
 	<modules>
 		<module>metrics4j</module>
 		<module>plugins/kairosdb</module>
+		<module>plugins/influxdb</module>
+		<module>plugins/prometheus</module>
 	</modules>
 
 
@@ -39,6 +41,13 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.26</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.10</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>

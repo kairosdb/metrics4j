@@ -1,0 +1,86 @@
+package org.kairosdb.metrics4jplugin.influxdb;
+
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
+import org.kairosdb.metrics4j.sinks.MetricSink;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Closeable;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+@XmlRootElement(name = "sink")
+public class InfluxSink implements MetricSink, Closeable
+{
+	@XmlAttribute(name = "host_url", required = false)
+	private String m_hostUrl = "http://localhost:8086/write";
+	private CloseableHttpClient m_httpClient;
+	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
+
+	private String escape(String in)
+	{
+		return in;
+	}
+
+	@Override
+	public void reportMetrics(List<ReportedMetric> metrics)
+	{
+		for (ReportedMetric metric : metrics)
+		{
+			StringBuilder sb = new StringBuilder();
+
+			sb.append(escape(metric.getSamples().get(0).getMetricName()));
+
+			Map<String, String> tags = metric.getTags();
+			for (String tagKey : tags.keySet())
+			{
+				sb.append(",").append(escape(tagKey)).append("=")
+						.append(escape(tags.get(tagKey)));
+			}
+
+			Instant lastSample = Instant.now();
+			for (ReportedMetric.Sample sample : metric.getSamples())
+			{
+				sb.append(" ").append(sample.getFieldName()).append("=")
+						.append(escape(sample.getValue().getValueAsString()));
+
+				lastSample = sample.getTime();
+			}
+
+
+			long time = lastSample.getEpochSecond();
+			time *= 1000000000l; //convert to nanoseconds
+			time += lastSample.getNano(); //the nanoseconds returned by inst.getNano() are the nanoseconds past the second so they need to be added to the epoch second
+			sb.append(" ").append(time);
+
+			sb.append("\n");
+		}
+
+		//todo send using http post
+	}
+
+	@Override
+	public Formatter getDefaultFormatter()
+	{
+		return DEFAULT_FORMATTER;
+	}
+
+	@Override
+	public void init(MetricsContext context)
+	{
+		m_httpClient = HttpClients.createDefault();
+	}
+
+	@Override
+	public void close() throws IOException
+	{
+		m_httpClient.close();
+	}
+}

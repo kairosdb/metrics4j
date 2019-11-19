@@ -25,8 +25,7 @@ public class TemplateFormatter implements Formatter
 	{
 	}
 
-	/* used for testing */
-	TemplateFormatter(String template)
+	public TemplateFormatter(String template)
 	{
 		m_template = template;
 	}
@@ -86,20 +85,20 @@ public class TemplateFormatter implements Formatter
 	}
 
 	@Override
-	public void formatReportedMetric(ReportedMetric reportedMetric)
+	public String formatReportedMetric(ReportedMetric reportedMetric, ReportedMetric.Sample sample)
 	{
 		StringBuilder sb = new StringBuilder();
 		for (TemplateFragment templateFragment : m_templateFragmentList)
 		{
-			templateFragment.append(sb, reportedMetric);
+			templateFragment.append(sb, reportedMetric, sample);
 		}
 
-		reportedMetric.setMetricName(sb.toString());
+		return sb.toString();
 	}
 
 	private interface TemplateFragment
 	{
-		void append(StringBuilder sb, ReportedMetric reportedMetric);
+		void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample);
 	}
 
 	private static class StaticTemplateFragment implements TemplateFragment
@@ -112,7 +111,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
 		{
 			sb.append(m_fragment);
 		}
@@ -128,7 +127,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
 		{
 			sb.append(m_property.apply(reportedMetric));
 		}
@@ -144,7 +143,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
 		{
 			String tagValue = reportedMetric.getTags().get(m_tag);
 			if (tagValue != null)
@@ -155,9 +154,9 @@ public class TemplateFormatter implements Formatter
 	private static class FieldTemplateFragment implements TemplateFragment
 	{
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
 		{
-			sb.append(reportedMetric.getFieldName());
+			sb.append(sample.getFieldName());
 		}
 	}
 }

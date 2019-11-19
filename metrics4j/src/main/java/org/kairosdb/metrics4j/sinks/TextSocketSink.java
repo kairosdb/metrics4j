@@ -1,6 +1,8 @@
 package org.kairosdb.metrics4j.sinks;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.formatters.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ enum Protocol
 public abstract class TextSocketSink implements MetricSink, Closeable
 {
 	private static final Logger logger = LoggerFactory.getLogger(TextSocketSink.class);
+	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 	protected Socket m_tcpSocket;
 	protected PrintWriter m_writer;
 	protected DatagramSocket m_udpSocket;
@@ -131,5 +134,11 @@ public abstract class TextSocketSink implements MetricSink, Closeable
 		{
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public Formatter getDefaultFormatter()
+	{
+		return DEFAULT_FORMATTER;
 	}
 }

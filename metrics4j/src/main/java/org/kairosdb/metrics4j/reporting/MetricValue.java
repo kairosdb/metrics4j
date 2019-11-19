@@ -1,5 +1,10 @@
 package org.kairosdb.metrics4j.reporting;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
 public abstract class MetricValue
 {
 	public static final String TYPE_LONG = "long";

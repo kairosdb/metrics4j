@@ -1,7 +1,10 @@
 package org.kairosdb.metrics4j.reporting;
 
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class StringValue extends MetricValue
 {
 	private final String m_value;
@@ -18,26 +21,4 @@ public class StringValue extends MetricValue
 		return m_value;
 	}
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		StringValue that = (StringValue) o;
-		return Objects.equals(m_value, that.m_value);
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(m_value);
-	}
-
-	@Override
-	public String toString()
-	{
-		return "StringValue{" +
-				"value='" + m_value + '\'' +
-				'}';
-	}
 }
