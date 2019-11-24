@@ -15,11 +15,9 @@ import java.util.Map;
 public class ReportedMetricImpl implements ReportedMetric
 {
 	private Instant m_time;
-	private String m_metricName;
 	private String m_className;
 	private String m_methodName;
 	private Map<String, String> m_tags;
-	private Map<String, String> m_props;
 	private List<Sample> m_samples = new ArrayList<>();
 
 
@@ -29,19 +27,6 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
-	@Override
-	public String getMetricName()
-	{
-		return m_metricName;
-	}
-
-	public ReportedMetricImpl setMetricName(String metricName)
-	{
-		m_metricName = metricName;
-		return this;
-	}
-
-	@Override
 	public String getClassName()
 	{
 		return m_className;
@@ -53,7 +38,6 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
-	@Override
 	public String getMethodName()
 	{
 		return m_methodName;
@@ -66,7 +50,6 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
-	@Override
 	public Map<String, String> getTags()
 	{
 		return m_tags;
@@ -78,31 +61,29 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
-	@Override
-	public Map<String, String> getProps()
+	/**
+	 Adds tags that override what was already set.
+	 @param tags
+	 @return
+	 */
+	public ReportedMetricImpl addTags(Map<String, String> tags)
 	{
-		return m_props;
-	}
-
-	public ReportedMetricImpl setProps(Map<String, String> props)
-	{
-		m_props = props;
+		m_tags.putAll(tags);
 		return this;
 	}
 
 	public ReportedMetricImpl addSample(String fieldName, MetricValue value)
 	{
-		m_samples.add(new SampleImpl(fieldName, value));
+		m_samples.add(new ReportedMetricImpl.SampleImpl(fieldName, value));
 		return this;
 	}
 
 	public ReportedMetricImpl addSample(String fieldName, MetricValue value, Instant time)
 	{
-		m_samples.add(new SampleImpl(fieldName, value, time));
+		m_samples.add(new ReportedMetricImpl.SampleImpl(fieldName, value, time));
 		return this;
 	}
 
-	@Override
 	public List<Sample> getSamples()
 	{
 		return m_samples;
@@ -111,7 +92,7 @@ public class ReportedMetricImpl implements ReportedMetric
 
 	@ToString
 	@EqualsAndHashCode
-	class SampleImpl implements Sample
+	public class SampleImpl implements Sample
 	{
 		private final String m_fieldName;
 		private final MetricValue m_value;
@@ -132,19 +113,16 @@ public class ReportedMetricImpl implements ReportedMetric
 		}
 
 
-		@Override
 		public String getFieldName()
 		{
 			return m_fieldName;
 		}
 
-		@Override
 		public MetricValue getValue()
 		{
 			return m_value;
 		}
 
-		@Override
 		public Instant getTime()
 		{
 			if (m_time != null)
@@ -153,10 +131,5 @@ public class ReportedMetricImpl implements ReportedMetric
 				return ReportedMetricImpl.this.m_time;
 		}
 
-		@Override
-		public String getMetricName()
-		{
-			return null;
-		}
 	}
 }

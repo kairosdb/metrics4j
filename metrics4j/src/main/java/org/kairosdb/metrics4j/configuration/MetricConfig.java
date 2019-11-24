@@ -1,13 +1,8 @@
 package org.kairosdb.metrics4j.configuration;
 
 import org.kairosdb.metrics4j.MetricsContext;
-import org.kairosdb.metrics4j.collectors.MetricCollector;
-import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
-import org.kairosdb.metrics4j.internal.CollectorContainer;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;
-import org.kairosdb.metrics4j.internal.SinkQueue;
-import org.kairosdb.metrics4j.internal.TriggerMetricCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;

@@ -1,6 +1,5 @@
 package org.kairosdb.metrics4j.internal;
 
-import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.triggers.MetricCollection;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
@@ -12,6 +11,8 @@ import java.util.Set;
 
 /**
  build this class and then add it to the trigger
+ For a specific trigger this class holds all the sinks and collectors that will
+ be scraped by this trigger.
  */
 public class TriggerMetricCollection implements MetricCollection
 {

@@ -1,9 +1,8 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
-import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
-import org.kairosdb.metrics4j.formatters.TemplateFormatter;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
@@ -20,7 +19,7 @@ import java.util.Objects;
  */
 public class CollectorContainer
 {
-	private final MetricCollector m_collector;
+	private final CollectorCollection m_collector;
 	private final ArgKey m_argKey;
 	private Map<String, Formatter> m_formatters;
 	private List<SinkQueue> m_sinkQueueList;
@@ -28,7 +27,7 @@ public class CollectorContainer
 	private Map<String, String> m_props;
 	private String m_metricName;
 
-	public CollectorContainer(MetricCollector collector, ArgKey argKey)
+	public CollectorContainer(CollectorCollection collector, ArgKey argKey)
 	{
 		m_collector = Objects.requireNonNull(collector);
 		m_argKey = argKey;
@@ -58,11 +57,11 @@ public class CollectorContainer
 		{
 			Formatter formatter = m_formatters.getOrDefault(sinkQueue.getSinkName(), sinkQueue.getSink().getDefaultFormatter());
 
-			FormattedMetric formattedMetric = new FormattedMetric(metric);
+			FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags);
 
 			for (ReportedMetric.Sample sample : metric.getSamples())
 			{
-				String metricName = formatter.formatReportedMetric(metric, sample);
+				String metricName = formatter.formatReportedMetric(metric, sample, m_metricName);
 				formattedMetric.addSample(sample, metricName);
 			}
 
@@ -72,30 +71,11 @@ public class CollectorContainer
 
 	public void reportMetrics(Instant now)
 	{
-		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
-		reportedMetric.setTime(now)
-				.setMetricName(m_metricName)
-				.setClassName(m_argKey.getClassName())
-				.setMethodName(m_argKey.getMethodName())
-				.setTags(m_tags)
-				.setProps(m_props);
-
-		m_collector.reportMetric(new MetricReporter()
+		Iterable<ReportedMetric> reportedMetrics = m_collector.gatherMetrics(now);
+		for (ReportedMetric metric : reportedMetrics)
 		{
-			@Override
-			public void put(String field, MetricValue value)
-			{
-				reportedMetric.addSample(field, value);
-			}
-
-			@Override
-			public void put(String field, MetricValue value, Instant time)
-			{
-				reportedMetric.addSample(field, value, time);
-			}
-		});
-
-		formatAndSink(reportedMetric);
+			formatAndSink(metric);
+		}
 	}
 
 	public void setTags(Map<String, String> tags)

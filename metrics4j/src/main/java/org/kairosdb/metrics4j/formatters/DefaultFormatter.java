@@ -18,13 +18,13 @@ public class DefaultFormatter implements Formatter
 	}
 
 	@Override
-	public String formatReportedMetric(ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+	public String formatReportedMetric(ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 	{
 		StringBuilder sb = new StringBuilder();
 
-		if (reportedMetric.getMetricName() != null)
+		if (metricName != null)
 		{
-			sb.append(reportedMetric.getMetricName()).append(m_separator).append(sample.getFieldName());
+			sb.append(metricName).append(m_separator).append(sample.getFieldName());
 		}
 		else
 		{

@@ -7,6 +7,7 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.TriggerNotification;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
@@ -31,13 +32,13 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter("_");
 	private HTTPServer m_httpServer;
 	private PrometheusTrigger m_trigger;
-	private List<ReportedMetric> m_reportedMetrics;
+	private List<FormattedMetric> m_reportedMetrics;
 
 	@XmlAttribute(name = "port", required = true)
 	private int m_serverPort;
 
 	@Override
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
 		m_reportedMetrics = metrics;
 	}
@@ -84,7 +85,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 		m_trigger.reportMetrics();
 		Vector<Collector.MetricFamilySamples> ret = new Vector<>();
 
-		for (ReportedMetric reportedMetric : m_reportedMetrics)
+		for (FormattedMetric reportedMetric : m_reportedMetrics)
 		{
 			List<Collector.MetricFamilySamples.Sample> promSamples = new ArrayList<>();
 			List<String> keys = new ArrayList<>();
@@ -97,7 +98,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 			}
 
 			//convert to MetricFamilySamples
-			for (ReportedMetric.Sample sample : reportedMetric.getSamples())
+			for (FormattedMetric.Sample sample : reportedMetric.getSamples())
 			{
 				if (sample.getValue() instanceof DoubleValue)
 				{
@@ -113,8 +114,8 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 			}
 
 			//todo figure out type and pass help
-			ret.add(new Collector.MetricFamilySamples(reportedMetric.getMetricName(),
-					Collector.Type.COUNTER, "help", promSamples));
+			//ret.add(new Collector.MetricFamilySamples(reportedMetric.getMetricName(),
+			//		Collector.Type.COUNTER, "help", promSamples));
 
 		}
 

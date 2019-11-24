@@ -1,10 +1,7 @@
 package org.kairosdb.metrics4j;
 
-import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
-import org.kairosdb.metrics4j.internal.CollectorContainer;
 import org.kairosdb.metrics4j.internal.CustomArgKey;
 import org.kairosdb.metrics4j.internal.DoubleLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.LambdaArgKey;
@@ -12,13 +9,13 @@ import org.kairosdb.metrics4j.internal.LongLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
@@ -72,7 +69,7 @@ public class MetricSourceManager
 	{
 		ArgKey key = new CustomArgKey(collector);
 
-		getMetricConfig().getContext().assignCollector(key, collector, new HashMap<>(), new HashMap<>(), null);
+		//getMetricConfig().getContext().assignCollector(key, collector, new HashMap<>(), new HashMap<>(), null);
 	}
 
 	public static <T> T getSource(Class<T> tClass)
@@ -131,7 +128,7 @@ public class MetricSourceManager
 		ArgKey key = new LambdaArgKey(name);
 		MetricConfig metricConfig = getMetricConfig();
 
-		MetricCollector collector = new LongLambdaCollectorAdaptor(supplier);
+		StaticCollectorCollection collection = new StaticCollectorCollection(key, new LongLambdaCollectorAdaptor(supplier));
 
 		MetricsContext context = metricConfig.getContext();
 
@@ -139,7 +136,7 @@ public class MetricSourceManager
 		if (tags != null)
 			configTags.putAll(tags);
 
-		context.assignCollector(key, collector, configTags, metricConfig.getPropsForKey(key), null);
+		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null);
 	}
 
 	public static void export(String name, Map<String, String> tags, String help, DoubleSupplier supplier)
@@ -148,13 +145,13 @@ public class MetricSourceManager
 		MetricConfig metricConfig = getMetricConfig();
 		MetricsContext context = metricConfig.getContext();
 
-		MetricCollector collector = new DoubleLambdaCollectorAdaptor(supplier);
+		StaticCollectorCollection collection = new StaticCollectorCollection(key, new DoubleLambdaCollectorAdaptor(supplier));
 
 		Map<String, String> configTags = metricConfig.getTagsForKey(key);
 		if (tags != null)
 			configTags.putAll(tags);
 
-		context.assignCollector(key, collector, configTags, metricConfig.getPropsForKey(key), null);
+		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null);
 	}
 
 	/**

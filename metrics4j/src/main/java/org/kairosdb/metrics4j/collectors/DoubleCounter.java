@@ -4,7 +4,7 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
-public class DoubleCounter implements DoubleCollector, MetricCollector
+public class DoubleCounter implements DoubleCollector
 {
 	private double m_count;
 	private Object m_counterLock = new Object();

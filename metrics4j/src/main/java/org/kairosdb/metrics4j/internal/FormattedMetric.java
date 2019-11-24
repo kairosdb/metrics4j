@@ -13,92 +13,82 @@ import java.util.Objects;
 
 @ToString
 @EqualsAndHashCode
-public class FormattedMetric implements ReportedMetric
+public class FormattedMetric
 {
 	private final ReportedMetric m_metric;
 	private final List<Sample> m_samples;
+	private final Map<String, String> m_props;
+	private final Map<String, String> m_combinedTags;
 
-	public FormattedMetric(ReportedMetric metric)
+	public FormattedMetric(ReportedMetric metric, Map<String, String> props, Map<String, String> staticTags)
 	{
 		m_metric = metric;
 		m_samples = new ArrayList<>();
+		m_props = props;
+		m_combinedTags = new MapCombiner<>(staticTags, m_metric.getTags());
 	}
 
-	public void addSample(Sample sample, String formattedName)
+	public void addSample(ReportedMetric.Sample sample, String formattedName)
 	{
-		m_samples.add(new FormattedSample(sample, formattedName));
+		m_samples.add(new Sample(sample, formattedName));
 	}
 
-	@Override
-	public String getMetricName()
-	{
-		return m_metric.getMetricName();
-	}
-
-	@Override
 	public String getClassName()
 	{
 		return m_metric.getClassName();
 	}
 
-	@Override
 	public String getMethodName()
 	{
 		return m_metric.getMethodName();
 	}
 
-	@Override
 	public Map<String, String> getTags()
 	{
-		return m_metric.getTags();
+		return m_combinedTags;
 	}
 
-	@Override
-	public Map<String, String> getProps()
-	{
-		return m_metric.getProps();
-	}
-
-	@Override
 	public List<Sample> getSamples()
 	{
 		return m_samples;
 	}
 
+	public Map<String, String> getProps()
+	{
+		return m_props;
+	}
 
 
+
+	//We have to wrap each sample per sink
 	@ToString
 	@EqualsAndHashCode
-	private static class FormattedSample implements Sample
+	public static class Sample
 	{
-		private final Sample m_sample;
+		private final ReportedMetric.Sample m_sample;
 		private final String m_metricName;
 
-		private FormattedSample(Sample sample, String metricName)
+		private Sample(ReportedMetric.Sample sample, String metricName)
 		{
 			m_sample = sample;
 			m_metricName = metricName;
 		}
 
-		@Override
 		public String getFieldName()
 		{
 			return m_sample.getFieldName();
 		}
 
-		@Override
 		public MetricValue getValue()
 		{
 			return m_sample.getValue();
 		}
 
-		@Override
 		public Instant getTime()
 		{
 			return m_sample.getTime();
 		}
 
-		@Override
 		public String getMetricName()
 		{
 			return m_metricName;

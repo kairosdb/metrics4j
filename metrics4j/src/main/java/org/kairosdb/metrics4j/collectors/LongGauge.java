@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.concurrent.atomic.AtomicLong;
 
 @XmlRootElement(name = "collector")
-public class LongGauge implements LongCollector, MetricCollector
+public class LongGauge implements LongCollector
 {
 	private final AtomicLong m_gauge = new AtomicLong(0);
 

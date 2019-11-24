@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j;
 
 import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
@@ -38,5 +39,5 @@ public interface MetricsContext
 
 	void addSinkToPath(String name, List<String> path);
 
-	void assignCollector(ArgKey key, MetricCollector collector, Map<String, String> tags, Map<String, String> props, String metricName);
+	void assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> tags, Map<String, String> props, String metricName);
 }

@@ -76,13 +76,14 @@ public class Metrics4jTest
 		ReportedMetricImpl expected = new ReportedMetricImpl();
 		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
 				.setMethodName("countSomething")
-				.setMetricName("my_metric.count_something")
+				//.setMetricName("my_metric.count_something")
 				.setTime(now)
-				.setTags(tags)
-				.setProps(Collections.singletonMap("statsd:type", "c"))
+				.setTags(new HashMap<>())
+				//.setProps(Collections.singletonMap("statsd:type", "c"))
 				.addSample("count", new LongValue(42));
 
-		FormattedMetric formattedMetric = new FormattedMetric(expected);
+		FormattedMetric formattedMetric = new FormattedMetric(expected,
+				Collections.singletonMap("statsd:type", "c"), tags);
 		formattedMetric.addSample(expected.getSamples().get(0), "my_metric.count_something.count");
 
 		verify(m_sink1).reportMetrics(Collections.singletonList(formattedMetric));

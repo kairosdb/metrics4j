@@ -5,6 +5,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 
@@ -30,9 +31,9 @@ public class InfluxSink implements MetricSink, Closeable
 	}
 
 	@Override
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
-		for (ReportedMetric metric : metrics)
+		for (FormattedMetric metric : metrics)
 		{
 			StringBuilder sb = new StringBuilder();
 
@@ -46,7 +47,7 @@ public class InfluxSink implements MetricSink, Closeable
 			}
 
 			Instant lastSample = Instant.now();
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				sb.append(" ").append(sample.getFieldName()).append("=")
 						.append(escape(sample.getValue().getValueAsString()));

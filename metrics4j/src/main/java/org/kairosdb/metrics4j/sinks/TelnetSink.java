@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.sinks;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,17 +24,17 @@ public class TelnetSink extends TextSocketSink
 	private String m_command = "putm ";
 
 	@Override
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
 		logger.debug("Sending {} events via {}to {}", metrics.size(), m_command, m_host);
 
-		for (ReportedMetric metric : metrics)
+		for (FormattedMetric metric : metrics)
 		{
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				StringBuilder sb = new StringBuilder();
 				sb.append(m_command)
-						.append(metric.getMetricName()).append(" ");
+						.append(sample.getMetricName()).append(" ");
 
 				if (m_resolution.equals(MILLISECONDS))
 					sb.append(sample.getTime().toEpochMilli());

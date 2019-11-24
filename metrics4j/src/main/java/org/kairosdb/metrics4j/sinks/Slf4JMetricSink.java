@@ -4,6 +4,7 @@ import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
@@ -39,13 +40,13 @@ public class Slf4JMetricSink implements MetricSink
 		m_logWrapper = new InfoWrapper();
 	}
 
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
-		for (ReportedMetric metric : metrics)
+		for (FormattedMetric metric : metrics)
 		{
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
-				m_logWrapper.log("metric={}, time={}, value={}", metric.getMetricName(),
+				m_logWrapper.log("metric={}, time={}, value={}", sample.getMetricName(),
 						sample.getTime(), sample.getValue().getValueAsString());
 			}
 

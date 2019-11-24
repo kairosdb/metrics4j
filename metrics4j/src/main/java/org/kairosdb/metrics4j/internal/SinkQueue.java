@@ -11,7 +11,7 @@ public class SinkQueue
 {
 	private final MetricSink m_sink;
 	private final String m_sinkName;
-	private List<ReportedMetric> m_metricList;
+	private List<FormattedMetric> m_metricList;
 	private Object m_queueLock = new Object();
 
 	public SinkQueue(MetricSink sink, String sinkName)
@@ -25,7 +25,7 @@ public class SinkQueue
 	{
 		synchronized (m_queueLock)
 		{
-			List<ReportedMetric> metrics = m_metricList;
+			List<FormattedMetric> metrics = m_metricList;
 			m_metricList = new ArrayList<>();
 
 			m_sink.reportMetrics(metrics);
@@ -42,7 +42,7 @@ public class SinkQueue
 		return m_sinkName;
 	}
 
-	public void addMetric(ReportedMetric reportedMetric)
+	public void addMetric(FormattedMetric reportedMetric)
 	{
 		synchronized (m_queueLock)
 		{

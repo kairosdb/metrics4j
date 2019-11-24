@@ -26,6 +26,12 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	@XmlAttribute(name = "reportUnit", required = false)
 	private ChronoUnit m_reportUnit = ChronoUnit.MILLIS;
 
+	/**
+	 Report zero values during interval if no data is received.
+	 */
+	@XmlAttribute(name = "reportZero", required = false)
+	private boolean m_reportZero = false;
+
 	public SimpleTimerMetric()
 	{
 		clear();
@@ -92,11 +98,11 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 			metricReporter.put("count", new LongValue(data.count));
 			metricReporter.put("avg", new DoubleValue((double)total / (double)data.count));
 		}
-		else
+		else if (m_reportZero)
 		{
 			metricReporter.put("min", new LongValue(0L));
 			metricReporter.put("max", new LongValue(0L));
-			metricReporter.put("sum", new LongValue(0L));
+			metricReporter.put("total", new LongValue(0L));
 			metricReporter.put("count", new LongValue(0L));
 			metricReporter.put("avg", new DoubleValue(0.0));
 		}

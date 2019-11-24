@@ -7,9 +7,7 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +54,7 @@ public class TemplateFormatter implements Formatter
 			}
 			else if ("metricName".equals(tag))
 			{
-				m_templateFragmentList.add(new PropertyTemplateFragment(ReportedMetric::getMetricName));
+				m_templateFragmentList.add(new NameTemplateFragment());
 			}
 			else if ("methodName".equals(tag))
 			{
@@ -85,12 +83,12 @@ public class TemplateFormatter implements Formatter
 	}
 
 	@Override
-	public String formatReportedMetric(ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+	public String formatReportedMetric(ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 	{
 		StringBuilder sb = new StringBuilder();
 		for (TemplateFragment templateFragment : m_templateFragmentList)
 		{
-			templateFragment.append(sb, reportedMetric, sample);
+			templateFragment.append(sb, reportedMetric, sample, metricName);
 		}
 
 		return sb.toString();
@@ -98,7 +96,7 @@ public class TemplateFormatter implements Formatter
 
 	private interface TemplateFragment
 	{
-		void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample);
+		void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName);
 	}
 
 	private static class StaticTemplateFragment implements TemplateFragment
@@ -111,7 +109,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 		{
 			sb.append(m_fragment);
 		}
@@ -127,7 +125,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 		{
 			sb.append(m_property.apply(reportedMetric));
 		}
@@ -143,7 +141,7 @@ public class TemplateFormatter implements Formatter
 		}
 
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 		{
 			String tagValue = reportedMetric.getTags().get(m_tag);
 			if (tagValue != null)
@@ -154,9 +152,18 @@ public class TemplateFormatter implements Formatter
 	private static class FieldTemplateFragment implements TemplateFragment
 	{
 		@Override
-		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample)
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
 		{
 			sb.append(sample.getFieldName());
+		}
+	}
+
+	private static class NameTemplateFragment implements TemplateFragment
+	{
+		@Override
+		public void append(StringBuilder sb, ReportedMetric reportedMetric, ReportedMetric.Sample sample, String metricName)
+		{
+			sb.append(metricName);
 		}
 	}
 }

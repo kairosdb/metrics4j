@@ -3,12 +3,10 @@ package org.kairosdb.metrics4j.formatters;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class TemplateFormatterTest
 {
@@ -21,7 +19,7 @@ class TemplateFormatterTest
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("this.is.my.super.special.metric");
 	}
@@ -35,7 +33,7 @@ class TemplateFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.MyClass.value");
 	}
@@ -49,7 +47,7 @@ class TemplateFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("MyClass.value");
 	}
@@ -63,7 +61,7 @@ class TemplateFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setClassName("MyClass");
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.MyClass");
 	}
@@ -77,7 +75,7 @@ class TemplateFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.work_machine");
 	}
@@ -91,7 +89,7 @@ class TemplateFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.");
 	}
@@ -107,7 +105,7 @@ class TemplateFormatterTest
 		reportedMetric.setMethodName("myMethod");
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.MyClass.myMethod.work_machine");
 	}
@@ -123,7 +121,7 @@ class TemplateFormatterTest
 		reportedMetric.setMethodName("myMethod");
 		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
 		reportedMetric.addSample("value", new LongValue(1));
-		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "");
 
 		assertThat(metricName).isEqualTo("metric4j.MyClass.myMethod.work_machine.value");
 	}

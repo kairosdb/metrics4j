@@ -8,6 +8,7 @@ import org.kairosdb.client.builder.MetricBuilder;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricValue;
@@ -43,13 +44,13 @@ public class KairosSink implements MetricSink, Closeable
 	private int m_ttl = 0;
 
 	@Override
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
 		MetricBuilder builder = MetricBuilder.getInstance();
 
-		for (ReportedMetric metric : metrics)
+		for (FormattedMetric metric : metrics)
 		{
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				Metric sendMetric = builder.addMetric(sample.getMetricName())
 						.addTags(metric.getTags());

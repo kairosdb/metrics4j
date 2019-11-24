@@ -102,10 +102,10 @@ class MetricConfigTest
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
-				.setTags(new HashMap<>())
-				.setProps(new HashMap<>()).addSample("count", new LongValue(1));
+				.setTags(new HashMap<>()).addSample("count", new LongValue(1));
 
-		FormattedMetric formattedMetric = new FormattedMetric(metric);
+		FormattedMetric formattedMetric = new FormattedMetric(metric,
+				new HashMap<>(), new HashMap<>());
 		formattedMetric.addSample(metric.getSamples().get(0), "org.kairosdb.metrics4j.configuration.TestSource.countSomething.count");
 
 		verify(m_sink1).init(any());

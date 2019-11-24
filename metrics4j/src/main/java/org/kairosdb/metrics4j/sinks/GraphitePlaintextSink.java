@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.sinks;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +24,16 @@ public class GraphitePlaintextSink extends TextSocketSink
 
 
 	@Override
-	public void reportMetrics(List<ReportedMetric> metrics)
+	public void reportMetrics(List<FormattedMetric> metrics)
 	{
 		logger.debug("Sending {} events to {}", metrics.size(),  m_host);
 
-		for (ReportedMetric metric : metrics)
+		for (FormattedMetric metric : metrics)
 		{
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append(metric.getMetricName());
+				sb.append(sample.getMetricName());
 
 				if (m_includeTags)
 				{

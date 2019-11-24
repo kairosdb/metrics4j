@@ -8,37 +8,35 @@ import org.kairosdb.metrics4j.configuration.ConfigurationException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@ToString
-@EqualsAndHashCode
 public class MethodArgKey implements ArgKey
 {
 	private final Method m_method;
 	private final Object[] m_args;
+	private final List<String> m_configPath;
 
 	public MethodArgKey(Method method, Object[] args)
 	{
 		m_method = method;
 		m_args = args;
+
+		m_configPath = new ArrayList<>();
+		String[] split = m_method.getDeclaringClass().getName().split("\\.");
+		for (String s : split)
+		{
+			m_configPath.add(s);
+		}
+
+		m_configPath.add(m_method.getName());
 	}
 
 	public List<String> getConfigPath()
 	{
-		List<String> ret = new ArrayList<>();
-		String[] split = m_method.getDeclaringClass().getName().split("\\.");
-		for (String s : split)
-		{
-			ret.add(s);
-		}
-
-		ret.add(m_method.getName());
-
-		return ret;
+		return m_configPath;
 	}
 
 	public Method getMethod()
@@ -46,19 +44,14 @@ public class MethodArgKey implements ArgKey
 		return m_method;
 	}
 
-	public Object[] getArgs()
-	{
-		return m_args;
-	}
 
-	public Map<String, String> getTags()
+	public TagKey getTagKey()
 	{
-
 		if (m_args == null || m_args.length == 0)
-			return new HashMap<>();
+			return TagKey.newBuilder().build();
 		else
 		{
-			Map<String, String> ret = new HashMap<>();
+			TagKey.Builder builder = TagKey.newBuilder();
 			Annotation[][] parameterAnnotations = m_method.getParameterAnnotations();
 			for (int i = 0; i < parameterAnnotations.length; i ++)
 			{
@@ -77,10 +70,13 @@ public class MethodArgKey implements ArgKey
 				if (tagKey == null)
 					throw new ConfigurationException("Parameter "+m_method.getParameters()[i].getName()+" on method "+m_method.getName()+" has not been annotated with @Key()");
 
-				ret.put(tagKey, (String)m_args[i]);
+				builder.addTag(tagKey, (String)m_args[i]);
 			}
 
-			return ret;
+			TagKey tag = builder.build();
+			//System.out.println(tag);
+
+			return tag;
 		}
 	}
 
@@ -100,5 +96,25 @@ public class MethodArgKey implements ArgKey
 	public String toString()
 	{
 		return m_method.getDeclaringClass().getName() + "." + m_method.getName();
+	}
+
+	/**
+	 We intentionally only use the config path for equals and hash
+	 @param o
+	 @return
+	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		MethodArgKey that = (MethodArgKey) o;
+		return m_configPath.equals(that.m_configPath);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(m_configPath);
 	}
 }

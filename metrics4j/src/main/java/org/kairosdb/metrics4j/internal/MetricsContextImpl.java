@@ -7,6 +7,7 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.SinkNotification;
 import org.kairosdb.metrics4j.TriggerNotification;
 import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.sinks.MetricSink;
@@ -136,14 +137,14 @@ public class MetricsContextImpl implements MetricsContext
 	 This assigns an instance of a collector to a trigger, associates a formatter
 	 and places it in the appropriate sink queues.+
 	 @param key
-	 @param collector
+	 @param collectors
 	 @param collectorTags
 	 */
-	public void assignCollector(ArgKey key, MetricCollector collector, Map<String, String> collectorTags,
+	public void assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> collectorTags,
 			Map<String, String> properties, String metricName)
 	{
 		//todo make sure assignment doesn't already exist
-		CollectorContainer collectorContainer = new CollectorContainer(collector, key);
+		CollectorContainer collectorContainer = new CollectorContainer(collectors, key);
 
 		if (metricName != null)
 			collectorContainer.setMetricName(metricName);
