@@ -80,7 +80,8 @@ public class KairosSink implements MetricSink, Closeable
 	@Override
 	public void init(MetricsContext context)
 	{
-		if (m_telnetHost != null)
+		logger.info("Initializing Kairosdb client");
+		if (m_telnetHost == null)
 		try
 		{
 			m_client = new HttpClient(m_hostUrl);

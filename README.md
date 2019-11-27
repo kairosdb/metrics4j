@@ -132,6 +132,8 @@ Metrics4j is designed to let you, the admin, determine for each metric being rep
 
 (The following is subject to change as we work through the beta)
 
+NOTE: this will change as I just discovered jaxb was removed in java 11 :(
+
 When Metrics4j loads it will try to find a file named metrics4j.xml in the classpath.
 If metrics4j.xml is not found all the reporting methods are effectively no-ops.
  
