@@ -40,7 +40,7 @@ public class Metrics4jTest
 		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("test_config.xml");
 		InputStream propsIs = ClassLoader.getSystemClassLoader().getResourceAsStream("test_props.properties");
 
-		m_metricConfig = MetricConfig.parseConfig(propsIs, is);
+		m_metricConfig = MetricConfig.parseConfig("test_config");
 		MetricsContext context = m_metricConfig.getContext();
 		MetricSourceManager.setMetricConfig(m_metricConfig);
 		m_testTrigger = new TestTrigger();
@@ -83,7 +83,7 @@ public class Metrics4jTest
 				.addSample("count", new LongValue(42));
 
 		FormattedMetric formattedMetric = new FormattedMetric(expected,
-				Collections.singletonMap("statsd:type", "c"), tags);
+				Collections.singletonMap("statsd_type", "c"), tags);
 		formattedMetric.addSample(expected.getSamples().get(0), "my_metric.count_something.count");
 
 		verify(m_sink1).reportMetrics(Collections.singletonList(formattedMetric));

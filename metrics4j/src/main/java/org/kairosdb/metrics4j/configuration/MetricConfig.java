@@ -1,32 +1,17 @@
 package org.kairosdb.metrics4j.configuration;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigBeanFactory;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.BeanInjector;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import java.beans.IntrospectionException;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,21 +44,9 @@ public class MetricConfig
 	private boolean m_shutdownOverride = false;
 	private boolean m_dumpMetrics = false;
 	private String m_dumpFile;
-	private Document m_dumpTree;
+	private Config m_dumpConfig;
 
 
-	private static Element getFirstElement(Element parent, String tag)
-	{
-		Node ret = null;
-
-		NodeList list = parent.getElementsByTagName(tag);
-		if (list != null && list.getLength() != 0)
-		{
-			ret = list.item(0);
-		}
-
-		return (Element)ret;
-	}
 
 	private String formatValue(String value)
 	{
@@ -103,62 +77,32 @@ public class MetricConfig
 		return sb.toString();
 	}
 
-	private void processElement(Element classConfig)
-	{
-		NamedNodeMap attributes = classConfig.getAttributes();
 
-		for (int i = 0; i < attributes.getLength(); i++)
-		{
-			Attr attribute = (Attr)attributes.item(i);
-
-			attribute.setValue(formatValue(attribute.getValue()));
-		}
-
-
-		NodeList childNodes = classConfig.getChildNodes();
-
-		for (int i = 0; i < childNodes.getLength(); i++)
-		{
-			Node child = childNodes.item(i);
-			if (child instanceof Element)
-				processElement((Element)child);
-
-			if (child instanceof Text)
-			{
-				Text txtChild = (Text) child;
-				txtChild.replaceWholeText(formatValue(txtChild.getWholeText()));
-			}
-		}
-	}
-
-	private <T> T loadClass(Element classConfig) throws JAXBException
+	private <T> T loadClass(Config config)
 	{
 		T ret = null;
-		String className = classConfig.getAttribute("class");
+		String className = config.getString("class");
+		String objName = config.getString("name");
 
 		try
 		{
 			ClassLoader pluginLoader = MetricConfig.class.getClassLoader();
 
-			processElement(classConfig);
-
-			String pluginFolder = classConfig.getAttribute("folder");
-
-			if (!pluginFolder.isEmpty())
+			if (config.hasPath("folder"))
 			{
+				String pluginFolder = config.getString("folder");
 				pluginLoader = new PluginClassLoader(getJarsInPath(pluginFolder), pluginLoader);
 			}
 
 			Class<?> pluginClass = pluginLoader.loadClass(className);
-			JAXBContext context = JAXBContext.newInstance(pluginClass);
 
-			Unmarshaller unmarshaller = context.createUnmarshaller();
+			BeanInjector beanInjector = new BeanInjector(objName, pluginClass);
 
-			ret = (T) unmarshaller.unmarshal(classConfig);
+			ret = (T) beanInjector.createInstance(config);
 		}
-		catch (ClassNotFoundException | MalformedURLException e)
+		catch (ClassNotFoundException | MalformedURLException | IntrospectionException e)
 		{
-			throw new ConfigurationException("Unable to locate class '"+className+"' for configuration element '"+classConfig.getTagName()+"'");
+			throw new ConfigurationException("Unable to load plugin '"+objName+"' '"+className+"' for configuration element '"+config.origin().lineNumber()+"'");
 		}
 
 		return ret;
@@ -166,7 +110,7 @@ public class MetricConfig
 
 	private static URL[] getJarsInPath(String path) throws MalformedURLException
 	{
-		List<URL> jars = new ArrayList<URL>();
+		List<URL> jars = new ArrayList<>();
 		File libDir = new File(path);
 		File[] fileList = libDir.listFiles();
 		if(fileList != null)
@@ -184,16 +128,14 @@ public class MetricConfig
 		return jars.toArray(new URL[0]);
 	}
 
-	private <T> void registerStuff(Element parent, String childName, BiConsumer<String, T> register) throws JAXBException
+	private <T> void registerStuff(List<? extends Config> configs, BiConsumer<String, T> register)
 	{
-		NodeList childList = parent.getElementsByTagName(childName);
-
-		for (int i = 0; i < childList.getLength(); i++)
+		for (Config config : configs)
 		{
-			Element classElement = (Element)childList.item(i);
-			T classInstance = loadClass(classElement);
+			T classInstance = loadClass(config);
 
-			register.accept(classElement.getAttribute("name"), classInstance);
+			String name = config.getString("name");
+			register.accept(name, classInstance);
 
 			if (classInstance instanceof Closeable)
 			{
@@ -212,178 +154,158 @@ public class MetricConfig
 		return copy;
 	}
 
+	private String combinePath(String[] path, int limit)
+	{
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < limit; i++)
+		{
+			sb.append(path[i]).append(".");
+		}
+
+		sb.append(path[limit]);
+
+		return sb.toString();
+	}
+
+	private List<String> createList(String[] arr, int limit)
+	{
+		List<String> ret = new ArrayList<>();
+		for (int i = 0; i <= limit; i++)
+		{
+			ret.add(arr[i]);
+		}
+
+		return ret;
+	}
+
 	/**
 	 Recursively parse through the sources elements
 	 @param root
-	 @param path
 	 */
-	private void parseSources(Element root, List<String> path)
+	private void parseSources(Config root)
 	{
 		if (root == null)
 			throw new ConfigurationException("No 'sources' element in your configuration");
 
-		NodeList childNodes = root.getChildNodes();
-
-		if (childNodes != null)
+		Set<Map.Entry<String, ConfigValue>> entries = root.entrySet();
+		for (Map.Entry<String, ConfigValue> entry : entries)
 		{
-			for (int i = 0; i < childNodes.getLength(); i++)
+			String[] path = entry.getKey().split("\\.");
+
+			for (int i = (path.length -1); i >= 0 ; i--)
 			{
-				Node node = childNodes.item(i);
-				String nodeName = node.getNodeName();
-
-				if (node instanceof Element)
+				if (path[i].startsWith("_"))
 				{
-					if ("source".equals(nodeName))
+					String internalProp = path[i];
+					if (internalProp.equals("_metric-name"))
 					{
-						Element element = (Element) node;
-						String name = element.getAttribute("name");
-						String metricName = element.getAttribute("metric_name");
+						String combinedPath = combinePath(path, i);
 
-						List<String> newPath = appendSourceName(path, name);
+						String metricName = root.getString(combinedPath);
+						System.out.println("Metric name: "+metricName);
+
 						if (!metricName.isEmpty())
-							m_mappedMetricNames.put(newPath, metricName);
-
-						parseSources(element, newPath);
+							m_mappedMetricNames.put(createList(path, i-1), metricName);
 					}
-					else if ("sink".equals(nodeName)) //todo add some attribute to a sink that prevents inheriting sinks
+					else if (internalProp.equals("_sink"))
 					{
 						//need to map to a list of sinks as there can be more than one
-						Element sinkElm = (Element) node;
-						String ref = sinkElm.getAttribute("ref");
+						String ref = root.getString(combinePath(path, i));
 
-						m_context.addSinkToPath(ref, path);
+						m_context.addSinkToPath(ref, createList(path, i-1));
 					}
-					else if ("collector".equals(nodeName))
+					else if (internalProp.equals("_collector"))
 					{
-						Element collectorElm = (Element) node;
-						String ref = collectorElm.getAttribute("ref");
-
-						m_context.addCollectorToPath(ref, path);
+						String ref = root.getString(combinePath(path, i));
+						m_context.addCollectorToPath(ref, createList(path, i-1));
 					}
-					else if ("formatter".equals(nodeName))
+					else if (internalProp.equals("_formatter"))
 					{
-						Element collectorElm = (Element) node;
-						String ref = collectorElm.getAttribute("ref");
-						String sink = collectorElm.getAttribute("sink");
-
-						m_context.addFormatterToPath(ref, path);
+						String ref = root.getString(combinePath(path, i));
+						m_context.addFormatterToPath(ref, createList(path, i-1));
 					}
-					else if ("trigger".equals(nodeName))
+					else if (internalProp.equals("_trigger"))
 					{
-						Element triggerElm = (Element) node;
-						String ref = triggerElm.getAttribute("ref");
-
-						m_context.addTriggerToPath(ref, path);
+						String ref = root.getString(combinePath(path, i));
+						m_context.addTriggerToPath(ref, createList(path, i-1));
 					}
-					else if ("tag".equals(nodeName))
+					else if (internalProp.equals("_tags"))
 					{
-						Element tagElm = (Element) node;
+						String key = path[i+1];
+						String value = (String) entry.getValue().unwrapped();
 
-						String key = tagElm.getAttribute("key");
-						String value = tagElm.getAttribute("value");
-
-						Map<String, String> pathTags = m_mappedTags.computeIfAbsent(path, (k) -> new HashMap<>());
+						List<String> pathList = createList(path, i - 1);
+						Map<String, String> pathTags = m_mappedTags.computeIfAbsent(pathList, (k) -> new HashMap<>());
 						pathTags.put(key, value);
 					}
-					else if ("prop".equals(nodeName))
+					else if (internalProp.equals("_prop"))
 					{
-						Element propElm = (Element) node;
+						String key = path[i+1];
+						String value = (String) entry.getValue().unwrapped();
 
-						String key = propElm.getAttribute("key");
-						String value = propElm.getAttribute("value");
-
-						Map<String, String> pathProps = m_mappedProps.computeIfAbsent(path, (k) -> new HashMap<>());
+						List<String> pathList = createList(path, i - 1);
+						Map<String, String> pathProps = m_mappedProps.computeIfAbsent(pathList, (k) -> new HashMap<>());
 						pathProps.put(key, value);
 					}
 					else
 					{
-						throw new ConfigurationException("Unknown configuration element: " + nodeName);
+						throw new ConfigurationException("Unknown configuration element: " + internalProp);
 					}
 				}
-
-
 			}
 		}
 	}
 
-	/**
-	 Parse through the root level elements of the metrics4j xml file
-	 @param configInputStream
-	 @return
-	 @throws ParserConfigurationException
-	 @throws IOException
-	 @throws SAXException
-	 */
-	public static MetricConfig parseConfig(InputStream propertiesInputStream, InputStream configInputStream) throws ParserConfigurationException, IOException, SAXException
+
+	public static MetricConfig parseConfig(String baseName)
 	{
 		//todo break up this method so it can be built in parts by unit tests
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
+		Config config = ConfigFactory.load(baseName);
 
-		if (propertiesInputStream != null)
+		/*if (propertiesInputStream != null)
 		{
 			Properties props = new Properties();
 			props.load(propertiesInputStream);
 
 			ret.setProperties(props);
-		}
+		}*/
 
 		//todo add system properties and add env
+		Config metrics4j = config.getConfig("metrics4j");
 
-		if (configInputStream != null)
+
+		//Parse out the sinks
+		List<? extends Config> sinks = config.getConfigList("metrics4j.sinks");
+		if (sinks != null)
+			ret.registerStuff(sinks, context::registerSink);
+
+		List<? extends Config> collectors = config.getConfigList("metrics4j.collectors");
+		if (collectors != null)
+			ret.registerStuff(collectors, context::registerCollector);
+
+		List<? extends Config> formatters = config.getConfigList("metrics4j.formatters");
+		if (formatters != null)
+			ret.registerStuff(formatters, context::registerFormatter);
+
+		List<? extends Config> triggers = config.getConfigList("metrics4j.triggers");
+		if (triggers != null)
+			ret.registerStuff(triggers, context::registerTrigger);
+
+		//todo parse through sources and add them to a map
+		Config sources = config.getConfig("metrics4j.sources");
+		if (sources != null)
 		{
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setNamespaceAware(true);
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document configDoc = db.parse(configInputStream);
-
-			Element root = configDoc.getDocumentElement();
-
-			try
+			if (sources.hasPath("_dump-file"))
 			{
-				//Parse out the sinks
-				Element sinks = getFirstElement(root, "sinks");
-				if (sinks != null)
-					ret.registerStuff(sinks, "sink", context::registerSink);
-
-				Element collectors = getFirstElement(root, "collectors");
-				if (collectors != null)
-					ret.registerStuff(collectors, "collector", context::registerCollector);
-
-				Element formatters = getFirstElement(root, "formatters");
-				if (formatters != null)
-					ret.registerStuff(formatters, "formatter", context::registerFormatter);
-
-				Element triggers = getFirstElement(root, "triggers");
-				if (triggers != null)
-					ret.registerStuff(triggers, "trigger", context::registerTrigger);
-
-				//todo parse through sources and add them to a map
-				Element sources = getFirstElement(root, "sources");
-				if (sources != null)
-				{
-					String dumpFile = sources.getAttribute("dump_file");
-					if (!dumpFile.isEmpty())
-					{
-						ret.m_dumpFile = dumpFile;
-						ret.m_dumpMetrics = true;
-						DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-						DocumentBuilder builder = builderFactory.newDocumentBuilder();
-						ret.m_dumpTree = builder.newDocument();
-						Element dumpRoot = ret.m_dumpTree.createElement("metrics4j");
-						ret.m_dumpTree.appendChild(dumpRoot);
-						Element dumpSources = ret.m_dumpTree.createElement("sources");
-						dumpRoot.appendChild(dumpSources);
-					}
-					ret.parseSources(sources, new ArrayList<>());
-				}
+				ret.m_dumpFile = sources.getString("_dump-file");
+				ret.m_dumpMetrics = true;
+				ret.m_dumpConfig = ConfigFactory.empty();
 			}
-			catch (JAXBException e)
-			{
-				log.error("Error parsing config file", e);
-				throw new RuntimeException(e);
-			}
+			ret.parseSources(sources);
 		}
 
 		return ret;
@@ -428,7 +350,7 @@ public class MetricConfig
 
 		if (m_dumpFile != null)
 		{
-			log.debug("Writing dump file {}", m_dumpFile);
+			/*log.debug("Writing dump file {}", m_dumpFile);
 			try
 			{
 				Transformer tf = TransformerFactory.newInstance().newTransformer();
@@ -436,7 +358,7 @@ public class MetricConfig
 				tf.setOutputProperty(OutputKeys.INDENT, "yes");
 				tf.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 				FileWriter out = new FileWriter(m_dumpFile);
-				tf.transform(new DOMSource(m_dumpTree), new StreamResult(out));
+				tf.transform(new DOMSource(m_dumpConfig), new StreamResult(out));
 			}
 			catch (TransformerConfigurationException e)
 			{
@@ -449,7 +371,7 @@ public class MetricConfig
 			catch (IOException e)
 			{
 				e.printStackTrace();
-			}
+			}*/
 		}
 	}
 
@@ -539,9 +461,9 @@ public class MetricConfig
 	 */
 	public void addDumpSource(String src)
 	{
-		String[] split = src.split("\\.");
+		/*String[] split = src.split("\\.");
 
-		Element root = m_dumpTree.getDocumentElement(); //gets metrics4j element
+		Element root = m_dumpConfig.getDocumentElement(); //gets metrics4j element
 		root = (Element)root.getFirstChild(); //gets sources element
 
 		for (String path : split)
@@ -561,12 +483,12 @@ public class MetricConfig
 
 			if (nextChild == null)
 			{
-				nextChild = m_dumpTree.createElement("source");
+				nextChild = m_dumpConfig.createElement("source");
 				nextChild.setAttribute("name", path);
 				root.appendChild(nextChild);
 			}
 
 			root = nextChild;
-		}
+		}*/
 	}
 }

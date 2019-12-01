@@ -1,28 +1,27 @@
 package org.kairosdb.metrics4j.triggers;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-@XmlRootElement(name = "trigger")
+
 public class IntervalTrigger implements Trigger, Runnable
 {
 	private static Logger log = LoggerFactory.getLogger(IntervalTrigger.class);
 
 	private MetricCollection m_collection;
 
-	@XmlAttribute(name = "interval")
-	private long m_delay;
+	@Setter
+	private Duration interval;
 
-	@XmlAttribute(name = "unit")
-	private TimeUnit m_unit;
 
 	@Override
 	public void setMetricCollection(MetricCollection collection)
@@ -42,7 +41,7 @@ public class IntervalTrigger implements Trigger, Runnable
 				t.setDaemon(true);
 				return t;
 			}
-		}).scheduleAtFixedRate(this, m_delay, m_delay, m_unit);
+		}).scheduleAtFixedRate(this, interval.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS);
 	}
 
 	@Override

@@ -1,27 +1,26 @@
 package org.kairosdb.metrics4jplugin.influxdb;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-@XmlRootElement(name = "sink")
 public class InfluxSink implements MetricSink, Closeable
 {
-	@XmlAttribute(name = "host_url", required = false)
-	private String m_hostUrl = "http://localhost:8086/write";
+	@Setter
+	private String hostUrl = "http://localhost:8086/write";
+
 	private CloseableHttpClient m_httpClient;
 	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 

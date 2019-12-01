@@ -32,18 +32,33 @@ public abstract class TextSocketSink implements MetricSink, Closeable
 	protected InetAddress m_udpAddress;
 	protected int m_packetSize;
 
-	@XmlAttribute(name = "host", required = true)
 	protected String m_host;
 
-	@XmlAttribute(name = "port", required = true)
 	protected int m_port;
 
-	@XmlAttribute(name = "protocol", required = false)
 	protected Protocol m_protocol = Protocol.TCP;
 
-	@XmlAttribute(name = "max_udp_packet_size", required = false)
 	protected int m_maxUdpPacketSize = 1024;
 
+	public void setHost(String host)
+	{
+		m_host = host;
+	}
+
+	public void setPort(int port)
+	{
+		m_port = port;
+	}
+
+	public void setProtocol(Protocol protocol)
+	{
+		m_protocol = protocol;
+	}
+
+	public void setMaxUdpPacketSize(int maxUdpPacketSize)
+	{
+		m_maxUdpPacketSize = maxUdpPacketSize;
+	}
 
 	protected void openSocket() throws IOException
 	{

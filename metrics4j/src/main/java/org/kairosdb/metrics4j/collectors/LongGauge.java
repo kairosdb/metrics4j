@@ -1,25 +1,24 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.concurrent.atomic.AtomicLong;
 
-@XmlRootElement(name = "collector")
 public class LongGauge implements LongCollector
 {
 	private final AtomicLong m_gauge = new AtomicLong(0);
 
-	@XmlAttribute(name = "reset")
-	private boolean m_reset = false;
+	@Setter
+	private boolean reset = false;
 
 	public LongGauge(boolean reset)
 	{
 		super();
-		m_reset = reset;
+		this.reset = reset;
 	}
 
 	public LongGauge()
@@ -37,7 +36,7 @@ public class LongGauge implements LongCollector
 	@Override
 	public Collector clone()
 	{
-		return new LongGauge(m_reset);
+		return new LongGauge(reset);
 	}
 
 	@Override
@@ -51,7 +50,7 @@ public class LongGauge implements LongCollector
 	{
 		long value;
 
-		if (m_reset)
+		if (reset)
 			value = m_gauge.getAndSet(0);
 		else
 			value = m_gauge.get();

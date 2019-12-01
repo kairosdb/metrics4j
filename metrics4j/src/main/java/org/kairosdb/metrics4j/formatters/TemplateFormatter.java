@@ -1,23 +1,23 @@
 package org.kairosdb.metrics4j.formatters;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@XmlRootElement(name = "formatter")
 public class TemplateFormatter implements Formatter
 {
 	private List<TemplateFragment> m_templateFragmentList = new ArrayList<>();
-	@XmlAttribute(name = "template")
-	private String m_template;
+
+	@Setter
+	private String template;
 
 	public TemplateFormatter()
 	{
@@ -25,7 +25,7 @@ public class TemplateFormatter implements Formatter
 
 	public TemplateFormatter(String template)
 	{
-		m_template = template;
+		this.template = template;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class TemplateFormatter implements Formatter
 	{
 		Pattern pattern = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
-		Matcher matcher = pattern.matcher(m_template);
+		Matcher matcher = pattern.matcher(template);
 
 		int endLastMatch = 0;
 		while (matcher.find())
@@ -43,7 +43,7 @@ public class TemplateFormatter implements Formatter
 
 			if (start != endLastMatch)
 			{
-				m_templateFragmentList.add(new StaticTemplateFragment(m_template.substring(endLastMatch, start)));
+				m_templateFragmentList.add(new StaticTemplateFragment(template.substring(endLastMatch, start)));
 			}
 
 			String tag = matcher.group(1);
@@ -76,9 +76,9 @@ public class TemplateFormatter implements Formatter
 			endLastMatch = end;
 		}
 
-		if (endLastMatch != m_template.length())
+		if (endLastMatch != template.length())
 		{
-			m_templateFragmentList.add(new StaticTemplateFragment(m_template.substring(endLastMatch)));
+			m_templateFragmentList.add(new StaticTemplateFragment(template.substring(endLastMatch)));
 		}
 	}
 

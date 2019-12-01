@@ -1,25 +1,23 @@
 package org.kairosdb.metrics4j.sinks;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import java.util.Map;
 
-@XmlRootElement(name = "sink")
 public class TelnetSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(TelnetSink.class);
 	public static final String SECONDS = "SECONDS";
 	public static final String MILLISECONDS = "MILLISECONDS";
 
-	@XmlAttribute(name = "resolution", required = false)
-	private String m_resolution = MILLISECONDS;
+	@Setter
+	private String resolution = MILLISECONDS;
 
 	private String m_command = "putm ";
 
@@ -36,7 +34,7 @@ public class TelnetSink extends TextSocketSink
 				sb.append(m_command)
 						.append(sample.getMetricName()).append(" ");
 
-				if (m_resolution.equals(MILLISECONDS))
+				if (resolution.equals(MILLISECONDS))
 					sb.append(sample.getTime().toEpochMilli());
 				else
 					sb.append(sample.getTime().getEpochSecond());
@@ -60,7 +58,7 @@ public class TelnetSink extends TextSocketSink
 	public void init(MetricsContext context)
 	{
 		super.init(context);
-		if (m_resolution.toUpperCase().equals(SECONDS))
+		if (resolution.toUpperCase().equals(SECONDS))
 			m_command = "put ";
 	}
 

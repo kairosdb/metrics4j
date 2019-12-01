@@ -1,24 +1,20 @@
 package org.kairosdb.metrics4j.sinks;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
-import org.kairosdb.metrics4j.reporting.MetricValue;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @ToString
-@XmlRootElement(name = "sink")
 public class Slf4JMetricSink implements MetricSink
 {
 	private static Logger logger = LoggerFactory.getLogger(Slf4JMetricSink.class);
@@ -29,14 +25,14 @@ public class Slf4JMetricSink implements MetricSink
 	private static String WARN = "warn";
 	private static String ERROR = "error";
 
-	@XmlAttribute(name = "logLevel")
-	private String m_logLevel;
+	@Setter
+	private String logLevel;
 
 	private LogWrapper m_logWrapper;
 
 	public Slf4JMetricSink()
 	{
-		m_logLevel = INFO;
+		logLevel = INFO;
 		m_logWrapper = new InfoWrapper();
 	}
 
@@ -62,26 +58,16 @@ public class Slf4JMetricSink implements MetricSink
 	@Override
 	public void init(MetricsContext context)
 	{
-		if (m_logLevel.toLowerCase().equals(TRACE))
+		if (logLevel.toLowerCase().equals(TRACE))
 			m_logWrapper = new TraceWrapper();
-		else if (m_logLevel.toLowerCase().equals(DEBUG))
+		else if (logLevel.toLowerCase().equals(DEBUG))
 			m_logWrapper = new DebugWrapper();
-		else if (m_logLevel.toLowerCase().equals(INFO))
+		else if (logLevel.toLowerCase().equals(INFO))
 			m_logWrapper = new InfoWrapper();
-		else if (m_logLevel.toLowerCase().equals(WARN))
+		else if (logLevel.toLowerCase().equals(WARN))
 			m_logWrapper = new WarnWrapper();
-		else if (m_logLevel.toLowerCase().equals(ERROR))
+		else if (logLevel.toLowerCase().equals(ERROR))
 			m_logWrapper = new ErrorWrapper();
-	}
-
-	public void setLogLevel(String logLevel)
-	{
-		m_logLevel = logLevel;
-	}
-
-	public String getLogLevel()
-	{
-		return m_logLevel;
 	}
 
 	private interface LogWrapper

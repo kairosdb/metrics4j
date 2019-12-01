@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
@@ -7,11 +9,9 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-@XmlRootElement(name = "collector")
 public class SimpleTimerMetric extends TimerCollector implements DurationCollector, MetricCollector
 {
 	private Duration m_min;
@@ -23,14 +23,14 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
 	 */
-	@XmlAttribute(name = "reportUnit", required = false)
-	private ChronoUnit m_reportUnit = ChronoUnit.MILLIS;
+	@Setter
+	private ChronoUnit reportUnit = ChronoUnit.MILLIS;
 
 	/**
 	 Report zero values during interval if no data is received.
 	 */
-	@XmlAttribute(name = "reportZero", required = false)
-	private boolean m_reportZero = false;
+	@Setter
+	private boolean reportZero = false;
 
 	public SimpleTimerMetric()
 	{
@@ -72,7 +72,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 
 	private long getValue(Duration duration)
 	{
-		switch (m_reportUnit)
+		switch (reportUnit)
 		{
 			case NANOS: return duration.toNanos();
 			case MICROS: return duration.toNanos() / 1000;
@@ -98,7 +98,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 			metricReporter.put("count", new LongValue(data.count));
 			metricReporter.put("avg", new DoubleValue((double)total / (double)data.count));
 		}
-		else if (m_reportZero)
+		else if (reportZero)
 		{
 			metricReporter.put("min", new LongValue(0L));
 			metricReporter.put("max", new LongValue(0L));
@@ -125,7 +125,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	public Collector clone()
 	{
 		SimpleTimerMetric ret = new SimpleTimerMetric();
-		ret.m_reportUnit = m_reportUnit;
+		ret.reportUnit = reportUnit;
 		return ret;
 	}
 

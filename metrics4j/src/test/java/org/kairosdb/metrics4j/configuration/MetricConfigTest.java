@@ -61,9 +61,7 @@ class MetricConfigTest
 	@Test
 	public void testReadingConfiguration() throws IOException, SAXException, ParserConfigurationException
 	{
-		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("test_config.xml");
-
-		MetricConfig metricConfig = MetricConfig.parseConfig(null, is);
+		MetricConfig metricConfig = MetricConfig.parseConfig("test_config");
 
 		System.out.println(m_context.getSink("slf4j"));
 

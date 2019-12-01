@@ -1,27 +1,24 @@
 package org.kairosdb.metrics4j.sinks;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import java.util.Map;
 
-@XmlRootElement(name = "sink")
 public class GraphitePlaintextSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(GraphitePlaintextSink.class);
 	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
 
-	@XmlAttribute(name = "include_tags", required = false)
-	private boolean m_includeTags = true;
-
+	@Setter
+	private boolean includeTags = true;
 
 	@Override
 	public void reportMetrics(List<FormattedMetric> metrics)
@@ -35,7 +32,7 @@ public class GraphitePlaintextSink extends TextSocketSink
 				StringBuilder sb = new StringBuilder();
 				sb.append(sample.getMetricName());
 
-				if (m_includeTags)
+				if (includeTags)
 				{
 					for (Map.Entry<String, String> tag : metric.getTags().entrySet())
 					{

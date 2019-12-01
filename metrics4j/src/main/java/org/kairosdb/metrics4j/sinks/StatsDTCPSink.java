@@ -3,14 +3,11 @@ package org.kairosdb.metrics4j.sinks;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
-import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
-@XmlRootElement(name = "sink")
 public class StatsDTCPSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(StatsDTCPSink.class);
