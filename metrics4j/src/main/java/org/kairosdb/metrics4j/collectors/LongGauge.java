@@ -1,13 +1,17 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+@ToString
+@EqualsAndHashCode
 public class LongGauge implements LongCollector
 {
 	private final AtomicLong m_gauge = new AtomicLong(0);

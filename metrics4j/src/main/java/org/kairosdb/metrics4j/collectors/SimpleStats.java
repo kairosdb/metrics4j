@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
@@ -9,6 +11,8 @@ import org.kairosdb.metrics4j.reporting.MetricValue;
 import java.util.HashMap;
 import java.util.Map;
 
+@ToString
+@EqualsAndHashCode
 public class SimpleStats implements LongCollector, MetricCollector
 {
 	private long m_min;

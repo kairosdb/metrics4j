@@ -1,7 +1,9 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
@@ -9,6 +11,8 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 import java.util.concurrent.atomic.AtomicLong;
 
 
+@ToString
+@EqualsAndHashCode
 public class LongCounter implements LongCollector
 {
 	private final AtomicLong m_count = new AtomicLong(0);
@@ -30,12 +34,6 @@ public class LongCounter implements LongCollector
 	public void put(long count)
 	{
 		m_count.addAndGet(count);
-	}
-
-	public Collector reset()
-	{
-		m_count.set(0);
-		return this;
 	}
 
 

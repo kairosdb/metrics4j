@@ -1,23 +1,28 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+@ToString
+@EqualsAndHashCode
 public class SimpleTimerMetric extends TimerCollector implements DurationCollector, MetricCollector
 {
 	private Duration m_min;
 	private Duration m_max;
 	private Duration m_sum;
 	private long m_count;
+
+	@EqualsAndHashCode.Exclude
 	private final Object m_dataLock = new Object();
 
 	/**
@@ -35,6 +40,13 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	public SimpleTimerMetric()
 	{
 		clear();
+	}
+
+	public SimpleTimerMetric(ChronoUnit unit, boolean reportZero)
+	{
+		this();
+		this.reportUnit = unit;
+		this.reportZero = reportZero;
 	}
 
 
@@ -78,6 +90,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 			case MICROS: return duration.toNanos() / 1000;
 			case MILLIS: return duration.toMillis();
 			case SECONDS: return duration.getSeconds();
+			case MINUTES: return duration.toMinutes();
 			case HOURS: return duration.toHours();
 			case DAYS: return duration.toDays();
 			default: return 0;
@@ -126,6 +139,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	{
 		SimpleTimerMetric ret = new SimpleTimerMetric();
 		ret.reportUnit = reportUnit;
+		ret.reportZero = reportZero;
 		return ret;
 	}
 

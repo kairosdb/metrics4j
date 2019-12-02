@@ -7,22 +7,23 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+
 @ToString
 @EqualsAndHashCode
-public class DoubleCounter implements DoubleCollector
+public class DoubleGauge implements DoubleCollector
 {
-	private double m_count;
+	private double m_gauge = 0.0;
 	private Object m_counterLock = new Object();
 
 	@Setter
 	private boolean reset;
 
-	public DoubleCounter(boolean reset)
+	public DoubleGauge(boolean reset)
 	{
 		this.reset = reset;
 	}
 
-	public DoubleCounter()
+	public DoubleGauge()
 	{
 		this(false);
 	}
@@ -32,14 +33,14 @@ public class DoubleCounter implements DoubleCollector
 	{
 		synchronized (m_counterLock)
 		{
-			m_count += value;
+			m_gauge = value;
 		}
 	}
 
 	@Override
 	public Collector clone()
 	{
-		return new DoubleCounter(reset);
+		return new DoubleGauge(reset);
 	}
 
 	@Override
@@ -53,9 +54,9 @@ public class DoubleCounter implements DoubleCollector
 	{
 		synchronized (m_counterLock)
 		{
-			metricReporter.put("count", new DoubleValue(m_count));
+			metricReporter.put("gauge", new DoubleValue(m_gauge));
 			if (reset)
-				m_count = 0.0;
+				m_gauge = 0.0;
 		}
 	}
 }

@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.StringValue;
@@ -8,6 +10,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
+@EqualsAndHashCode
 public class StringReporter implements StringCollector
 {
 	private List<Instant> m_times = new ArrayList<>();
