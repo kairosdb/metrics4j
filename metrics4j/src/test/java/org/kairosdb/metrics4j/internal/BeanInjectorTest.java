@@ -30,5 +30,6 @@ class BeanInjectorTest
 		assertThat(instance.duration).isEqualTo(Duration.ofHours(42));
 		assertThat(instance.listOfStr).containsExactly("one", "two", "three");
 		assertThat(instance.setOfInt).containsExactly(1, 2, 3, 4);
+		assertThat(instance.testLevel).isEqualTo(TestBean.Level.LOW);
 	}
 }

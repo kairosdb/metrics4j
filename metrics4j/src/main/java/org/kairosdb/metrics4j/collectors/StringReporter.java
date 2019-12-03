@@ -31,7 +31,7 @@ public class StringReporter implements StringCollector
 	@Override
 	public Collector clone()
 	{
-		return null;
+		return new StringReporter();
 	}
 
 	@Override

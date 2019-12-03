@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @EqualsAndHashCode
 public class LongGauge implements LongCollector
 {
+	@EqualsAndHashCode.Exclude
 	private final AtomicLong m_gauge = new AtomicLong(0);
 
 	@Setter

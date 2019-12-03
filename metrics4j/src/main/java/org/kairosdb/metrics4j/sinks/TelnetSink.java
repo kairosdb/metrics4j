@@ -1,7 +1,5 @@
 package org.kairosdb.metrics4j.sinks;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.slf4j.Logger;
@@ -10,16 +8,42 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
+import static org.kairosdb.metrics4j.sinks.TelnetSink.Resolution.MILLISECONDS;
+import static org.kairosdb.metrics4j.sinks.TelnetSink.Resolution.SECONDS;
+
 public class TelnetSink extends TextSocketSink
 {
-	private static final Logger logger = LoggerFactory.getLogger(TelnetSink.class);
-	public static final String SECONDS = "SECONDS";
-	public static final String MILLISECONDS = "MILLISECONDS";
+	public enum Resolution
+	{
+		SECONDS,
+		MILLISECONDS
+	}
 
-	@Setter
-	private String resolution = MILLISECONDS;
+	private static final Logger logger = LoggerFactory.getLogger(TelnetSink.class);
+
+	private Resolution resolution = MILLISECONDS;
 
 	private String m_command = "putm ";
+
+
+	public TelnetSink()
+	{
+		this(MILLISECONDS);
+	}
+
+	public TelnetSink(Resolution resolution)
+	{
+		setResolution(resolution);
+	}
+
+	public void setResolution(Resolution resolution)
+	{
+		this.resolution = resolution;
+		if (resolution == SECONDS)
+			m_command = "put ";
+		else
+			m_command = "putm ";
+	}
 
 	@Override
 	public void reportMetrics(List<FormattedMetric> metrics)
@@ -58,8 +82,6 @@ public class TelnetSink extends TextSocketSink
 	public void init(MetricsContext context)
 	{
 		super.init(context);
-		if (resolution.toUpperCase().equals(SECONDS))
-			m_command = "put ";
 	}
 
 

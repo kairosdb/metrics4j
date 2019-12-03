@@ -31,7 +31,7 @@ public class TemplateFormatter implements Formatter
 	@Override
 	public void init(MetricsContext context)
 	{
-		Pattern pattern = Pattern.compile("\\$\\{([^\\}]*)\\}");
+		Pattern pattern = Pattern.compile("\\%\\{([^\\}]*)\\}");
 
 		Matcher matcher = pattern.matcher(template);
 

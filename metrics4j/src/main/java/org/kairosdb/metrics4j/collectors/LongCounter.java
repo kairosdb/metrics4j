@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @EqualsAndHashCode
 public class LongCounter implements LongCollector
 {
+	@EqualsAndHashCode.Exclude
 	private final AtomicLong m_count = new AtomicLong(0);
 
 	@Setter

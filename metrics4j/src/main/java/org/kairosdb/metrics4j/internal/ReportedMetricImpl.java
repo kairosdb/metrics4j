@@ -7,6 +7,7 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	private Instant m_time;
 	private String m_className;
 	private String m_methodName;
-	private Map<String, String> m_tags;
+	private Map<String, String> m_tags = Collections.emptyMap();
 	private List<Sample> m_samples = new ArrayList<>();
 
 

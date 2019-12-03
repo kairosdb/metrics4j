@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.kairosdb.metrics4j.configuration.MetricConfig.CLASS_PROPERTY;
+import static org.kairosdb.metrics4j.configuration.MetricConfig.FOLDER_PROPERTY;
+
 public class BeanInjector
 {
 	public static final Logger logger = LoggerFactory.getLogger(BeanInjector.class);
@@ -82,7 +85,7 @@ public class BeanInjector
 		{
 			String property = prop.getKey();
 			//Skip internal
-			if (property.equals("name") || property.equals("class") || property.equals("folder"))
+			if (property.equals(CLASS_PROPERTY) || property.equals(FOLDER_PROPERTY))
 				continue;
 
 			PropertyDescriptor pd = m_propMap.get(property);
@@ -103,7 +106,7 @@ public class BeanInjector
 			Object propValue = getValue(propClass, config, property);
 			if (propValue == null)
 			{
-				String msg = "Object type for '"+method.getName()+"' on '"+m_class+"' is of un unsupported type.  Supported types are (int, long, double, boolean, String, Duration)";
+				String msg = "Object type for '"+method.getName()+"' on '"+m_class+"' is of un unsupported type.  Supported types are (int, long, double, boolean, String, Duration and Enum)";
 
 				throw new ConfigurationException(msg);
 			}
@@ -143,38 +146,58 @@ public class BeanInjector
 
 	private static Object getValue(Type parameterType, Config config, String configPropName)
 	{
-		Type compareType = parameterType;
+		try
+		{
+			Type compareType = parameterType;
 
-		//This will convert a List<String> to just a List for comparison
-		if (parameterType instanceof ParameterizedType)
-			compareType = ((ParameterizedType)parameterType).getRawType();
+			//This will convert a List<String> to just a List for comparison
+			if (parameterType instanceof ParameterizedType)
+				compareType = ((ParameterizedType) parameterType).getRawType();
 
-		if (compareType == Boolean.class || compareType == boolean.class) {
-			return config.getBoolean(configPropName);
-		} else if (compareType == Integer.class || compareType == int.class) {
-			return config.getInt(configPropName);
-		} else if (compareType == Double.class || compareType == double.class) {
-			return config.getDouble(configPropName);
-		} else if (compareType == Long.class || compareType == long.class) {
-			return config.getLong(configPropName);
-		} else if (compareType == String.class) {
-			return config.getString(configPropName);
-		} else if (compareType == Duration.class) {
-			return config.getDuration(configPropName);
-		}  else if (compareType.equals(List.class)) {
-			return getListValue(parameterType, config, configPropName);
-		} else if (compareType == Set.class) {
-			return getSetValue(parameterType, config, configPropName);
-		} /*else if (parameterType == Map.class) {
-			// we could do better here, but right now we don't.
-			Type[] typeArgs = ((ParameterizedType)parameterType).getActualTypeArguments();
-			if (typeArgs[0] != String.class || typeArgs[1] != Object.class) {
-				throw new ConfigException.BadBean("Bean property '" + configPropName + "' of class " + beanClass.getName() + " has unsupported Map<" + typeArgs[0] + "," + typeArgs[1] + ">, only Map<String,Object> is supported right now");
+			if (compareType == Boolean.class || compareType == boolean.class)
+			{
+				return config.getBoolean(configPropName);
 			}
-			return config.getObject(configPropName).unwrapped();
-		}*/
-		else
+			else if (compareType == Integer.class || compareType == int.class)
+			{
+				return config.getInt(configPropName);
+			}
+			else if (compareType == Double.class || compareType == double.class)
+			{
+				return config.getDouble(configPropName);
+			}
+			else if (compareType == Long.class || compareType == long.class)
+			{
+				return config.getLong(configPropName);
+			}
+			else if (compareType == String.class)
+			{
+				return config.getString(configPropName);
+			}
+			else if (compareType == Duration.class)
+			{
+				return config.getDuration(configPropName);
+			}
+			else if (compareType.equals(List.class))
+			{
+				return getListValue(parameterType, config, configPropName);
+			}
+			else if (compareType == Set.class)
+			{
+				return getSetValue(parameterType, config, configPropName);
+			}
+			else if (Enum.class.isAssignableFrom((Class<?>) compareType))
+			{
+				return Enum.valueOf((Class<Enum>) parameterType, config.getString(configPropName));
+			}
+			else
+				return null;
+		}
+		catch (Exception e)
+		{
+			logger.error("Failed to get value for property "+configPropName, e);
 			return null;
+		}
 	}
 
 	private static Object getSetValue(Type parameterType, Config config, String configPropName) {

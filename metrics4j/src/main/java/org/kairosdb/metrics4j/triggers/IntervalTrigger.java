@@ -38,6 +38,7 @@ public class IntervalTrigger implements Trigger, Runnable
 			public Thread newThread(Runnable r)
 			{
 				Thread t = Executors.defaultThreadFactory().newThread(r);
+				t.setName("metrics4j IntervalTrigger");
 				t.setDaemon(true);
 				return t;
 			}

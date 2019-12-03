@@ -27,7 +27,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_withClassName()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${className}.value");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{className}.value");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -41,7 +41,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_startWithTemplate()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("${className}.value");
+		TemplateFormatter templateFormatter = new TemplateFormatter("%{className}.value");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -55,7 +55,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_endWithTemplate()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${className}");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{className}");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -69,7 +69,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_withTag()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${tag.host}");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{tag.host}");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -83,7 +83,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_withMissingTag()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${tag.host_not}");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{tag.host_not}");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -97,7 +97,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_comboTemplate()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${className}.${methodName}.${tag.host}");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{className}.%{methodName}.%{tag.host}");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
@@ -113,7 +113,7 @@ class TemplateFormatterTest
 	@Test
 	void test_formatReportedMetric_fieldTemplate()
 	{
-		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.${className}.${methodName}.${tag.host}.${field}");
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{className}.%{methodName}.%{tag.host}.%{field}");
 		templateFormatter.init(null);
 
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();

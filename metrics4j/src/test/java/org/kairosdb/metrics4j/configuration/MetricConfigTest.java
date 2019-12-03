@@ -131,7 +131,7 @@ class MetricConfigTest
 		LongCounter counter1 = source.countSomething();
 		LongCounter counter2 = source.countSomethingElse();
 
-		assertThat(counter1).isNotEqualTo(counter2);
+		assertThat(counter1 == counter2).isFalse();
 	}
 
 	@Test

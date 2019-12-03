@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.collectors.DoubleCounter;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,11 +40,13 @@ public class Metrics4jTest
 	@BeforeEach
 	public void registerComponents() throws IOException, SAXException, ParserConfigurationException
 	{
-		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("test_config.xml");
 		InputStream propsIs = ClassLoader.getSystemClassLoader().getResourceAsStream("test_props.properties");
+		Properties props = new Properties();
+		props.load(propsIs);
 
 		m_metricConfig = MetricConfig.parseConfig("test_config");
 		MetricsContext context = m_metricConfig.getContext();
+		m_metricConfig.setProperties(props);
 		MetricSourceManager.setMetricConfig(m_metricConfig);
 		m_testTrigger = new TestTrigger();
 
@@ -93,5 +98,16 @@ public class Metrics4jTest
 	public void test_metricNameAttribute() throws IOException, SAXException, ParserConfigurationException
 	{
 
+	}
+
+	@Test
+	public void test_mergeConfigs()
+	{
+		Config config1 = ConfigFactory.parseResources("merge.conf");
+		Config config2 = ConfigFactory.parseResources("merge.properties");
+		Config resolve = config2.withFallback(config1).resolve();
+		System.out.println(resolve.getString("value-two"));
+		System.out.println(resolve.getString("value-one"));
+		System.out.println(resolve.getString("system-value"));
 	}
 }

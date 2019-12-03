@@ -28,6 +28,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
 	 */
+	//todo add validation
 	@Setter
 	private ChronoUnit reportUnit = ChronoUnit.MILLIS;
 

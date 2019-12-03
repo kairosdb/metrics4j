@@ -8,6 +8,13 @@ import java.util.Set;
 
 public class TestBean
 {
+	public enum Level
+	{
+		LOW,
+		MEDIUM,
+		HIGH
+	}
+
 	@Setter
 	int intValue;
 
@@ -37,4 +44,7 @@ public class TestBean
 
 	@Setter
 	Set<Integer> setOfInt;
+
+	@Setter
+	Level testLevel;
 }

@@ -18,6 +18,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -28,9 +29,13 @@ import java.util.regex.Pattern;
 
 public class MetricConfig
 {
+	public static final String CLASS_PROPERTY = "_class";
+	public static final String FOLDER_PROPERTY = "_folder";
+
+
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
-	private static final Pattern formatPattern = Pattern.compile("\\$\\{([^\\}]*)\\}");
+	private static final Pattern formatPattern = Pattern.compile("\\%\\{([^\\}]*)\\}");
 
 	private Properties m_properties = new Properties();
 
@@ -67,7 +72,7 @@ public class MetricConfig
 			String token = matcher.group(1);
 
 			//todo look for values from properties file and from env
-			sb.append(m_properties.getProperty(token, "${"+token+"}"));
+			sb.append(m_properties.getProperty(token, "%{"+token+"}"));
 
 			endLastMatch = end;
 		}
@@ -78,19 +83,18 @@ public class MetricConfig
 	}
 
 
-	private <T> T loadClass(Config config)
+	private <T> T loadClass(Config config, String objName)
 	{
 		T ret = null;
-		String className = config.getString("class");
-		String objName = config.getString("name");
+		String className = config.getString(CLASS_PROPERTY);
 
 		try
 		{
 			ClassLoader pluginLoader = MetricConfig.class.getClassLoader();
 
-			if (config.hasPath("folder"))
+			if (config.hasPath(FOLDER_PROPERTY))
 			{
-				String pluginFolder = config.getString("folder");
+				String pluginFolder = config.getString(FOLDER_PROPERTY);
 				pluginLoader = new PluginClassLoader(getJarsInPath(pluginFolder), pluginLoader);
 			}
 
@@ -128,13 +132,20 @@ public class MetricConfig
 		return jars.toArray(new URL[0]);
 	}
 
-	private <T> void registerStuff(List<? extends Config> configs, BiConsumer<String, T> register)
+	private <T> void registerStuff(Config configs, BiConsumer<String, T> register)
 	{
-		for (Config config : configs)
+		//Get entry keys
+		Set<String> keys = new HashSet<>();
+		for (Map.Entry<String, ConfigValue> config : configs.entrySet())
 		{
-			T classInstance = loadClass(config);
+			keys.add(config.getKey().split("\\.")[0]);
+		}
 
-			String name = config.getString("name");
+		for (String name : keys)
+		{
+
+			T classInstance = loadClass(configs.getConfig(name), name);
+
 			register.accept(name, classInstance);
 
 			if (classInstance instanceof Closeable)
@@ -279,19 +290,19 @@ public class MetricConfig
 
 
 		//Parse out the sinks
-		List<? extends Config> sinks = config.getConfigList("metrics4j.sinks");
+		Config sinks = config.getConfig("metrics4j.sinks");
 		if (sinks != null)
 			ret.registerStuff(sinks, context::registerSink);
 
-		List<? extends Config> collectors = config.getConfigList("metrics4j.collectors");
+		Config collectors = config.getConfig("metrics4j.collectors");
 		if (collectors != null)
 			ret.registerStuff(collectors, context::registerCollector);
 
-		List<? extends Config> formatters = config.getConfigList("metrics4j.formatters");
+		Config formatters = config.getConfig("metrics4j.formatters");
 		if (formatters != null)
 			ret.registerStuff(formatters, context::registerFormatter);
 
-		List<? extends Config> triggers = config.getConfigList("metrics4j.triggers");
+		Config triggers = config.getConfig("metrics4j.triggers");
 		if (triggers != null)
 			ret.registerStuff(triggers, context::registerTrigger);
 

@@ -12,6 +12,8 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 public class DoubleCounter implements DoubleCollector
 {
 	private double m_count;
+
+	@EqualsAndHashCode.Exclude
 	private Object m_counterLock = new Object();
 
 	@Setter

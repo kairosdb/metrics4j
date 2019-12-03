@@ -9,9 +9,9 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class SimpleTimerMetricTest
 {
@@ -59,4 +59,170 @@ class SimpleTimerMetricTest
 		verify(reporter).put("count", new LongValue(3));
 		verify(reporter).put("avg", new DoubleValue(1.0/3.0));
 	}
+
+	@Test
+	public void testReportNothing()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, false);
+
+		timer.put(Duration.ofSeconds(42));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(42));
+		verify(reporter).put("max", new LongValue(42));
+		verify(reporter).put("total", new LongValue(42));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(42));
+
+		timer.reportMetric(reporter);
+
+		verifyNoMoreInteractions(reporter);
+	}
+
+	@Test
+	public void testReportZeros()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, true);
+
+		timer.put(Duration.ofSeconds(42));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(42));
+		verify(reporter).put("max", new LongValue(42));
+		verify(reporter).put("total", new LongValue(42));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(42));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(0));
+		verify(reporter).put("max", new LongValue(0));
+		verify(reporter).put("total", new LongValue(0));
+		verify(reporter).put("count", new LongValue(0));
+		verify(reporter).put("avg", new DoubleValue(0));
+	}
+
+	@Test
+	public void testNanos()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.NANOS, false);
+
+		timer.put(Duration.ofMinutes(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(60000000000L));
+		verify(reporter).put("max", new LongValue(60000000000L));
+		verify(reporter).put("total", new LongValue(60000000000L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(60000000000L));
+	}
+
+	@Test
+	public void testMicros()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MICROS, false);
+
+		timer.put(Duration.ofMinutes(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(60000000L));
+		verify(reporter).put("max", new LongValue(60000000L));
+		verify(reporter).put("total", new LongValue(60000000L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(60000000L));
+	}
+
+	@Test
+	public void testMillis()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MILLIS, false);
+
+		timer.put(Duration.ofMinutes(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(60000L));
+		verify(reporter).put("max", new LongValue(60000L));
+		verify(reporter).put("total", new LongValue(60000L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(60000L));
+	}
+
+	@Test
+	public void testSeconds()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, false);
+
+		timer.put(Duration.ofMinutes(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(60L));
+		verify(reporter).put("max", new LongValue(60L));
+		verify(reporter).put("total", new LongValue(60L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(60L));
+	}
+
+	@Test
+	public void testMinutes()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MINUTES, false);
+
+		timer.put(Duration.ofHours(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(60L));
+		verify(reporter).put("max", new LongValue(60L));
+		verify(reporter).put("total", new LongValue(60L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(60L));
+	}
+
+	@Test
+	public void testHours()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.HOURS, false);
+
+		timer.put(Duration.ofDays(1));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(24L));
+		verify(reporter).put("max", new LongValue(24L));
+		verify(reporter).put("total", new LongValue(24L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(24L));
+	}
+
+	@Test
+	public void testDays()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.DAYS, false);
+
+		timer.put(Duration.ofHours(48));
+
+		timer.reportMetric(reporter);
+
+		verify(reporter).put("min", new LongValue(2L));
+		verify(reporter).put("max", new LongValue(2L));
+		verify(reporter).put("total", new LongValue(2L));
+		verify(reporter).put("count", new LongValue(1));
+		verify(reporter).put("avg", new DoubleValue(2L));
+	}
+
 }

@@ -1,6 +1,5 @@
 package org.kairosdb.metrics4j.sinks;
 
-import lombok.Getter;
 import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
@@ -19,6 +18,17 @@ public class GraphitePlaintextSink extends TextSocketSink
 
 	@Setter
 	private boolean includeTags = true;
+
+	public GraphitePlaintextSink(boolean includeTags)
+	{
+		super();
+		this.includeTags = includeTags;
+	}
+
+	public GraphitePlaintextSink()
+	{
+		this(true);
+	}
 
 	@Override
 	public void reportMetrics(List<FormattedMetric> metrics)

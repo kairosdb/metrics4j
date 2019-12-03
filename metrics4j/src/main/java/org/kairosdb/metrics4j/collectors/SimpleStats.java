@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
@@ -19,8 +20,15 @@ public class SimpleStats implements LongCollector, MetricCollector
 	private long m_max;
 	private long m_sum;
 	private long m_count;
+	@EqualsAndHashCode.Exclude
 	private final Object m_dataLock = new Object();
 	private static final Map<String, MetricValue> s_emptyValues = new HashMap<>();
+
+	/**
+	 Report zero values during interval if no data is received.
+	 */
+	@Setter
+	private boolean reportZero = false;
 
 	{
 		s_emptyValues.put("min", new LongValue(0L));
@@ -32,6 +40,12 @@ public class SimpleStats implements LongCollector, MetricCollector
 
 	public SimpleStats()
 	{
+		this(false);
+	}
+
+	public SimpleStats(boolean reportZero)
+	{
+		this.reportZero = reportZero;
 		reset();
 	}
 
@@ -58,7 +72,7 @@ public class SimpleStats implements LongCollector, MetricCollector
 	@Override
 	public Collector clone()
 	{
-		return new SimpleStats();
+		return new SimpleStats(reportZero);
 	}
 
 	@Override
@@ -81,13 +95,12 @@ public class SimpleStats implements LongCollector, MetricCollector
 				metricReporter.put("count", new LongValue(m_count));
 				metricReporter.put("avg", new DoubleValue(((double)m_sum)/((double)m_count)));
 			}
-			else
+			else if (reportZero)
 			{
-				metricReporter.put("min", new LongValue(0L));
-				metricReporter.put("max", new LongValue(0L));
-				metricReporter.put("sum", new LongValue(0L));
-				metricReporter.put("count", new LongValue(0L));
-				metricReporter.put("avg", new DoubleValue(0.0));
+				for (Map.Entry<String, MetricValue> emptyValue : s_emptyValues.entrySet())
+				{
+					metricReporter.put(emptyValue.getKey(), emptyValue.getValue());
+				}
 			}
 
 			reset();
