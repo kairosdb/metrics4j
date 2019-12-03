@@ -187,7 +187,7 @@ public class MetricsContextImpl implements MetricsContext
 	@Override
 	public void registerTriggerNotification(TriggerNotification notification)
 	{
-		m_triggers.addComponentListener((ComponentTracker.ComponentListener<Trigger>) (name, trigger) -> notification.newTrigger(name, trigger));
+		m_triggers.addComponentListener((ComponentTracker.ComponentListener<TriggerMetricCollection>) (name, trigger) -> notification.newTrigger(name, trigger.getTrigger()));
 	}
 
 	@Override

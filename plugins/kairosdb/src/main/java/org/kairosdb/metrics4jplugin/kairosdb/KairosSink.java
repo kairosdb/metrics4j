@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.kairosdb.client.Client;
 import org.kairosdb.client.HttpClient;
+import org.kairosdb.client.TelnetClient;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
 import org.kairosdb.metrics4j.MetricsContext;
@@ -81,13 +82,26 @@ public class KairosSink implements MetricSink, Closeable
 	{
 		logger.info("Initializing Kairosdb client");
 		if (telnetHost == null)
-		try
 		{
-			m_client = new HttpClient(hostUrl);
+			try
+			{
+				m_client = new HttpClient(hostUrl);
+			}
+			catch (MalformedURLException e)
+			{
+				logger.error("Malformed URL for Kairos client", e);
+			}
 		}
-		catch (MalformedURLException e)
+		else
 		{
-			logger.error("Malformed URL for Kairos client", e);
+			try
+			{
+				m_client = new TelnetClientAdapter(new TelnetClient(telnetHost, telnetPort));
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 

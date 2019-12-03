@@ -1,9 +1,8 @@
-package org.kariosdb.metrics4jplugin.prometheus;
+package org.kairosdb.metrics4jplugin.prometheus;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
-import lombok.Getter;
 import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.TriggerNotification;
@@ -14,6 +13,8 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.util.Vector;
 
 public class PrometheusSink  extends CollectorRegistry implements MetricSink, Closeable, TriggerNotification
 {
+	private static final Logger logger = LoggerFactory.getLogger(PrometheusSink.class);
 	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter("_");
 	private HTTPServer m_httpServer;
 	private PrometheusTrigger m_trigger;
@@ -50,6 +52,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	@Override
 	public void init(MetricsContext context)
 	{
+		logger.debug("Initialize PrometheusSink");
 		context.registerTriggerNotification(this);
 
 		try
@@ -80,6 +83,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	@Override
 	public Enumeration<Collector.MetricFamilySamples> metricFamilySamples()
 	{
+		logger.debug("Scrape called");
 		m_trigger.reportMetrics();
 		Vector<Collector.MetricFamilySamples> ret = new Vector<>();
 
@@ -123,6 +127,6 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	@Override
 	public Enumeration<Collector.MetricFamilySamples> filteredMetricFamilySamples(Set<String> includedNames)
 	{
-		return null;
+		return metricFamilySamples();
 	}
 }

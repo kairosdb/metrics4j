@@ -1,4 +1,4 @@
-package org.kariosdb.metrics4jplugin.prometheus;
+package org.kairosdb.metrics4jplugin.prometheus;
 
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.triggers.MetricCollection;
