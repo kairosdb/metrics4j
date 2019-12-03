@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.configuration;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.MetricSourceManager;
@@ -57,11 +58,17 @@ class MetricConfigTest
 		m_context.registerSink("sink1", m_sink1);
 	}
 
+	@AfterEach
+	public void cleanup()
+	{
+		MetricSourceManager.clearConfig();
+	}
+
 
 	@Test
 	public void testReadingConfiguration() throws IOException, SAXException, ParserConfigurationException
 	{
-		MetricConfig metricConfig = MetricConfig.parseConfig("test_config");
+		MetricConfig metricConfig = MetricConfig.parseConfig("test_config.conf", "Not_there");
 
 		System.out.println(m_context.getSink("slf4j"));
 

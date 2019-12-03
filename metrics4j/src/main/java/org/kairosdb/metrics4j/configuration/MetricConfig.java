@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.configuration;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.ArgKey;
@@ -11,6 +12,7 @@ import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.transform.Transformer;
 import java.beans.IntrospectionException;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +34,7 @@ public class MetricConfig
 {
 	public static final String CLASS_PROPERTY = "_class";
 	public static final String FOLDER_PROPERTY = "_folder";
+	public static final String DUMP_FILE = "_dump-file";
 
 
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
@@ -49,7 +53,7 @@ public class MetricConfig
 	private boolean m_shutdownOverride = false;
 	private boolean m_dumpMetrics = false;
 	private String m_dumpFile;
-	private Config m_dumpConfig;
+	private Map<String, Object> m_dumpConfig;
 
 
 
@@ -269,54 +273,55 @@ public class MetricConfig
 	}
 
 
-	public static MetricConfig parseConfig(String baseName)
+	/**
+	 *
+	 * @param baseConfig
+	 * @param overridesConfig
+	 * @return
+	 */
+	public static MetricConfig parseConfig(String baseConfig, String overridesConfig)
 	{
 		//todo break up this method so it can be built in parts by unit tests
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
-		Config config = ConfigFactory.load(baseName);
+		Config base = ConfigFactory.parseResources(baseConfig);
+		Config overrides = ConfigFactory.parseResources(overridesConfig);
 
-		/*if (propertiesInputStream != null)
+		Config config = overrides.withFallback(base).resolve();
+
+		if (config.hasPath("metrics4j"))
 		{
-			Properties props = new Properties();
-			props.load(propertiesInputStream);
+			Config metrics4j = config.getConfig("metrics4j");
 
-			ret.setProperties(props);
-		}*/
+			//Parse out the sinks
+			Config sinks = config.getConfig("metrics4j.sinks");
+			if (sinks != null)
+				ret.registerStuff(sinks, context::registerSink);
 
-		//todo add system properties and add env
-		Config metrics4j = config.getConfig("metrics4j");
+			Config collectors = config.getConfig("metrics4j.collectors");
+			if (collectors != null)
+				ret.registerStuff(collectors, context::registerCollector);
 
+			Config formatters = config.getConfig("metrics4j.formatters");
+			if (formatters != null)
+				ret.registerStuff(formatters, context::registerFormatter);
 
-		//Parse out the sinks
-		Config sinks = config.getConfig("metrics4j.sinks");
-		if (sinks != null)
-			ret.registerStuff(sinks, context::registerSink);
+			Config triggers = config.getConfig("metrics4j.triggers");
+			if (triggers != null)
+				ret.registerStuff(triggers, context::registerTrigger);
 
-		Config collectors = config.getConfig("metrics4j.collectors");
-		if (collectors != null)
-			ret.registerStuff(collectors, context::registerCollector);
-
-		Config formatters = config.getConfig("metrics4j.formatters");
-		if (formatters != null)
-			ret.registerStuff(formatters, context::registerFormatter);
-
-		Config triggers = config.getConfig("metrics4j.triggers");
-		if (triggers != null)
-			ret.registerStuff(triggers, context::registerTrigger);
-
-		//todo parse through sources and add them to a map
-		Config sources = config.getConfig("metrics4j.sources");
-		if (sources != null)
-		{
-			if (sources.hasPath("_dump-file"))
+			if (metrics4j.hasPath(DUMP_FILE))
 			{
-				ret.m_dumpFile = sources.getString("_dump-file");
+				ret.m_dumpFile = metrics4j.getString(DUMP_FILE);
+
 				ret.m_dumpMetrics = true;
-				ret.m_dumpConfig = ConfigFactory.empty();
+				ret.m_dumpConfig = new HashMap<>();
 			}
-			ret.parseSources(sources);
+
+			Config sources = config.getConfig("metrics4j.sources");
+			if (sources != null)
+				ret.parseSources(sources);
 		}
 
 		return ret;
@@ -361,28 +366,29 @@ public class MetricConfig
 
 		if (m_dumpFile != null)
 		{
-			/*log.debug("Writing dump file {}", m_dumpFile);
+			log.debug("Writing dump file {}", m_dumpFile);
 			try
 			{
-				Transformer tf = TransformerFactory.newInstance().newTransformer();
-				tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-				tf.setOutputProperty(OutputKeys.INDENT, "yes");
-				tf.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+				Map<String, Object> metrics4j = getAdd(m_dumpConfig, "metrics4j");
+
+				//make sure root level configs are there.
+				getAdd(metrics4j, "sources");
+				getAdd(metrics4j, "sinks");
+				getAdd(metrics4j, "collectors");
+				getAdd(metrics4j, "formatters");
+				getAdd(metrics4j, "triggers");
+
+				String dumpConfigStr = ConfigFactory.parseMap(m_dumpConfig).root()
+						.render(ConfigRenderOptions.defaults().setOriginComments(false).setJson(false));
 				FileWriter out = new FileWriter(m_dumpFile);
-				tf.transform(new DOMSource(m_dumpConfig), new StreamResult(out));
-			}
-			catch (TransformerConfigurationException e)
-			{
-				e.printStackTrace();
-			}
-			catch (TransformerException e)
-			{
-				e.printStackTrace();
+				out.write(dumpConfigStr);
+				out.flush();
+				out.close();
 			}
 			catch (IOException e)
 			{
 				e.printStackTrace();
-			}*/
+			}
 		}
 	}
 
@@ -393,20 +399,10 @@ public class MetricConfig
 	}
 
 
-
-
-
-
-
 	public String getMetricNameForKey(ArgKey key)
 	{
 		return m_mappedMetricNames.get(key.getConfigPath());
 	}
-
-
-
-
-
 
 
 	public MetricsContext getContext()
@@ -466,40 +462,24 @@ public class MetricConfig
 		return m_dumpMetrics;
 	}
 
+	private Map<String, Object> getAdd(Map<String, Object> root, String segment)
+	{
+		return (Map<String, Object>) root.computeIfAbsent(segment, s -> new HashMap<String, Object>());
+	}
+
 	/**
 	 Adds a source that will be dumped out on shutdown.
 	 @param src
 	 */
 	public void addDumpSource(String src)
 	{
-		/*String[] split = src.split("\\.");
+		Map<String, Object> sources = getAdd(getAdd(m_dumpConfig, "metrics4j"), "sources");
 
-		Element root = m_dumpConfig.getDocumentElement(); //gets metrics4j element
-		root = (Element)root.getFirstChild(); //gets sources element
+		String[] split = src.split("\\.");
 
-		for (String path : split)
+		for (int i = 0; i < split.length; i++)
 		{
-			Element nextChild = null;
-			NodeList childNodes = root.getChildNodes();
-
-			for (int i = 0; i < childNodes.getLength(); i++)
-			{
-				Element child = (Element)childNodes.item(i);
-				if (child.getAttribute("name").equals(path))
-				{
-					nextChild = child;
-					break;
-				}
-			}
-
-			if (nextChild == null)
-			{
-				nextChild = m_dumpConfig.createElement("source");
-				nextChild.setAttribute("name", path);
-				root.appendChild(nextChild);
-			}
-
-			root = nextChild;
-		}*/
+			sources = getAdd(sources, split[i]);
+		}
 	}
 }

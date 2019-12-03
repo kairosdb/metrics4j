@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
@@ -25,10 +27,16 @@ class MetricSourceManagerTest
 		}
 	}
 
-	@org.junit.jupiter.api.BeforeEach
+	@BeforeEach
 	void setUp()
 	{
 
+	}
+
+	@AfterEach
+	public void cleanup()
+	{
+		MetricSourceManager.clearConfig();
 	}
 
 	@Test

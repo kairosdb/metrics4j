@@ -2,6 +2,7 @@ package org.kairosdb.metrics4j;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.collectors.DoubleCounter;
@@ -44,7 +45,7 @@ public class Metrics4jTest
 		Properties props = new Properties();
 		props.load(propsIs);
 
-		m_metricConfig = MetricConfig.parseConfig("test_config");
+		m_metricConfig = MetricConfig.parseConfig("test_config.conf", "Not_there");
 		MetricsContext context = m_metricConfig.getContext();
 		m_metricConfig.setProperties(props);
 		MetricSourceManager.setMetricConfig(m_metricConfig);
@@ -62,6 +63,12 @@ public class Metrics4jTest
 
 		context.registerSink("sink1", m_sink1);
 		context.addSinkToPath("sink1", new ArrayList<>());
+	}
+
+	@AfterEach
+	public void cleanup()
+	{
+		MetricSourceManager.clearConfig();
 	}
 
 	@Test

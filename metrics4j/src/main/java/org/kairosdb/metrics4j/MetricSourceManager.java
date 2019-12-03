@@ -45,13 +45,22 @@ public class MetricSourceManager
 		s_invocationMap.clear();
 	}
 
+	/**
+	 For testing purposes, this clears out any config stored in the static variables
+	 */
+	public static void clearConfig()
+	{
+		s_metricConfig = null;
+		s_invocationMap.clear();
+	}
+
 	public static MetricConfig getMetricConfig()
 	{
 		if (s_metricConfig == null)
 		{
 			try
 			{
-				s_metricConfig = MetricConfig.parseConfig("metrics4j");
+				s_metricConfig = MetricConfig.parseConfig("metrics4j.conf", "metrics4j.properties");
 			}
 			catch (Exception e)
 			{
