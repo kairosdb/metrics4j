@@ -99,9 +99,18 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 				values.add(tagEntry.getValue());
 			}
 
+			String familyName = "";
+
 			//convert to MetricFamilySamples
 			for (FormattedMetric.Sample sample : reportedMetric.getSamples())
 			{
+				//this is kind of hackish need to figure out something better
+				familyName = sample.getMetricName();
+				int index = familyName.lastIndexOf('_');
+				if (index != -1)
+					familyName = familyName.substring(0, index);
+
+				System.out.println("Reporting "+sample.getMetricName());
 				if (sample.getValue() instanceof DoubleValue)
 				{
 					promSamples.add(new Collector.MetricFamilySamples.Sample(sample.getMetricName(),
@@ -112,12 +121,14 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 					promSamples.add(new Collector.MetricFamilySamples.Sample(sample.getMetricName(),
 							keys, values, ((LongValue) sample.getValue()).getValue(), sample.getTime().toEpochMilli()));
 				}
-
 			}
 
-			//todo figure out type and pass help
-			//ret.add(new Collector.MetricFamilySamples(reportedMetric.getMetricName(),
-			//		Collector.Type.COUNTER, "help", promSamples));
+			if (!promSamples.isEmpty())
+			{
+				//todo figure out type and pass help
+				ret.add(new Collector.MetricFamilySamples(familyName,
+						Collector.Type.COUNTER, reportedMetric.getHelp(), promSamples));
+			}
 
 		}
 

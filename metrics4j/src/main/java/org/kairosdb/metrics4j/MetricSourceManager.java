@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j;
 
+import org.kairosdb.metrics4j.annotation.Help;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.CustomArgKey;
@@ -105,7 +106,12 @@ public class MetricSourceManager
 				Method[] methods = klass.getMethods();
 				for (Method method : methods)
 				{
-					metricConfig.addDumpSource(className+"."+method.getName());
+					String helpText = "";
+					if (method.isAnnotationPresent(Help.class))
+					{
+						helpText = method.getAnnotation(Help.class).value();
+					}
+					metricConfig.addDumpSource(className+"."+method.getName(), helpText);
 				}
 			}
 			return new SourceInvocationHandler(getMetricConfig());
@@ -142,7 +148,7 @@ public class MetricSourceManager
 		if (tags != null)
 			configTags.putAll(tags);
 
-		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null);
+		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null, help);
 	}
 
 	public static void export(String name, Map<String, String> tags, String help, DoubleSupplier supplier)
@@ -157,7 +163,7 @@ public class MetricSourceManager
 		if (tags != null)
 			configTags.putAll(tags);
 
-		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null);
+		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null, help);
 	}
 
 	/**

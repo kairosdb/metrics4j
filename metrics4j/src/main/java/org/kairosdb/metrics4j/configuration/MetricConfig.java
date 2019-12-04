@@ -468,10 +468,11 @@ public class MetricConfig
 	}
 
 	/**
-	 Adds a source that will be dumped out on shutdown.
-	 @param src
+	 Adds a source that will be dumped out on shutdown.@param src
+	 @param helpText
+
 	 */
-	public void addDumpSource(String src)
+	public void addDumpSource(String src, String helpText)
 	{
 		Map<String, Object> sources = getAdd(getAdd(m_dumpConfig, "metrics4j"), "sources");
 

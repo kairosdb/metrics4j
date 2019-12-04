@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.annotation.Help;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
@@ -77,6 +78,14 @@ public class SourceInvocationHandler implements InvocationHandler
 		CollectorCollection ret = null;
 
 		Iterator<Collector> collectors = m_config.getContext().getCollectorsForKey(key).iterator();
+		String helpText = "";
+
+		Method method = key.getMethod();
+		if (method.isAnnotationPresent(Help.class))
+		{
+			Help help = method.getAnnotation(Help.class);
+			helpText = help.value();
+		}
 
 		while (collectors.hasNext())
 		{
@@ -94,7 +103,9 @@ public class SourceInvocationHandler implements InvocationHandler
 				Map<String, String> tagsForKey = m_config.getTagsForKey(key);
 
 				m_config.getContext().assignCollector(key, ret, tagsForKey, m_config.getPropsForKey(key),
-						m_config.getMetricNameForKey(key));
+						m_config.getMetricNameForKey(key), helpText);
+
+				break;
 			}
 			//todo else check for instance of CollectorCollection
 			/*else

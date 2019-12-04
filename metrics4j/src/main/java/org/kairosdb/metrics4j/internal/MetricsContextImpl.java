@@ -141,7 +141,7 @@ public class MetricsContextImpl implements MetricsContext
 	 @param collectorTags
 	 */
 	public void assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> collectorTags,
-			Map<String, String> properties, String metricName)
+			Map<String, String> properties, String metricName, String help)
 	{
 		//todo make sure assignment doesn't already exist
 		CollectorContainer collectorContainer = new CollectorContainer(collectors, key);
@@ -151,6 +151,7 @@ public class MetricsContextImpl implements MetricsContext
 
 		collectorContainer.setTags(collectorTags);
 		collectorContainer.setProps(properties);
+		collectorContainer.setHelp(help);
 
 		List<AssignedFormatter> formatters = m_formatters.getComponentsForKey(key);
 		List<SinkQueue> sinkQueues = m_sinks.getComponentsForKey(key);

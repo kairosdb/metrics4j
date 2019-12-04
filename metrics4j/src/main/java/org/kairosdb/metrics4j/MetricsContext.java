@@ -39,5 +39,7 @@ public interface MetricsContext
 
 	void addSinkToPath(String name, List<String> path);
 
-	void assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> tags, Map<String, String> props, String metricName);
+	void assignCollector(ArgKey key, CollectorCollection collectors,
+			Map<String, String> tags, Map<String, String> props, String metricName,
+			String help);
 }

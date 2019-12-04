@@ -6,15 +6,17 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 public class DefaultFormatter implements Formatter
 {
 	public final String m_separator;
+	public final boolean m_replaceDot;
 
 	public DefaultFormatter()
 	{
-		m_separator = ".";
+		this(".");
 	}
 
 	public DefaultFormatter(String separator)
 	{
 		m_separator = separator;
+		m_replaceDot = (!m_separator.equals("."));
 	}
 
 	@Override
@@ -28,7 +30,13 @@ public class DefaultFormatter implements Formatter
 		}
 		else
 		{
-			sb.append(reportedMetric.getClassName()).append(m_separator)
+			String className = reportedMetric.getClassName();
+			if (m_replaceDot)
+			{
+				className = className.replace(".", m_separator);
+			}
+
+			sb.append(className).append(m_separator)
 					.append(reportedMetric.getMethodName()).append(m_separator)
 					.append(sample.getFieldName());
 		}

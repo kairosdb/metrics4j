@@ -23,9 +23,10 @@ public class CollectorContainer
 	private final ArgKey m_argKey;
 	private Map<String, Formatter> m_formatters;
 	private List<SinkQueue> m_sinkQueueList;
-	private Map<String, String> m_tags;
+	private Map<String, String> m_tags;             //additional tags set in configuration
 	private Map<String, String> m_props;
 	private String m_metricName;
+	private String m_help = "";
 
 	public CollectorContainer(CollectorCollection collector, ArgKey argKey)
 	{
@@ -57,7 +58,7 @@ public class CollectorContainer
 		{
 			Formatter formatter = m_formatters.getOrDefault(sinkQueue.getSinkName(), sinkQueue.getSink().getDefaultFormatter());
 
-			FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags);
+			FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags, m_help);
 
 			for (ReportedMetric.Sample sample : metric.getSamples())
 			{
@@ -88,9 +89,18 @@ public class CollectorContainer
 		m_metricName = metricName;
 	}
 
-
 	public void setProps(Map<String, String> props)
 	{
 		m_props = props;
+	}
+
+	public String getHelp()
+	{
+		return m_help;
+	}
+
+	public void setHelp(String help)
+	{
+		m_help = help;
 	}
 }

@@ -19,13 +19,15 @@ public class FormattedMetric
 	private final List<Sample> m_samples;
 	private final Map<String, String> m_props;
 	private final Map<String, String> m_combinedTags;
+	private final String m_help;
 
-	public FormattedMetric(ReportedMetric metric, Map<String, String> props, Map<String, String> staticTags)
+	public FormattedMetric(ReportedMetric metric, Map<String, String> props, Map<String, String> staticTags, String help)
 	{
 		m_metric = metric;
 		m_samples = new ArrayList<>();
 		m_props = props;
 		m_combinedTags = new MapCombiner<>(staticTags, m_metric.getTags());
+		m_help = help;
 	}
 
 	public void addSample(ReportedMetric.Sample sample, String formattedName)
@@ -56,6 +58,11 @@ public class FormattedMetric
 	public Map<String, String> getProps()
 	{
 		return m_props;
+	}
+
+	public String getHelp()
+	{
+		return m_help;
 	}
 
 
