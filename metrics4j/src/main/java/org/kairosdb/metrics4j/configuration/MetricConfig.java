@@ -1,7 +1,6 @@
 package org.kairosdb.metrics4j.configuration;
 
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
@@ -12,7 +11,6 @@ import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.transform.Transformer;
 import java.beans.IntrospectionException;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -26,7 +24,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +32,7 @@ public class MetricConfig
 	public static final String CLASS_PROPERTY = "_class";
 	public static final String FOLDER_PROPERTY = "_folder";
 	public static final String DUMP_FILE = "_dump-file";
+	public static final String METRIC_NAME = "_metric-name";
 
 
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
@@ -213,12 +211,11 @@ public class MetricConfig
 				if (path[i].startsWith("_"))
 				{
 					String internalProp = path[i];
-					if (internalProp.equals("_metric-name"))
+					if (internalProp.equals(METRIC_NAME))
 					{
 						String combinedPath = combinePath(path, i);
 
 						String metricName = root.getString(combinedPath);
-						System.out.println("Metric name: "+metricName);
 
 						if (!metricName.isEmpty())
 							m_mappedMetricNames.put(createList(path, i-1), metricName);
@@ -423,12 +420,17 @@ public class MetricConfig
 	 */
 	public Map<String, String> getTagsForKey(ArgKey argKey)
 	{
+		return getValuesForKey(argKey, m_mappedTags);
+	}
+
+	private Map<String, String> getValuesForKey(ArgKey argKey, Map<List<String>, Map<String, String>> mappedTags)
+	{
 		Map<String, String> ret = new HashMap<>();
 		List<String> configPath = argKey.getConfigPath();
 		for (int i = configPath.size(); i >= 0; i--)
 		{
 			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			Map<String, String> pathTags = m_mappedTags.getOrDefault(searchPath, new HashMap<>());
+			Map<String, String> pathTags = mappedTags.getOrDefault(searchPath, new HashMap<>());
 
 			for (String key : pathTags.keySet())
 			{
@@ -441,20 +443,7 @@ public class MetricConfig
 
 	public Map<String, String> getPropsForKey(ArgKey argKey)
 	{
-		Map<String, String> ret = new HashMap<>();
-		List<String> configPath = argKey.getConfigPath();
-		for (int i = configPath.size(); i >= 0; i--)
-		{
-			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
-			Map<String, String> pathProps = m_mappedProps.getOrDefault(searchPath, new HashMap<>());
-
-			for (String key : pathProps.keySet())
-			{
-				ret.putIfAbsent(formatValue(key), formatValue(pathProps.get(key)));
-			}
-		}
-
-		return ret;
+		return getValuesForKey(argKey, m_mappedProps);
 	}
 
 	public boolean isDumpMetrics()

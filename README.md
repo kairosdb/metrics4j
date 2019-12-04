@@ -3,19 +3,29 @@ Library for abstracting the reporting of metrics in your code from sending them 
 
 This library is still in development, keep checking back as progress is moving quickly
 
+#### Have you ever wanted to ...
+ * change how often an application reports metrics
+ * change how a metric is reported (rate vs counter)
+ * change the name of a metric
+ * turn a metric off or on 
+ * report a metric to more than one timeseries backend
+ * have an application report to something besides prometheus
+ 
+on an application already deployed in production?  Then this library is for your 
+(or the developers that wrote the application)
+
 ## Philosophy of using Metrics4j
 The metrics4j library is designed to separate the role of the application developer
-from the IT administrator that deploys the software.  Metrics4j has only one dependency 
-Slf4j for logging.  The lack of dependencies is important if this library is to
-be used in various projects.  The lack of dependencies is also why metrics4j uses
-XML for configuration.  Java's built in support for XML is really good and does
-a lot of work for the project without requiring other libraries.
+from the IT administrator when it comes to reporting metrics.  When, how often and
+where metrics are reported is not the job of the developer.
+
 
 ### Application Developer
 The application developer's role is to identify interesting metrics and report them.
-The library lets you report numbers or durations (for timing something).  All values you
-report are sent to a collector.  The interpretation of those numbers, ie. is it a guage
-or rate, is determined at runtime by the administrator.
+The Metrics4j library lets the developer report numbers or durations 
+with a clean, easy to use api.  The interpretation of those numbers, ie. is it a counter
+or a rate, is determined at runtime by the administrator along with where to send and how 
+often to send.
 
 ### IT Administrator
 The IT Admin is the one that deploys the application and is able, by configuration at runtime,
@@ -26,8 +36,8 @@ to determine the following
 1. Name of the metric and format
 1. How to interpret the metric, is it a guage, rate or counter?
 
-All of the above is determined through configuration via the metrics4j.xml file.  In some
-cases additional jar files may need to be placed in the classpath.
+All of the above is determined through configuration via the metrics4j.conf file.  In some
+cases additional jar files may need to be placed in the classpath depending on the plugins used.
 
 The rest of the documentation is split into 2 sections, the first is for developers
 using the library and the second section is for admins trying to configure the library
@@ -40,13 +50,13 @@ Checkout the short video I did on using Metrics4j in your application: https://y
 ## Using the library
 Anyone wanting to instrument their code will only have to do three things.
 1.  Create an interface that describes the metric to report.
-1.  Use the MetricSourceManager to instantate an instance of the above interface.
+1.  Use the MetricSourceManager to instantiate an instance of the above interface.
 1.  Call the method to report metrics.
 
 Actual reporting of the metrics and where they are reporting to will be determined 
 at run time based on a configuration file. (covered in section 2)
 
-Each metric reported consists of a value (long, double or string) a timestamp (determined
+Each metric reported consists of a value (long, double, duration or string) a timestamp (determined
 by when the metric is reported) and a set of tags (key value pairs).
 
 Lets look at an example of how this would be done.  Lets say you have a service
@@ -65,8 +75,11 @@ Notice the `@Key("host")` annotation on the host parameter.  This lets metrics4j
 know that you want to specify the host tag each time this is called, in this way
 you separate the metrics for each host.
 
+**Note:** Not all timeseries backends support tags.  In those cases you will need to include 
+the tag as part of the metric name using a formatter (see below)
+
 The return type for the method indicates what type of value will be collected.
-Our example collects long values and durations.
+Our example collects long values and durations (only return the *Collector interfaces).
 
 You can have as many methods on your interface as you like, in our example we are 
 also reporting the time it took to process the message.
@@ -89,9 +102,13 @@ reporter.reportSize(host).put(messageSize);
 That's it.  You may be wondering what your metric name will look like?  Well 
 that isn't up to you, it's up to whomever configures and runs your software.
 Both the interface name and the method name are available for formatting the metric
-name so it is a good idea to name them something appropriate.
+name so it is a good idea to name them something appropriate.  You can also annotate
+your methods with `@Help("good help text here")` to give your users clues as to 
+what the metric is.
 
 ## Different ways to report metrics
+
+todo:
 
 Put values into a collector
 
@@ -106,7 +123,7 @@ it reports metrics.
 The following example is using mockito but any mock library will work.
 
 ```java
-//mock the counter and register it with ReporterFactory for a specific call
+//mock the collector and register it with ReporterFactory for a specific call
 LongCollector myCollector = mock(LongCollector.class);
 MetricSourceManager.setCollectorForSource(myCollector, MessageSizeReporter.class).reportSize("localhost");
 ```
@@ -132,55 +149,63 @@ Metrics4j is designed to let you, the admin, determine for each metric being rep
 
 (The following is subject to change as we work through the beta)
 
-NOTE: this will change as I just discovered jaxb was removed in java 11 :(
+When Metrics4j loads it will try to find two files named metrics4j.conf and metrics4j.properties in the classpath.
+If neither file is found, all the reporting methods are effectively no-ops.
 
-When Metrics4j loads it will try to find a file named metrics4j.xml in the classpath.
-If metrics4j.xml is not found all the reporting methods are effectively no-ops.
+What is a .conf file?  Metrics4j has the Hocon library from LightBend shaded into the jar (https://github.com/lightbend/config)
+Hocon is a human readable json format that is awesome.  We will only cover the basics here, it is worth
+your time to review their documentation as they have some cool features.
+
+Metrics4j loads up the .conf file and then uses the .properties as overrides.  Most 
+configuration management systems can generate .properties files so it is easier to 
+place situation aware variables within the metrics4j.properties file and then reference them
+from the metrics4j.conf.
  
 ## Configuration
 The top level of the configuration file looks like this
-```xml
-<metrics4j>
-	<sources name="ROOT"> <!-- Defines sources and associates sinks, collectors, formatters and triggers with them -->
-		...
-	</sources>
-	
-	<sinks> <!-- Defines what sinks to use - where to send the metrics -->
-		...
-	</sinks>
-	
-	<collectors> <!-- Defines what collectors will be used and configures them -->
-		...
-	</collectors>
-	
-	<formatters> <!-- Can reformat metric names and tags when reporting -->
-		...
-	</formatters>
-
-	<triggers> <!-- determines when to collect metrics -->
-		...
-	</triggers>
-</metrics4j>
+```hocon
+metrics4j: {
+  sources: { 
+    #Defines sources and associates sinks, collectors, formatters and triggers with them
+    }
+    
+  sinks: {
+    #Defines what sinks to use - where to send the metrics
+  }
+    
+  collectors: {
+    #Defines what collectors will be used and configures them
+  }
+    
+  formatters: {
+    #Can reformat metric names and tags when reporting
+  }
+    
+  triggers: {
+    #determines when to collect metrics
+  }
+}
 ```
 
 Collectors are cloned for each source, Sinks, Formatters and Triggers are treated
 as singletons.
 
-JAXB is used when reading each object so configuration can be passed.  For example
-when using the TemplateFormatter you can specify a template attribute that is the 
-template.
+Metrics4j uses bean property injection when loading plugins.  The properties should be
+dash delimited in the hocon file, so if your sink has a `setHostName(String name)` method
+you will set `host-name: ""` in the conf file and it will get injected after the plugin
+is loaded but before `init()` is called.
 
 In some cases you may have a plugin that has conflicting dependencies with 
 the main application that Metrics4j is being used in.  In this case you can 
-use the plugin feature of Metrics4j by specifying a folder attribute on the 
-component you are including.  The folder attribute defines a location to find jar
+use the plugin feature of Metrics4j by specifying a _folder attribute on the 
+component you are including.  The _folder attribute defines a location to find jar
 files that contain the component (collector, sink, etc).  These jars are loaded
 in a separate class loader and isolated to prevent conflicts.
 
 #### Configuration Parameters
 
 For any attribute or element value you can insert a parameter surrounded by ${ } that
-will be replaced by either a properties value or an environment value.
+will be replaced by either a properties value or an environment value (this is the Hocon substitution feature).
 
 ### Sources
 The purpose of sources is to associate a sink/collector/formatter/trigger with 
@@ -189,18 +214,20 @@ the various sources of metrics throughout the application.
 Lets look at the previous example of MessageSizeReporter and I want to set reportSize() 
 to use a counter, this is how that would look (assuming MessageSizeReporter was in package foo.com):
 
-```xml
-<metrics4j>
-	<sources>
-		<source name="com.foo.MessageSizeReporter.reportSize">
-			<collector ref="Counter"/>
-		</source>
-	</sources>
-	<collectors>
-		<collector name="Counter" class="org.kairosdb.metrics4j.collectors.LongCounter" reset="true"/>
-	</collectors>
-	...
-</metrics4j>
+```hocon
+metrics4j: {
+  sources: {
+    com.foo.MessageSizeReporter.reportSize: {
+      _collector: myCounter
+    }
+  }
+  collectors: {
+    myCounter: {
+      _class: "org.kairosdb.metrics4j.collectors.LongCounter"
+      reset: true
+    }
+  }
+}
 ```
 
 When MessageSizeReporter is created metrics4j will search up the tree looking for a
@@ -208,99 +235,142 @@ defined LongCollector for reportSize to return.  If I knew I wanted all collecto
 to be the same then I could reference the collector at the root once and all would
 use it.  The above collector is configured to reset its value after it is reported.
 
-The source name is the path to help metrics4j find the configuration it needs.  The name
-attribute is a dot delimited path or you can specify one path component per source like this:
+When using Hocon the '.' is the same as a nested object so the following configurations
+are the same
 
-```xml
-<metrics4j>
-	<sources>
-		<source name="com">
-			<source name="foo">
-				<source name="MessageSizeReporter.reportSize">
-					<collector ref="Counter"/>
-				</source>
-			</source>
-		</source>
-	</sources>
-	...
-</metrics4j>
+```hocon
+metrics4j: {
+  sources: {
+    com.foo.MessageSizeReporter.reportSize: {
+      _collector: myCounter
+    }
+  }
+}
+metrics4j: {
+  sources: {
+    com: {
+      foo: {
+        MessageSizeReporter.reportSize: {
+          _collector: myCounter
+        }
+      }
+    }
+  }
+}
 ```
 
 Defaults can be specified at the root of sources and then overridden at any level
 that is convenient for you.
 
-For each source (reportSize()) you can define a collector, a trigger, a formatter and 
-zero or more sinks.
+For each source (ie. reportSize()) you can define a collector, a trigger, a formatter and 
+one or more sinks.
+
+###### Overrides
+
+Just a quick note on overriding values using Hocon.  Lets say in the above example I want
+to configure the reset option of myCounter using configuration management.  If I use the 
+metrics4j.properties file I can do this in one of two ways.
+
+Override
+
+In this case I replace the value using the .properties like so
+```properties
+metrics4j.collectors.myCounter.rest=false
+```
+
+Substitution
+
+In the .conf file I replace the value of rest with ${reset-option} and then my .properties file looks
+like this
+```properties
+reset-option=false
+```
+
+Technically speaking the .properties file is loaded using the .conf file as a fallback and then resolved.
+
+###### Metric Name
+You can explicitly call out the metric name for a source using the `_metric-name` attribute.
+```hocon
+metrics4j: {
+sources: {
+  org.kairosdb.metrics4j.configuration.TestSource: {
+    countSomething: {
+      _metric-name: "my_metric.count_something"
+      }
+    }
+  }
+}
+```
+This attribute is then made available to the template format as `%{metricName}`.
+It is still a good idea to use a formatter as some collectors have more than one field
+they report (ie. min, max, avg) so you need to tell metrics4j how to append that on to
+the metric name.
 
 ###### Tags
 Tags gives you a way to add tags to your metric to be sent off.  The tag element can
 be defined at any level under sources.
-```xml
-<source name="foo">
-	<tag key="host" value="localhost"/>
-</source>
-```
-
-###### Props
-Props (properties) are a way to pass context information to formatters or sinks about
-the metric.  For example you way want to tell the statsd sink that the value is a counter
-```xml
-<source name="foo">
-	<prop key="statsd:type" value="c"/>
-</source>
-```
-
-##### Getting available sources
-
-You may have just downloaded a project and are unsure what sources are available
-to configure.  You can dump all sources by specifying the dump_file attribute on 
-the sources tag like so:
-
-```xml
-<metrics4j>
-	<sources dump_file="dump_sources.xml"/>
-</metrics4j>
-```
-
-TODO: add annotation that shows up as comments in the dump file
-
-#### Additional tags
-At any level of the sources element you can add a tags element to define tags you 
-wish associated with the metrics at that level.
-
-```xml
-<metrics4j>
-	<sources>
-		<tags>
-			<tag key="host" value="localhost"/>
-		</tags>
-		<source name="org">
-			<source name="kairosdb">
-				<tags>
-					<tag key="host" value="localhost_override"/>
-				</tags>
-			</source>
-		</source>
-	</sources>
-	...
-</metrics4j>
+```hocon
+metrics4j: {
+  sources: {
+    _tags: {
+      host: "localhost" #default value
+    }
+    org.kairosdb: {
+      _tags: {
+        host: "localhost_override" #override at this context
+      }
+    }
+  }
+}
 ```
 
 The above example sets tags a two different levels and the more nested overrides
 those towards the root.
 
+###### Props
+Props (properties) are a way to pass context information to formatters or sinks about
+the metric.  For example you way want to tell the statsd sink that the value is a counter
+```hocon
+sources: {
+  foo.MyClass.myMethod: {
+    _props: {
+      statsd_type: "c"
+    }
+  }
+}
+```
+
+##### Getting available sources
+
+You may have just downloaded a project and are unsure what sources are available
+to configure.  You can dump all sources by specifying the _dump_file attribute under the 
+metrics4j tag like so:
+
+```hocon
+metrics4j: {
+  _dump_file: "dump_sources.conf"
+}
+```
+
 ### Sinks
 A sink defines a destination to send the metrics to.
 
 #### Slf4JMetricSink
-Reports metrics to an Slf4j logger.  The logLevel attribute controls the log level.
+Reports metrics to an Slf4j logger.  The log-level attribute controls the log level (DEBUG, WARN, INFO, etc).
 
 #### TelnetSink
 
 Sends data using the telnet protocol supported by OpenTSDB and KairosDB.
 
-``` xml
-<sink name="telnet" class="org.kairosdb.metrics4j.sinks.TelnetSink" folder="plugins" host="localhost" port="4242" resolution="SECONDS"/>
+```hocon
+sinks: {
+  telnet: {
+    _class: "org.kairosdb.metrics4j.sinks.TelnetSink"
+    host: "localhost"
+    port: 4242
+    resolution: "SECONDS" #Kairos also supports MILLISECONDS
+  }
+}
 ```
 
 The resolution attribute can be either SECONDS or MILLISECONDS sending either a put or putm
@@ -311,17 +381,53 @@ respectively
 Sends data using the plaintext protocol.  It takes three attributes for host, port
 and whether to include tags.
 
-``` xml
-<sink name="graphite" class="org.kairosdb.metrics4j.sinks.GraphitePlaintextSink" host="localhost" port="2003" include_tags="true"/>
+```hocon
+sinks: {
+  graphite: {
+    _class: "org.kairosdb.metrics4j.sinks.GraphitePlaintextSink"
+    host: "localhost"
+    port: 2003
+    include-tags: true #newer graphite versions support tags
+  }
+}
 ```
 
 #### InfluxSink
 
-TODO: https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_reference/
+The Influx sink is a separate jar that needs to be placed in the classpath along 
+with its dependencies (it includes the apache httpclient).
+
+```hocon
+sinks: {
+  influx: {
+    _class: "org.kairosdb.metrics4jplugin.influxdb.InfluxSink"
+    host-url: "http://localhost:8086/write?db=mydb"
+  }
+}
+```
 
 #### PrometheusSink
 
-TODO: https://github.com/prometheus/client_java
+The Prometheus sink is a separate jar that needs to be placed in the classpath along
+with its dependencies (it includes the prometheus simpleclient and simpleclient_httpserver).
+
+Prometheus requires both a sink and a trigger to be defined.  They both need to be referenced
+in the sources section as well.
+
+```hocon
+sinks: {
+  prometheus: {
+    _class: "org.kairosdb.metrics4jplugin.prometheus.PrometheusSink"
+    listen-port: 9090
+  }
+}
+
+triggers: {
+  prometheus: {
+    _class: "org.kairosdb.metrics4jplugin.prometheus.PrometheusTrigger"
+  }
+}
+```
 
 #### TimescaleDBSink
 
@@ -334,13 +440,17 @@ will match the type so if you define both a LongCounter and a DoubleCounter it w
 know to grab the LongCounter as it inherits from LongCollector.
 
 #### DoubleCounter
-
+Counts up double values to be reported.  The counter can be reset when values are reported
+by setting reset: true in the conf
 
 #### LongCounter
-Counts up values to be reported.  The counter can be reset when values are reported
-by setting reset="true" in the xml
+Counts up long values to be reported.  The counter can be reset when values are reported
+by setting reset: true in the conf
 
 #### LongGauge
+Simple gauge that reports the most recently received value.
+
+#### DoubleGauge
 Simple gauge that reports the most recently received value.
 
 #### SimpleStats
@@ -348,14 +458,18 @@ This reports the min, max, sum, count and avg for the set of values received sin
 last reporting.
 
 #### SimpleTimerMetric
-
+Used for reporting measured durations.  The collector reports min, max, total,
+count and avg for the measurements received during the last reporting period.
+Values are reported as milliseconds by default but maybe changed using the
+report-unit attribute.  Valid values are (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS)
 
 #### StringReporter
+No aggregation is done in this collector.  All strings are reported with the time
+they were received.
 
 ### Formatters
-A formatter can change just about anything on a metric before it is reported.  
-The primary purpose is to format the name to your liking ie. underscore vs period
-in the name.  A formatter can also change the tags, timestamp and value.
+A formatter can change the name to your liking ie. underscore vs period
+in the name.
 
 #### TemplateFormatter
 class = org.kairosdb.metrics4j.formatters.TemplateFormatter
@@ -363,10 +477,18 @@ class = org.kairosdb.metrics4j.formatters.TemplateFormatter
 Pass a template attribute where you can placeholders for className, methodName,
 field and specific tags.
 
-```xml
-<formatter name="templateWithStatus" class="org.kairosdb.metrics4j.formatters.TemplateFormatter"
-  template="metric4j.${className}.${methodName}.${tag.status}.${field}"/>
+```hocon
+formatters: {
+  templateWithStatus: {
+    _class: "org.kairosdb.metrics4j.formatters.TemplateFormatter"
+    template: "metric4j.%{className}.%{methodName}.%{tag.status}.%{field}"
+  }
+}
 ```
+**Note** The template formatter uses `%{}` so as to not be confused with `${}` used
+by hocon substitution - and so you can use both in a template. like so 
+`template: ${metric-prefix}".%{className}.%{methodName}.%{tag.status}.%{field}"`  
+I only quote the template replace portion.
 
 ### Triggers
 The trigger tells metrics4j when to gather the metrics from the collectors and 
@@ -374,10 +496,15 @@ report to the sinks.
 
 #### IntervalTrigger
 The IntervalTrigger lets you set a time for how often metrics are reported.  The
-following reports metrics every 5 seconds.  Units can be anything as specified in the
-java.util.concurrent.TimeUnit class.
-```xml
-<trigger name="myTrigger" class="org.kairosdb.metrics4j.triggers.IntervalTrigger" interval="5" unit="SECONDS"/>
+following reports metrics every 5 seconds.  The interval property is a hocon duration. 
+https://github.com/lightbend/config/blob/master/HOCON.md#duration-format
+```hocon
+triggers: {
+  myTrigger: {
+    _class: "org.kairosdb.metrics4j.triggers.IntervalTrigger" 
+    interval="5s"
+  }
+}
 ```
 
 

@@ -57,7 +57,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 
 		try
 		{
-			m_httpServer = new HTTPServer(new InetSocketAddress(listenPort), this);
+			m_httpServer = new HTTPServer(new InetSocketAddress(listenPort), this, true);
 		}
 		catch (IOException e)
 		{
@@ -68,6 +68,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	@Override
 	public void close() throws IOException
 	{
+		logger.debug("PrometheusSink shutting down");
 		m_httpServer.stop();
 	}
 
@@ -110,7 +111,7 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 				if (index != -1)
 					familyName = familyName.substring(0, index);
 
-				System.out.println("Reporting "+sample.getMetricName());
+				logger.debug("Reporting {}", sample.getMetricName());
 				if (sample.getValue() instanceof DoubleValue)
 				{
 					promSamples.add(new Collector.MetricFamilySamples.Sample(sample.getMetricName(),
@@ -125,7 +126,6 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 
 			if (!promSamples.isEmpty())
 			{
-				//todo figure out type and pass help
 				ret.add(new Collector.MetricFamilySamples(familyName,
 						Collector.Type.COUNTER, reportedMetric.getHelp(), promSamples));
 			}
