@@ -2,30 +2,60 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-        <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-        <groupId>org.kairosdb.metrics4jplugin</groupId>
-        <artifactId>influxdb</artifactId>
-        <version>0.5.0</version>
+	<groupId>org.kairosdb.metrics4jplugin</groupId>
+	<artifactId>influxdb</artifactId>
+	<version>0.5.0</version>
 
-        <parent>
-                <groupId>org.kairosdb</groupId>
-                <artifactId>metrics4j-all</artifactId>
-                <version>1.0</version>
-        </parent>
+	<parent>
+		<groupId>org.kairosdb</groupId>
+		<artifactId>metrics4j-all</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<name>metrics4j-all</name>
+	<description>Java library for reporting metrics to any timeseries
+		database.
+	</description>
+	<url>https://github.com/kairosdb/metrics4j</url>
+
+	<scm>
+		<url/>
+		<connection/>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>brianhks</id>
+			<name>Brian</name>
+			<email>brianhks1+kairos@gmail.com</email>
+		</developer>
+	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 
-        <dependencies>
-                <dependency>
-                        <groupId>org.kairosdb</groupId>
-                        <artifactId>metrics4j</artifactId>
-                        <version>0.5.0</version>
-                </dependency>
-                <dependency>
-                        <groupId>org.apache.httpcomponents</groupId>
-                        <artifactId>httpclient</artifactId>
-                        <version>4.5.10</version>
-                </dependency>
-        </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.kairosdb</groupId>
+			<artifactId>metrics4j</artifactId>
+			<version>0.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.10</version>
+		</dependency>
+	</dependencies>
 
 </project>
