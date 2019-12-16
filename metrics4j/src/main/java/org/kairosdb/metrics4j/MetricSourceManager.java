@@ -11,6 +11,7 @@ import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
+import org.kairosdb.metrics4j.internal.TagKey;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
@@ -18,6 +19,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.LongSupplier;
@@ -33,6 +35,7 @@ import java.util.function.LongSupplier;
 public class MetricSourceManager
 {
 	private static Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
+	private static Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
 
 	private static MetricConfig s_metricConfig;
 
@@ -114,7 +117,7 @@ public class MetricSourceManager
 					metricConfig.addDumpSource(className+"."+method.getName(), helpText);
 				}
 			}
-			return new SourceInvocationHandler(getMetricConfig());
+			return new SourceInvocationHandler(metricConfig);
 		});
 
 		//not sure if we should cache proxy instances or create new ones each time.
@@ -130,40 +133,75 @@ public class MetricSourceManager
 	 @param o
 	 @param tags
 	 */
-	public static void export(Object o, Map<String, String> tags)
+	public static void addSource(Object o, Map<String, String> tags)
 	{
 		//todo check object annotated with @Reported and add collector for them
+		//make sure to check if disabled
 	}
 
-	public static void export(String name, Map<String, String> tags, String help, LongSupplier supplier)
+	public static void removeSource(String className, String methodName, Map<String, String> tags)
 	{
-		ArgKey key = new LambdaArgKey(name);
-		MetricConfig metricConfig = getMetricConfig();
+		ArgKey key = new LambdaArgKey(className, methodName);
 
-		StaticCollectorCollection collection = new StaticCollectorCollection(key, new LongLambdaCollectorAdaptor(supplier));
+		StaticCollectorCollection collection = s_staticCollectors.get(key);
 
-		MetricsContext context = metricConfig.getContext();
-
-		Map<String, String> configTags = metricConfig.getTagsForKey(key);
-		if (tags != null)
-			configTags.putAll(tags);
-
-		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null, help);
+		if (collection != null)
+		{
+			collection.removeCollector(buildTagKey(tags));
+		}
 	}
 
-	public static void export(String name, Map<String, String> tags, String help, DoubleSupplier supplier)
+	private static TagKey buildTagKey(Map<String, String> tags)
 	{
-		ArgKey key = new LambdaArgKey(name);
+		//Need to make sure the tags are sorted
+		Map<String, String> sortedTags = new TreeMap<>(tags);
+		TagKey.Builder builder = TagKey.newBuilder();
+		for (String tagKey : sortedTags.keySet())
+		{
+			builder.addTag(tagKey, sortedTags.get(tagKey));
+		}
+
+		return builder.build();
+	}
+
+	private static void addSource(String className, String methodName, Map<String, String> tags, String help, MetricCollector collector)
+	{
+		ArgKey key = new LambdaArgKey(className, methodName);
 		MetricConfig metricConfig = getMetricConfig();
-		MetricsContext context = metricConfig.getContext();
 
-		StaticCollectorCollection collection = new StaticCollectorCollection(key, new DoubleLambdaCollectorAdaptor(supplier));
+		if (metricConfig.isDumpMetrics())
+		{
+			metricConfig.addDumpSource(className+"."+methodName, null);
+		}
 
-		Map<String, String> configTags = metricConfig.getTagsForKey(key);
-		if (tags != null)
-			configTags.putAll(tags);
+		if (metricConfig.isDisabled(key))
+			return;
 
-		context.assignCollector(key, collection, configTags, metricConfig.getPropsForKey(key), null, help);
+		StaticCollectorCollection collection = s_staticCollectors.computeIfAbsent(key, (k) ->
+		{
+			StaticCollectorCollection staticCollection = new StaticCollectorCollection(k);
+			MetricsContext context = metricConfig.getContext();
+
+			Map<String, String> configTags = metricConfig.getTagsForKey(key);
+			if (tags != null)
+				configTags.putAll(tags);
+
+			context.assignCollector(key, staticCollection, configTags, metricConfig.getPropsForKey(key), null, help);
+
+			return staticCollection;
+		});
+
+		collection.addCollector(buildTagKey(tags), collector);
+	}
+
+	public static void addSource(String className, String methodName, Map<String, String> tags, String help, LongSupplier supplier)
+	{
+		addSource(className, methodName, tags, help, new LongLambdaCollectorAdaptor(supplier));
+	}
+
+	public static void addSource(String className, String methodName, Map<String, String> tags, String help, DoubleSupplier supplier)
+	{
+		addSource(className, methodName, tags, help, new DoubleLambdaCollectorAdaptor(supplier));
 	}
 
 	/**

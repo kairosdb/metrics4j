@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,6 +45,7 @@ public class MetricConfig
 	private final Map<List<String>, Map<String, String>> m_mappedTags;
 	private final Map<List<String>, Map<String, String>> m_mappedProps;
 	private final Map<List<String>, String> m_mappedMetricNames;
+	private final Set<List<String>> m_disabledPaths;
 
 	private final MetricsContextImpl m_context;
 	private final List<Closeable> m_closeables;
@@ -260,6 +262,10 @@ public class MetricConfig
 						Map<String, String> pathProps = m_mappedProps.computeIfAbsent(pathList, (k) -> new HashMap<>());
 						pathProps.put(key, value);
 					}
+					else if (internalProp.equals("_disabled"))
+					{
+						m_disabledPaths.add(createList(path, i - 1));
+					}
 					else
 					{
 						throw new ConfigurationException("Unknown configuration element: " + internalProp);
@@ -269,6 +275,11 @@ public class MetricConfig
 		}
 	}
 
+	private static void registerIfNotNull(Config config, String path, Consumer<Config> register)
+	{
+		if (config.hasPath(path))
+			register.accept(config.getConfig(path));
+	}
 
 	/**
 	 *
@@ -292,21 +303,10 @@ public class MetricConfig
 			Config metrics4j = config.getConfig("metrics4j");
 
 			//Parse out the sinks
-			Config sinks = config.getConfig("metrics4j.sinks");
-			if (sinks != null)
-				ret.registerStuff(sinks, context::registerSink);
-
-			Config collectors = config.getConfig("metrics4j.collectors");
-			if (collectors != null)
-				ret.registerStuff(collectors, context::registerCollector);
-
-			Config formatters = config.getConfig("metrics4j.formatters");
-			if (formatters != null)
-				ret.registerStuff(formatters, context::registerFormatter);
-
-			Config triggers = config.getConfig("metrics4j.triggers");
-			if (triggers != null)
-				ret.registerStuff(triggers, context::registerTrigger);
+			registerIfNotNull(config, "metrics4j.sinks", (sinks) -> ret.registerStuff(sinks, context::registerSink));
+			registerIfNotNull(config, "metrics4j.collectors", (collectors) -> ret.registerStuff(collectors, context::registerCollector));
+			registerIfNotNull(config, "metrics4j.formatters", (formatters) -> ret.registerStuff(formatters, context::registerFormatter));
+			registerIfNotNull(config, "metrics4j.triggers", (triggers) -> ret.registerStuff(triggers, context::registerTrigger));
 
 			if (metrics4j.hasPath(DUMP_FILE))
 			{
@@ -316,9 +316,7 @@ public class MetricConfig
 				ret.m_dumpConfig = new HashMap<>();
 			}
 
-			Config sources = config.getConfig("metrics4j.sources");
-			if (sources != null)
-				ret.parseSources(sources);
+			registerIfNotNull(config, "metrics4j.sources", (sources) -> ret.parseSources(sources));
 		}
 
 		return ret;
@@ -333,6 +331,7 @@ public class MetricConfig
 		m_mappedTags = new HashMap<>();
 		m_mappedProps = new HashMap<>();
 		m_mappedMetricNames = new HashMap<>();
+		m_disabledPaths = new HashSet<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -412,6 +411,10 @@ public class MetricConfig
 		m_properties = properties;
 	}
 
+	public boolean isDisabled(ArgKey argKey)
+	{
+		return m_disabledPaths.contains(argKey.getConfigPath());
+	}
 
 	/**
 	 Returns a map of tags that you can modify

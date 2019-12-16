@@ -6,10 +6,12 @@ import java.util.List;
 public class LambdaArgKey implements ArgKey
 {
 	private final String m_className;
+	private final String m_methodName;
 
-	public LambdaArgKey(String className)
+	public LambdaArgKey(String className, String methodName)
 	{
 		m_className = className;
+		m_methodName = methodName;
 	}
 
 	@Override
@@ -28,7 +30,7 @@ public class LambdaArgKey implements ArgKey
 	@Override
 	public String getMethodName()
 	{
-		return null;
+		return m_methodName;
 	}
 
 	@Override

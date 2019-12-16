@@ -6,7 +6,7 @@
 
 	<groupId>org.kairosdb</groupId>
 	<artifactId>metrics4j</artifactId>
-	<version>0.5.0</version>
+	<version>0.6.0</version>
 
 	<parent>
 		<groupId>org.kairosdb</groupId>
