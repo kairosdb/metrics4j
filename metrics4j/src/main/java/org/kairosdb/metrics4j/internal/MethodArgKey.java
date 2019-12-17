@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@ToString
 public class MethodArgKey implements ArgKey
 {
 	private final Method m_method;

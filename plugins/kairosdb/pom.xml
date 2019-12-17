@@ -6,16 +6,16 @@
 
 	<groupId>org.kairosdb.metrics4jplugin</groupId>
 	<artifactId>kairosdb</artifactId>
-	<version>0.5.0</version>
+	<version>0.6.0</version>
 
 	<parent>
 		<groupId>org.kairosdb</groupId>
 		<artifactId>metrics4j-all</artifactId>
-		<version>1.0</version>
+		<version>1.0.1</version>
 	</parent>
 
-	<name>metrics4j-all</name>
-	<description>Java library for reporting metrics to any timeseries database.</description>
+	<name>metrics4j-kairos</name>
+	<description>Metrics4j plugin to send metrics to KairosDB</description>
 	<url>https://github.com/kairosdb/metrics4j</url>
 
 	<scm>
@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>org.kairosdb</groupId>
 			<artifactId>metrics4j</artifactId>
-			<version>0.5.0</version>
+			<version>0.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.kairosdb</groupId>

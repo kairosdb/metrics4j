@@ -1,8 +1,11 @@
 package org.kairosdb.metrics4j.internal;
 
+import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 public class LambdaArgKey implements ArgKey
 {
 	private final String m_className;
@@ -23,6 +26,9 @@ public class LambdaArgKey implements ArgKey
 		{
 			ret.add(s);
 		}
+
+		if (m_methodName != null)
+			ret.add(m_methodName);
 
 		return ret;
 	}

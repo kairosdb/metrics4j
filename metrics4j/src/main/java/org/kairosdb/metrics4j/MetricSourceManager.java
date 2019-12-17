@@ -164,7 +164,7 @@ public class MetricSourceManager
 		return builder.build();
 	}
 
-	private static void addSource(String className, String methodName, Map<String, String> tags, String help, MetricCollector collector)
+	public static void addSource(String className, String methodName, Map<String, String> tags, String help, MetricCollector collector)
 	{
 		ArgKey key = new LambdaArgKey(className, methodName);
 		MetricConfig metricConfig = getMetricConfig();

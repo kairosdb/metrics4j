@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  build this class and then add it to the trigger
@@ -24,8 +26,8 @@ public class TriggerMetricCollection implements MetricCollection
 	{
 		m_trigger = trigger;
 		m_trigger.setMetricCollection(this);
-		m_collectors = new ArrayList<>();
-		m_sinkQueues = new HashSet<>();
+		m_collectors = new CopyOnWriteArrayList<>();
+		m_sinkQueues = new CopyOnWriteArraySet<>();
 	}
 
 	public Trigger getTrigger()

@@ -11,10 +11,10 @@
 	<parent>
 		<groupId>org.kairosdb</groupId>
 		<artifactId>metrics4j-all</artifactId>
-		<version>1.0</version>
+		<version>1.0.1</version>
 	</parent>
 
-	<name>metrics4j-all</name>
+	<name>metrics4j</name>
 	<description>Java library for reporting metrics to any timeseries database.</description>
 	<url>https://github.com/kairosdb/metrics4j</url>
 

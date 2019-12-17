@@ -7,7 +7,10 @@ import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.collectors.DoubleCounter;
 import org.kairosdb.metrics4j.collectors.LongCounter;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
+import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.CustomArgKey;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
+import org.kairosdb.metrics4j.internal.LambdaArgKey;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
@@ -149,6 +152,27 @@ class MetricConfigTest
 		List<String> newPath = appendSourceName(path, "test.MyClass.myMethod");
 
 		assertThat(newPath).containsExactly("org", "kairosdb", "test", "MyClass", "myMethod");
+	}
+
+	@Test
+	public void testDisabledConfiguration()
+	{
+		MetricConfig metricConfig = MetricConfig.parseConfig("test_disabled.conf", "Not_there");
+
+		ArgKey key = new LambdaArgKey("java.lang.ClassLoading", "LoadedClassCount");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(true);
+
+		key = new LambdaArgKey("java.lang.GarbageCollector", "CollectionTime");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
+
+		key = new LambdaArgKey("java.lang.MemoryPool", "UsageThresholdCount");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
+
+		key = new LambdaArgKey("java.nio.BufferPool", "Count");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
+
+		key = new LambdaArgKey("org.kairosdb.jmxreporter.JMXReporter", "something");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
 	}
 
 

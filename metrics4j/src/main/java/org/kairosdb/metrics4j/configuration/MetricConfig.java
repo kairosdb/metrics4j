@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueType;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.BeanInjector;
@@ -45,7 +46,7 @@ public class MetricConfig
 	private final Map<List<String>, Map<String, String>> m_mappedTags;
 	private final Map<List<String>, Map<String, String>> m_mappedProps;
 	private final Map<List<String>, String> m_mappedMetricNames;
-	private final Set<List<String>> m_disabledPaths;
+	private final Map<List<String>, Boolean> m_disabledPaths;
 
 	private final MetricsContextImpl m_context;
 	private final List<Closeable> m_closeables;
@@ -224,15 +225,44 @@ public class MetricConfig
 					}
 					else if (internalProp.equals("_sink"))
 					{
-						//need to map to a list of sinks as there can be more than one
-						String ref = root.getString(combinePath(path, i));
+						//sink can be either a single string or a list of string
+						String sinkPath = combinePath(path, i);
 
-						m_context.addSinkToPath(ref, createList(path, i-1));
+						ConfigValueType sinkValueType = root.getValue(sinkPath).valueType();
+						if (sinkValueType == ConfigValueType.STRING)
+						{
+							String ref = root.getString(sinkPath);
+							m_context.addSinkToPath(ref, createList(path, i-1));
+						}
+						else if (sinkValueType == ConfigValueType.LIST)
+						{
+							List<String> sinkList = root.getStringList(sinkPath);
+							for (String sink : sinkList)
+							{
+								m_context.addSinkToPath(sink, createList(path, i-1));
+							}
+						}
+
 					}
 					else if (internalProp.equals("_collector"))
 					{
-						String ref = root.getString(combinePath(path, i));
-						m_context.addCollectorToPath(ref, createList(path, i-1));
+						//collector can be either a single string or a list of string
+						String collectorPath = combinePath(path, i);
+
+						ConfigValueType collectorValueType = root.getValue(collectorPath).valueType();
+						if (collectorValueType == ConfigValueType.STRING)
+						{
+							String ref = root.getString(collectorPath);
+							m_context.addCollectorToPath(ref, createList(path, i-1));
+						}
+						else if (collectorValueType == ConfigValueType.LIST)
+						{
+							List<String> collectorList = root.getStringList(collectorPath);
+							for (String collector : collectorList)
+							{
+								m_context.addCollectorToPath(collector, createList(path, i-1));
+							}
+						}
 					}
 					else if (internalProp.equals("_formatter"))
 					{
@@ -264,7 +294,8 @@ public class MetricConfig
 					}
 					else if (internalProp.equals("_disabled"))
 					{
-						m_disabledPaths.add(createList(path, i - 1));
+						Boolean value = (Boolean)entry.getValue().unwrapped();
+						m_disabledPaths.put(createList(path, i - 1), value);
 					}
 					else
 					{
@@ -331,7 +362,7 @@ public class MetricConfig
 		m_mappedTags = new HashMap<>();
 		m_mappedProps = new HashMap<>();
 		m_mappedMetricNames = new HashMap<>();
-		m_disabledPaths = new HashSet<>();
+		m_disabledPaths = new HashMap<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -413,7 +444,19 @@ public class MetricConfig
 
 	public boolean isDisabled(ArgKey argKey)
 	{
-		return m_disabledPaths.contains(argKey.getConfigPath());
+		List<String> configPath = argKey.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+
+			Boolean disabled = m_disabledPaths.get(searchPath);
+			if (disabled != null)
+			{
+				return disabled;
+			}
+		}
+
+		return false;
 	}
 
 	/**

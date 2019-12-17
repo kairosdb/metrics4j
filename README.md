@@ -11,7 +11,7 @@ This library is still in development, keep checking back as progress is moving q
  * report a metric to more than one timeseries backend
  * have an application report to something besides prometheus
  
-on an application already deployed in production?  Then this library is for your 
+All of the above on an application already deployed in production?  Then this library is for your 
 (or the developers that wrote the application)
 
 ## Philosophy of using Metrics4j
@@ -167,6 +167,7 @@ The top level of the configuration file looks like this
 metrics4j: {
   sources: { 
     #Defines sources and associates sinks, collectors, formatters and triggers with them
+    #Sources are typically places in code that reports metrics.
     }
     
   sinks: {
@@ -178,7 +179,7 @@ metrics4j: {
   }
     
   formatters: {
-    #Can reformat metric names and tags when reporting
+    #Can reformat metric names when reporting
   }
     
   triggers: {
@@ -264,6 +265,10 @@ that is convenient for you.
 
 For each source (ie. reportSize()) you can define a collector, a trigger, a formatter and 
 one or more sinks.
+
+In order to get a metric to report you must define a `_collector`, a `_sink` and a `_trigger` 
+reference.  The values of `_collector` and `_sink` can be either a string value or a list 
+of strings if you want to reference more than one at the same level.
 
 ###### Overrides
 
@@ -351,12 +356,30 @@ metrics4j: {
   _dump_file: "dump_sources.conf"
 }
 ```
+Start the application and let it run for a bit and then shut it down.  Metrics4j
+will dump out all the sources it saw while running.
+
+##### Disabling sources
+
+If a source hasn't been configured with a collector it will not report but sometimes
+it is easier to disable portions of the source tree.  You can disable any part of the 
+source tree by adding a `_disable: true` at the level you wish to disable.  Disabled 
+sources can be overridden by adding `_disable: false` further down the tree.
 
 ### Sinks
-A sink defines a destination to send the metrics to.
+A sink defines a destination to send the metrics to.  The following are built in 
+sinks.
 
 #### Slf4JMetricSink
 Reports metrics to an Slf4j logger.  The log-level attribute controls the log level (DEBUG, WARN, INFO, etc).
+```hocon
+sinks: {
+    slf4j: {
+      _class: "org.kairosdb.metrics4j.sinks.Slf4JMetricSink"
+      log-level: INFO
+    }
+}
+```
 
 #### TelnetSink
 
@@ -428,6 +451,22 @@ triggers: {
   }
 }
 ```
+#### KairosSink
+
+The Kairos sink is a separate jar that needs to be placed in the classpath along
+with its dependencies.
+
+```hocon
+kairos: {
+  _class: "org.kairosdb.metrics4jplugin.kairosdb.KairosSink"
+  host-url: "http://192.168.1.55:8080"
+  #telnet-host: "192.168.1.55"
+  #telnet-port: 4242
+}
+```
+
+Depending on which properties are set the sink will send either http or telnet using
+the kairosdb client.
 
 #### TimescaleDBSink
 
@@ -437,7 +476,8 @@ TODO: https://docs.timescale.com/latest/using-timescaledb/writing-data
 A collector defines how to collect values from a source.  For reportSize() I could
 use a LongCounter or a LongGauge.  When looking for a collector for a source metrics4j
 will match the type so if you define both a LongCounter and a DoubleCounter it will 
-know to grab the LongCounter as it inherits from LongCollector.
+know to grab the LongCounter as it inherits from LongCollector.  The following
+collectors are all in the `org.kairosdb.metrics4j.collectors` package.
 
 #### DoubleCounter
 Counts up double values to be reported.  The counter can be reset when values are reported

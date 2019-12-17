@@ -1,10 +1,12 @@
 package org.kairosdb.metrics4j.internal;
 
+import lombok.ToString;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@ToString
 public class CustomArgKey implements ArgKey
 {
 	private final MetricCollector m_collector;
