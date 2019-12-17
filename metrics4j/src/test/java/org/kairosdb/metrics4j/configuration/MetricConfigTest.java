@@ -121,7 +121,6 @@ class MetricConfigTest
 		ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 
 		verify(m_sink1).reportMetrics(captor.capture());
-		verify(m_sink1).getDefaultFormatter();
 		verifyNoMoreInteractions(m_sink1);
 
 		assertThat(captor.getValue().get(0)).isEqualTo(formattedMetric);
