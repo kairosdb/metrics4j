@@ -52,7 +52,7 @@ public class CollectorContainer
 	{
 		for (SinkQueue sinkQueue : m_sinkQueueList)
 		{
-			Formatter formatter = m_formatters.getOrDefault(sinkQueue.getSinkName(), sinkQueue.getSink().getDefaultFormatter());
+			Formatter formatter = m_formatters.computeIfAbsent(sinkQueue.getSinkName(), (sq) -> sinkQueue.getSink().getDefaultFormatter());
 
 			FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags, m_help);
 
