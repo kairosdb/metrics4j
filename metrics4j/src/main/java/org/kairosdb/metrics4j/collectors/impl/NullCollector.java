@@ -1,6 +1,10 @@
-package org.kairosdb.metrics4j.collectors;
+package org.kairosdb.metrics4j.collectors.impl;
 
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.DoubleCollector;
+import org.kairosdb.metrics4j.collectors.LongCollector;
+import org.kairosdb.metrics4j.collectors.StringCollector;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 

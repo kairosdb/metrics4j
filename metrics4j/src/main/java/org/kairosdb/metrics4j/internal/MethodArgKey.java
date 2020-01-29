@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
+import org.kairosdb.metrics4j.configuration.ImplementationException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -69,9 +70,12 @@ public class MethodArgKey implements ArgKey
 				}
 
 				if (tagKey == null)
-					throw new ConfigurationException("Parameter "+m_method.getParameters()[i].getName()+" on method "+m_method.getName()+" has not been annotated with @Key()");
+					throw new ImplementationException("All parameters on "+m_method.getDeclaringClass().getName()+"."+m_method.getName()+" must be annotated with @Key()");
 
-				builder.addTag(tagKey, (String)m_args[i]);
+				if (m_args[i] instanceof String)
+					builder.addTag(tagKey, (String)m_args[i]);
+				else
+					throw new ImplementationException("All parameters on "+m_method.getDeclaringClass().getName()+"."+m_method.getName()+" must be of type String");
 			}
 
 			TagKey tag = builder.build();

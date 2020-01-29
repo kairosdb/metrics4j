@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
 import org.junit.jupiter.api.Test;
+import org.kairosdb.metrics4j.collectors.impl.DoubleGauge;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 

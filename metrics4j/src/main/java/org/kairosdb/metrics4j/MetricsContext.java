@@ -1,14 +1,12 @@
 package org.kairosdb.metrics4j;
 
 import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.CollectorCollection;
-import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.internal.CollectorCollection;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 

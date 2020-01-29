@@ -4,11 +4,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.MetricSourceManager;
-import org.kairosdb.metrics4j.collectors.DoubleCounter;
-import org.kairosdb.metrics4j.collectors.LongCounter;
+import org.kairosdb.metrics4j.collectors.LongCollector;
+import org.kairosdb.metrics4j.collectors.impl.DoubleCounter;
+import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
-import org.kairosdb.metrics4j.internal.CustomArgKey;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.internal.LambdaArgKey;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;
@@ -21,7 +21,6 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,8 +137,8 @@ class MetricConfigTest
 
 		TestSource source = MetricSourceManager.getSource(TestSource.class);
 
-		LongCounter counter1 = source.countSomething();
-		LongCounter counter2 = source.countSomethingElse();
+		LongCollector counter1 = source.countSomething();
+		LongCollector counter2 = source.countSomethingElse();
 
 		assertThat(counter1 == counter2).isFalse();
 	}

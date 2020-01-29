@@ -7,11 +7,13 @@ import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
-import org.kairosdb.metrics4j.collectors.LongCounter;
+import org.kairosdb.metrics4j.collectors.impl.LongCounter;
+import org.kairosdb.metrics4j.configuration.ImplementationException;
 
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -92,6 +94,46 @@ class MetricSourceManagerTest
 		testMetric.reportDouble("bob").put(3.14);
 		testMetric.reportLong("bobby").put(42);
 		testMetric.reportDuration("bobster").put(Duration.ofMinutes(5));
+	}
+
+	private interface BadMetric
+	{
+		LongCounter reportCounter();
+		LongCollector badParameter(@Key("port")int value);
+		LongCollector noAnnotation(String value);
+	}
+
+	@Test
+	public void test_wrongReturnType()
+	{
+		BadMetric source = MetricSourceManager.getSource(BadMetric.class);
+		ImplementationException exception = assertThrows(ImplementationException.class, () -> {
+			source.reportCounter().put(42);
+		});
+
+		assertThat(exception.getMessage()).isEqualTo("You have specified a return type on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.reportCounter that is not a generic collector interface as found in org.kairosdb.metrics4j.collectors");
+	}
+
+	@Test
+	public void test_wrongParamType()
+	{
+		BadMetric source = MetricSourceManager.getSource(BadMetric.class);
+		ImplementationException exception = assertThrows(ImplementationException.class, () -> {
+			source.badParameter(42).put(42);
+		});
+
+		assertThat(exception.getMessage()).isEqualTo("All parameters on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.badParameter must be of type String");
+	}
+
+	@Test
+	public void test_missingAnnotation()
+	{
+		BadMetric source = MetricSourceManager.getSource(BadMetric.class);
+		ImplementationException exception = assertThrows(ImplementationException.class, () -> {
+			source.noAnnotation("host").put(42);
+		});
+
+		assertThat(exception.getMessage()).isEqualTo("All parameters on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.noAnnotation must be annotated with @Key()");
 	}
 
 

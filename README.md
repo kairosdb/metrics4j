@@ -224,7 +224,7 @@ metrics4j: {
   }
   collectors: {
     myCounter: {
-      _class: "org.kairosdb.metrics4j.collectors.LongCounter"
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
       reset: true
     }
   }
@@ -348,12 +348,12 @@ sources: {
 ##### Getting available sources
 
 You may have just downloaded a project and are unsure what sources are available
-to configure.  You can dump all sources by specifying the _dump_file attribute under the 
+to configure.  You can dump all sources by specifying the _dump-file attribute under the 
 metrics4j tag like so:
 
 ```hocon
 metrics4j: {
-  _dump_file: "dump_sources.conf"
+  _dump-file: "dump_sources.conf"
 }
 ```
 Start the application and let it run for a bit and then shut it down.  Metrics4j

@@ -1,6 +1,5 @@
 package org.kairosdb.metrics4j.internal;
 
-import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
@@ -8,7 +7,6 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

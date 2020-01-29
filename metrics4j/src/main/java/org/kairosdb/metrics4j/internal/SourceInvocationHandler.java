@@ -2,8 +2,8 @@ package org.kairosdb.metrics4j.internal;
 
 import org.kairosdb.metrics4j.annotation.Help;
 import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.configuration.ImplementationException;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SourceInvocationHandler implements InvocationHandler
 {
 	private static Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
+	public static final String COLLECTOR_PACKAGE = "org.kairosdb.metrics4j.collectors";
 
 	private final Map<MethodArgKey, CollectorCollection> m_statsMap = new ConcurrentHashMap<>();
 	private final MetricConfig m_config;
@@ -80,12 +81,21 @@ public class SourceInvocationHandler implements InvocationHandler
 		}
 
 		Class<?> returnType = key.getMethod().getReturnType();
+		//Validate return type is a generic collector
+		String className = returnType.getName();
+		if (!COLLECTOR_PACKAGE.equals(className.substring(0, className.lastIndexOf('.'))))
+		{
+			throw new ImplementationException("You have specified a return type on "+key.getClassName()+"."+key.getMethodName()+" that is not a generic collector interface as found in "+COLLECTOR_PACKAGE);
+		}
 		CollectorCollection ret = null;
 
 		Iterator<Collector> collectors = m_config.getContext().getCollectorsForKey(key).iterator();
 		String helpText = "";
 
 		Method method = key.getMethod();
+
+
+
 		if (method.isAnnotationPresent(Help.class))
 		{
 			Help help = method.getAnnotation(Help.class);

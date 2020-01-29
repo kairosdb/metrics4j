@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.collectors;
 
 import org.junit.jupiter.api.Test;
+import org.kairosdb.metrics4j.collectors.impl.LongGauge;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 

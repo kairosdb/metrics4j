@@ -1,10 +1,10 @@
 package org.kairosdb.metrics4j.collectors;
 
 import org.junit.jupiter.api.Test;
+import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

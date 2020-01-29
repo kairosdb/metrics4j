@@ -1,5 +1,6 @@
-package org.kairosdb.metrics4j.collectors;
+package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.internal.TagKey;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 

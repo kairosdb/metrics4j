@@ -7,8 +7,6 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.SinkNotification;
 import org.kairosdb.metrics4j.TriggerNotification;
 import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.CollectorCollection;
-import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;

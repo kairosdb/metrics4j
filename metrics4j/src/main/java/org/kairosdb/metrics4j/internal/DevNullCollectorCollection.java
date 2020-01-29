@@ -1,7 +1,6 @@
 package org.kairosdb.metrics4j.internal;
 
 import org.kairosdb.metrics4j.collectors.Collector;
-import org.kairosdb.metrics4j.collectors.CollectorCollection;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;

@@ -10,7 +10,7 @@ public interface Collector extends PostConstruct, MetricCollector
 {
 	/**
 	 The first instance of a collector is unmarshalled from configuration using
-	 jaxb, all other instances are cloned from that first one so the clone
+	 hocon, all other instances are cloned from that first one so the clone
 	 method should pass along any configuration that was set.
 	 @return
 	 */

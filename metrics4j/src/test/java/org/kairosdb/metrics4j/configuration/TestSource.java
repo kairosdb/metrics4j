@@ -1,11 +1,13 @@
 package org.kairosdb.metrics4j.configuration;
 
-import org.kairosdb.metrics4j.collectors.DoubleCounter;
-import org.kairosdb.metrics4j.collectors.LongCounter;
+import org.kairosdb.metrics4j.collectors.DoubleCollector;
+import org.kairosdb.metrics4j.collectors.LongCollector;
+import org.kairosdb.metrics4j.collectors.impl.DoubleCounter;
+import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 
 public interface TestSource
 {
-	LongCounter countSomething();
-	DoubleCounter partiallyCountSomething();
-	LongCounter countSomethingElse();
+	LongCollector countSomething();
+	DoubleCollector partiallyCountSomething();
+	LongCollector countSomethingElse();
 }

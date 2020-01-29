@@ -30,8 +30,8 @@ Each sinks must be configured with one trigger
 		<sink name="slf4j" class="org.kairosdb.metrics4j.sinks.Slf4JMetricSink" logLevel="${level}"/>
 	</sinks>
 	<collectors>
-		<collector name="Counter" class="org.kairosdb.metrics4j.collectors.LongCounter"/>
-		<collector name="Timer" class="org.kairosdb.metrics4j.collectors.SimpleTimerMetric"/>
+		<collector name="Counter" class="org.kairosdb.metrics4j.collectors.impl.LongCounter"/>
+		<collector name="Timer" class="org.kairosdb.metrics4j.collectors.impl.SimpleTimerMetric"/>
 	</collectors>
 	<formatters>
 

@@ -1,10 +1,12 @@
-package org.kairosdb.metrics4j.collectors;
+package org.kairosdb.metrics4j.collectors.impl;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.collectors.Collector;
+import org.kairosdb.metrics4j.collectors.DurationCollector;
+import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;

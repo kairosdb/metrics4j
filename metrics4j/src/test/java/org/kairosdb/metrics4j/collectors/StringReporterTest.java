@@ -1,13 +1,9 @@
 package org.kairosdb.metrics4j.collectors;
 
 import org.junit.jupiter.api.Test;
-import org.kairosdb.metrics4j.reporting.DoubleValue;
-import org.kairosdb.metrics4j.reporting.LongValue;
+import org.kairosdb.metrics4j.collectors.impl.StringReporter;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.StringValue;
-
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
