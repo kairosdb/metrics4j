@@ -181,24 +181,24 @@ public class MetricsContextImpl implements MetricsContext
 	@Override
 	public void registerSinkNotification(SinkNotification notification)
 	{
-		m_sinks.addComponentListener((ComponentTracker.ComponentListener<MetricSink>) (name, sink) -> notification.newSink(name, sink));
+		m_sinks.addComponentListener((name, sink) -> notification.newSink(name, sink.getSink()));
 	}
 
 	@Override
 	public void registerTriggerNotification(TriggerNotification notification)
 	{
-		m_triggers.addComponentListener((ComponentTracker.ComponentListener<TriggerMetricCollection>) (name, trigger) -> notification.newTrigger(name, trigger.getTrigger()));
+		m_triggers.addComponentListener((name, trigger) -> notification.newTrigger(name, trigger.getTrigger()));
 	}
 
 	@Override
 	public void registerFormatterNotification(FormatterNotification notification)
 	{
-		m_formatters.addComponentListener((ComponentTracker.ComponentListener<Formatter>) (name, formatter) -> notification.newFormatter(name, formatter));
+		m_formatters.addComponentListener((name, formatter) -> notification.newFormatter(name, formatter.getFormatter()));
 	}
 
 	@Override
 	public void registerCollectorNotification(CollectorNotification notification)
 	{
-		m_collectors.addComponentListener((ComponentTracker.ComponentListener<Collector>) (name, collector) -> notification.newCollector(name, collector));
+		m_collectors.addComponentListener((name, collector) -> notification.newCollector(name, collector));
 	}
 }

@@ -66,7 +66,7 @@ public class ComponentTracker<T>
 		return m_components.get(name);
 	}
 
-	public void addComponentListener(ComponentListener listener)
+	public void addComponentListener(ComponentListener<T> listener)
 	{
 		for (String name : m_components.keySet())
 		{
