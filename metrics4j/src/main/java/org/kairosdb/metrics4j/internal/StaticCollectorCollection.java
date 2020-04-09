@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StaticCollectorCollection implements CollectorCollection
+public class StaticCollectorCollection extends MetricsGatherer implements CollectorCollection
 {
 	private final Map<TagKey, MetricCollector> m_collectors;
 	private final ArgKey m_argKey;
@@ -39,36 +39,14 @@ public class StaticCollectorCollection implements CollectorCollection
 	}
 
 	@Override
-	public Iterable<ReportedMetric> gatherMetrics(Instant now)
+	protected ArgKey getArgKey()
 	{
-		List<ReportedMetric> ret = new ArrayList<>();
-		for (Map.Entry<TagKey, MetricCollector> entry : m_collectors.entrySet())
-		{
-			ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
-			reportedMetric.setTime(now)
-					.setClassName(m_argKey.getClassName())
-					.setMethodName(m_argKey.getMethodName())
-					.setTags(entry.getKey().getTags());
+		return m_argKey;
+	}
 
-			entry.getValue().reportMetric(new MetricReporter()
-			{
-				@Override
-				public void put(String field, MetricValue value)
-				{
-					reportedMetric.addSample(field, value);
-				}
-
-				@Override
-				public void put(String field, MetricValue value, Instant time)
-				{
-					reportedMetric.addSample(field, value, time);
-				}
-			});
-
-			ret.add(reportedMetric);
-		}
-
-
-		return ret;
+	@Override
+	protected Map<TagKey, MetricCollector> getCollectors()
+	{
+		return m_collectors;
 	}
 }
