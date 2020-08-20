@@ -23,7 +23,7 @@ public class StatsDTCPSink extends TextSocketSink
 		{
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
-				String type = metric.getProps().getOrDefault("statsd:type", "g");
+				String type = metric.getProps().getOrDefault("statsd_type", "g");
 				StringBuilder sb = new StringBuilder();
 
 				sb.append(sample.getMetricName())

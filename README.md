@@ -1,3 +1,48 @@
+- [metrics4j](#metrics4j)
+      - [Have you ever wanted to ...](#have-you-ever-wanted-to-)
+  * [Philosophy of using Metrics4j](#philosophy-of-using-metrics4j)
+    + [Application Developer](#application-developer)
+    + [IT Administrator](#it-administrator)
+- [Section 1 (Developer)](#section-1--developer-)
+  * [Using the library](#using-the-library)
+  * [Different ways to report metrics](#different-ways-to-report-metrics)
+  * [Testing with the library](#testing-with-the-library)
+- [Section 2 (Admin)](#section-2--admin-)
+  * [Configuration](#configuration)
+      - [Configuration Parameters](#configuration-parameters)
+    + [Sources](#sources)
+          + [Overrides](#overrides)
+          + [Metric Name](#metric-name)
+          + [Tags](#tags)
+          + [Props](#props)
+        * [Getting available sources](#getting-available-sources)
+        * [Disabling sources](#disabling-sources)
+    + [Sinks](#sinks)
+      - [Slf4JMetricSink](#slf4jmetricsink)
+      - [TelnetSink](#telnetsink)
+      - [GraphitePlaintextSink](#graphiteplaintextsink)
+      - [InfluxSink](#influxsink)
+      - [PrometheusSink](#prometheussink)
+      - [KairosSink](#kairossink)
+      - [TimescaleDBSink](#timescaledbsink)
+      - [StatsDTCPSink](#statsdtcpsink)
+    + [Collectors](#collectors)
+      - [DoubleCounter](#doublecounter)
+      - [LongCounter](#longcounter)
+      - [LongGauge](#longgauge)
+      - [MaxLongGauge](#maxlonggauge)
+      - [DoubleGauge](#doublegauge)
+      - [SimpleStats](#simplestats)
+      - [SimpleTimerMetric](#simpletimermetric)
+      - [StringReporter](#stringreporter)
+    + [Formatters](#formatters)
+      - [TemplateFormatter](#templateformatter)
+    + [Triggers](#triggers)
+      - [IntervalTrigger](#intervaltrigger)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+
 # metrics4j
 Library for abstracting the reporting of metrics in your code from sending them to a time series service.
 
@@ -381,6 +426,8 @@ sinks: {
 }
 ```
 
+* _log-level:_ (INFO, DEBUG, WARN, ERROR, TRACE), log level to use when reporting metrics
+
 #### TelnetSink
 
 Sends data using the telnet protocol supported by OpenTSDB and KairosDB.
@@ -399,6 +446,14 @@ sinks: {
 The resolution attribute can be either SECONDS or MILLISECONDS sending either a put or putm
 respectively
 
+* _host:_ Host to connect to
+* _port:_ Port to use
+* _protocol:_ (UDP/**TCP**) Protocol to use
+* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
+* _resolution:_ (SECONDS/**MILLISECONDS**) If set to SECONDS this sink will use the 'put' command
+if set to MILLISECONDS the sink will use the 'putm' command
+
+
 #### GraphitePlaintextSink
 
 Sends data using the plaintext protocol.  It takes three attributes for host, port
@@ -415,6 +470,12 @@ sinks: {
 }
 ```
 
+* _include-tags:_ includes tags for newer graphite version
+* _host:_ Host to connect to
+* _port:_ Port to use
+* _protocol:_ (UDP/**TCP**) Protocol to use
+* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
+
 #### InfluxSink
 
 The Influx sink is a separate jar that needs to be placed in the classpath along 
@@ -428,6 +489,8 @@ sinks: {
   }
 }
 ```
+
+* _host-url:_ url endpoint for influx
 
 #### PrometheusSink
 
@@ -451,6 +514,9 @@ triggers: {
   }
 }
 ```
+
+* _listen-port:_ Port on which to listen for prometheus scrap requests
+
 #### KairosSink
 
 The Kairos sink is a separate jar that needs to be placed in the classpath along
@@ -468,40 +534,76 @@ kairos: {
 Depending on which properties are set the sink will send either http or telnet using
 the kairosdb client.
 
+* _host-url:_ (**http://localhost**) Url endpoint for sending http metrics to kairosdb
+* _telnet-host:_ (**null**) Telnet host to send metrics to kairosdb
+* _telnet-port:_ (**4242**) Telnet port
+* _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h"
+
 #### TimescaleDBSink
 
 TODO: https://docs.timescale.com/latest/using-timescaledb/writing-data
+
+#### StatsDTCPSink
+
+Sends metrics to a StatsD instance.  You can also set the source property _statsd_type_ to specify
+the type of metric, it defaults to 'g'
+
+* _host:_ Host to connect to
+* _port:_ Port to use
+* _protocol:_ (UDP/**TCP**) Protocol to use
+* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
 
 ### Collectors
 A collector defines how to collect values from a source.  For reportSize() I could
 use a LongCounter or a LongGauge.  When looking for a collector for a source metrics4j
 will match the type so if you define both a LongCounter and a DoubleCounter it will 
 know to grab the LongCounter as it inherits from LongCollector.  The following
-collectors are all in the `org.kairosdb.metrics4j.collectors` package.
+collectors are all in the `org.kairosdb.metrics4j.collectors.impl` package.
 
 #### DoubleCounter
 Counts up double values to be reported.  The counter can be reset when values are reported
 by setting reset: true in the conf
 
+* _reset:_ (true/false), when true the counter resets after reporting
+* _report-zero:_ (true/false), when set to false will not report zero values
+
 #### LongCounter
 Counts up long values to be reported.  The counter can be reset when values are reported
 by setting reset: true in the conf
 
+* _reset:_ (true/false), when true the counter resets after reporting
+* _report-zero:_ (true/false), when set to false will not report zero values
+
 #### LongGauge
 Simple gauge that reports the most recently received value.
 
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
+
+#### MaxLongGauge
+Extends LongGauge and only stores and reports the max value over the reporting period.
+
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
+
 #### DoubleGauge
 Simple gauge that reports the most recently received value.
+
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
 
 #### SimpleStats
 This reports the min, max, sum, count and avg for the set of values received since
 last reporting.
 
+* _report-zero:_ (true/false), when set to false will not report zero values
+
 #### SimpleTimerMetric
 Used for reporting measured durations.  The collector reports min, max, total,
 count and avg for the measurements received during the last reporting period.
 Values are reported as milliseconds by default but maybe changed using the
-report-unit attribute.  Valid values are (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS)
+report-unit attribute.
+
+* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set 
+the unites values are reported in
+* _report-zero:_ (true/false), when set to false will not report zero values
 
 #### StringReporter
 No aggregation is done in this collector.  All strings are reported with the time
@@ -525,10 +627,26 @@ formatters: {
   }
 }
 ```
+
+You can also use metricName which can be specified within the source.  This gives
+you the option to explicitly name a metrics
+```hocon
+formatters.CustomFormatter: {
+  _class: "org.kairosdb.metrics4j.formatters.TemplateFormatter"
+  template: "Karios.Prefix.%{metricName}"
+}
+sources.com.kairosdb.CrazyClassNamePath: {
+  _metric-name: "Better.Metric.Name"
+  _formatter: "CustomerFormatter"
+}
+```
+
 **Note** The template formatter uses `%{}` so as to not be confused with `${}` used
 by hocon substitution - and so you can use both in a template. like so 
 `template: ${metric-prefix}".%{className}.%{methodName}.%{tag.status}.%{field}"`  
 I only quote the template replace portion.
+
+* _template:_ template to use when formatting metric names, see above.
 
 ### Triggers
 The trigger tells metrics4j when to gather the metrics from the collectors and 
@@ -546,5 +664,7 @@ triggers: {
   }
 }
 ```
+
+* _interval:_ Set the trigger interval to gather metrics.
 
 
