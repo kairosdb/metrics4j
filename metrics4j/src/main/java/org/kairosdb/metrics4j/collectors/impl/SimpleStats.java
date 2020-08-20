@@ -19,19 +19,19 @@ import java.util.Map;
 @EqualsAndHashCode
 public class SimpleStats implements LongCollector, MetricCollector
 {
-	private long m_min;
-	private long m_max;
-	private long m_sum;
-	private long m_count;
+	protected long m_min;
+	protected long m_max;
+	protected long m_sum;
+	protected long m_count;
 	@EqualsAndHashCode.Exclude
-	private final Object m_dataLock = new Object();
-	private static final Map<String, MetricValue> s_emptyValues = new HashMap<>();
+	protected final Object m_dataLock = new Object();
+	protected static final Map<String, MetricValue> s_emptyValues = new HashMap<>();
 
 	/**
 	 Report zero values during interval if no data is received.
 	 */
 	@Setter
-	private boolean reportZero = false;
+	protected boolean reportZero = false;
 
 	{
 		s_emptyValues.put("min", new LongValue(0L));

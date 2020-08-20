@@ -324,6 +324,10 @@ public class MetricConfig
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
+		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+		if (contextClassLoader.getResource(baseConfig) == null)
+			log.info("Unable to locate "+baseConfig+" are you sure it is in the classpath?");
+
 		Config base = ConfigFactory.parseResources(baseConfig);
 		Config overrides = ConfigFactory.parseResources(overridesConfig);
 

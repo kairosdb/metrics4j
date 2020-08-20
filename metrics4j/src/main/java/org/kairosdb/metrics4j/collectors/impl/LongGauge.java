@@ -16,10 +16,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LongGauge implements LongCollector
 {
 	@EqualsAndHashCode.Exclude
-	private final AtomicLong m_gauge = new AtomicLong(0);
+	protected final AtomicLong m_gauge = new AtomicLong(0);
 
 	@Setter
-	private boolean reset = false;
+	protected boolean reset = false;
 
 	public LongGauge(boolean reset)
 	{

@@ -1,0 +1,11 @@
+<assembly>
+	<id>distribution</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<dependencySets>
+		<dependencySet>
+			<scope>runtime</scope>
+		</dependencySet>
+	</dependencySets>
+</assembly>

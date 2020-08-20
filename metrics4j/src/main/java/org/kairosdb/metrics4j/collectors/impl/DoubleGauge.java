@@ -14,13 +14,13 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 @EqualsAndHashCode
 public class DoubleGauge implements DoubleCollector
 {
-	private double m_gauge = 0.0;
+	protected double m_gauge = 0.0;
 
 	@EqualsAndHashCode.Exclude
-	private Object m_counterLock = new Object();
+	protected Object m_counterLock = new Object();
 
 	@Setter
-	private boolean reset;
+	protected boolean reset;
 
 	public DoubleGauge(boolean reset)
 	{

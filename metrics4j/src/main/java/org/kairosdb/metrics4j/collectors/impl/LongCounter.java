@@ -17,20 +17,24 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LongCounter implements LongCollector
 {
 	@EqualsAndHashCode.Exclude
-	private final AtomicLong m_count = new AtomicLong(0);
+	protected final AtomicLong m_count = new AtomicLong(0);
 
 	@Setter
-	private boolean reset = false;
+	protected boolean reset = false;
 
-	public LongCounter(boolean reset)
+	@Setter
+	protected boolean reportZero = true;
+
+	public LongCounter(boolean reset, boolean reportZero)
 	{
 		super();
 		this.reset = reset;
+		this.reportZero = reportZero;
 	}
 
 	public LongCounter()
 	{
-		this(false);
+		this(false, true);
 	}
 
 	public void put(long count)
@@ -49,7 +53,8 @@ public class LongCounter implements LongCollector
 		else
 			value = m_count.longValue();
 
-		metricReporter.put("count", new LongValue(value));
+		if (value != 0L || reportZero)
+			metricReporter.put("count", new LongValue(value));
 	}
 
 	@Override
@@ -61,6 +66,6 @@ public class LongCounter implements LongCollector
 	@Override
 	public Collector clone()
 	{
-		return new LongCounter(reset);
+		return new LongCounter(reset, reportZero);
 	}
 }

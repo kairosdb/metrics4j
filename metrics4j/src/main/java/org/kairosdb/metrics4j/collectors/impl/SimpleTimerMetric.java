@@ -19,26 +19,26 @@ import java.time.temporal.ChronoUnit;
 @EqualsAndHashCode
 public class SimpleTimerMetric extends TimerCollector implements DurationCollector, MetricCollector
 {
-	private Duration m_min;
-	private Duration m_max;
-	private Duration m_sum;
-	private long m_count;
+	protected Duration m_min;
+	protected Duration m_max;
+	protected Duration m_sum;
+	protected long m_count;
 
 	@EqualsAndHashCode.Exclude
-	private final Object m_dataLock = new Object();
+	protected final Object m_dataLock = new Object();
 
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
 	 */
 	//todo add validation
 	@Setter
-	private ChronoUnit reportUnit = ChronoUnit.MILLIS;
+	protected ChronoUnit reportUnit = ChronoUnit.MILLIS;
 
 	/**
 	 Report zero values during interval if no data is received.
 	 */
 	@Setter
-	private boolean reportZero = false;
+	protected boolean reportZero = false;
 
 	public SimpleTimerMetric()
 	{

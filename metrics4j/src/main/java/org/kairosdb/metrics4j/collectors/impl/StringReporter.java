@@ -16,9 +16,9 @@ import java.util.List;
 @EqualsAndHashCode
 public class StringReporter implements StringCollector
 {
-	private List<Instant> m_times = new ArrayList<>();
-	private List<String> m_strings = new ArrayList<>();
-	private Object m_stringsLock = new Object();
+	protected List<Instant> m_times = new ArrayList<>();
+	protected List<String> m_strings = new ArrayList<>();
+	protected Object m_stringsLock = new Object();
 
 	@Override
 	public void put(String value)

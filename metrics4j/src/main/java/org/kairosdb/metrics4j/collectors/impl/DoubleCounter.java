@@ -13,22 +13,26 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 @EqualsAndHashCode
 public class DoubleCounter implements DoubleCollector
 {
-	private double m_count;
+	protected double m_count;
 
 	@EqualsAndHashCode.Exclude
-	private Object m_counterLock = new Object();
+	protected Object m_counterLock = new Object();
 
 	@Setter
-	private boolean reset;
+	protected boolean reset;
 
-	public DoubleCounter(boolean reset)
+	@Setter
+	protected boolean reportZero;
+
+	public DoubleCounter(boolean reset, boolean reportZero)
 	{
 		this.reset = reset;
+		this.reportZero = reportZero;
 	}
 
 	public DoubleCounter()
 	{
-		this(false);
+		this(false, true);
 	}
 
 	@Override
@@ -43,7 +47,7 @@ public class DoubleCounter implements DoubleCollector
 	@Override
 	public Collector clone()
 	{
-		return new DoubleCounter(reset);
+		return new DoubleCounter(reset, reportZero);
 	}
 
 	@Override
@@ -57,7 +61,9 @@ public class DoubleCounter implements DoubleCollector
 	{
 		synchronized (m_counterLock)
 		{
-			metricReporter.put("count", new DoubleValue(m_count));
+			if (m_count != 0.0 || reportZero)
+				metricReporter.put("count", new DoubleValue(m_count));
+
 			if (reset)
 				m_count = 0.0;
 		}

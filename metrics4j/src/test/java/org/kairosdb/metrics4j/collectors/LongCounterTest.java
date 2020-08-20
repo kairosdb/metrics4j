@@ -8,6 +8,7 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class LongCounterTest
 {
@@ -36,7 +37,7 @@ class LongCounterTest
 	public void test_countingWithReset()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
-		LongCounter counter = new LongCounter(true);
+		LongCounter counter = new LongCounter(true, true);
 
 		counter.put(1);
 		counter.put(2);
@@ -51,5 +52,39 @@ class LongCounterTest
 		counter.reportMetric(reporter);
 
 		verify(reporter, times(2)).put("count", new LongValue(6));
+
+		counter.put(0);
+
+		counter.reportMetric(reporter);
+
+		verify(reporter, times(1)).put("count", new LongValue(0));
+	}
+
+	@Test
+	public void test_countingNotReportingZero()
+	{
+		MetricReporter reporter = mock(MetricReporter.class);
+		LongCounter counter = new LongCounter(true, false);
+
+		counter.put(1);
+		counter.put(2);
+		counter.put(3);
+
+		counter.reportMetric(reporter);
+
+		counter.put(1);
+		counter.put(2);
+		counter.put(3);
+
+		counter.reportMetric(reporter);
+
+		verify(reporter, times(2)).put("count", new LongValue(6));
+
+		counter.put(0);
+
+		counter.reportMetric(reporter);
+
+		verifyNoMoreInteractions(reporter);
+
 	}
 }
