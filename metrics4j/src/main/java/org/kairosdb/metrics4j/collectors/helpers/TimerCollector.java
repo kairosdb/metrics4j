@@ -5,6 +5,7 @@ import org.kairosdb.metrics4j.collectors.DurationCollector;
 
 import java.util.concurrent.Callable;
 
+
 public abstract class TimerCollector implements DurationCollector
 {
 	private final Ticker m_ticker = new SystemTicker();

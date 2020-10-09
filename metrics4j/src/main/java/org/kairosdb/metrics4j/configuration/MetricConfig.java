@@ -6,11 +6,13 @@ import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.PostConstruct;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.BeanInjector;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 
 import java.beans.IntrospectionException;
 import java.io.*;
@@ -55,7 +57,7 @@ public class MetricConfig
 	private boolean m_dumpMetrics = false;
 	private String m_dumpFile;
 	private Map<String, Object> m_dumpConfig;
-
+	private final List<PostConstruct> m_postConstructs;
 
 
 	private String formatValue(String value)
@@ -152,6 +154,11 @@ public class MetricConfig
 			T classInstance = loadClass(configs.getConfig(name), name);
 
 			register.accept(name, classInstance);
+
+			if (classInstance instanceof PostConstruct)
+			{
+				m_postConstructs.add((PostConstruct)classInstance);
+			}
 
 			if (classInstance instanceof Closeable)
 			{
@@ -320,7 +327,6 @@ public class MetricConfig
 	 */
 	public static MetricConfig parseConfig(String baseConfig, String overridesConfig)
 	{
-		//todo break up this method so it can be built in parts by unit tests
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
@@ -342,6 +348,11 @@ public class MetricConfig
 			registerIfNotNull(config, "metrics4j.collectors", (collectors) -> ret.registerStuff(collectors, context::registerCollector));
 			registerIfNotNull(config, "metrics4j.formatters", (formatters) -> ret.registerStuff(formatters, context::registerFormatter));
 			registerIfNotNull(config, "metrics4j.triggers", (triggers) -> ret.registerStuff(triggers, context::registerTrigger));
+
+			for (PostConstruct postConstruct : ret.m_postConstructs)
+			{
+				postConstruct.init(context);
+			}
 
 			if (metrics4j.hasPath(DUMP_FILE))
 			{
@@ -367,6 +378,7 @@ public class MetricConfig
 		m_mappedProps = new HashMap<>();
 		m_mappedMetricNames = new HashMap<>();
 		m_disabledPaths = new HashMap<>();
+		m_postConstructs = new ArrayList<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()

@@ -10,6 +10,8 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +21,8 @@ import java.util.Map;
 @ToString
 public class MetricsContextImpl implements MetricsContext
 {
+	private static Logger log = LoggerFactory.getLogger(MetricsContextImpl.class);
+
 	private final ListComponentTracker<SinkQueue> m_sinks;
 	private final ListComponentTracker<Collector> m_collectors;
 	private final ListComponentTracker<AssignedFormatter> m_formatters;
@@ -34,51 +38,55 @@ public class MetricsContextImpl implements MetricsContext
 
 	public void addCollectorToPath(String name, List<String> path)
 	{
+		log.debug("Adding collector '{}' to path {}", name, path);
 		m_collectors.addToPath(name, path);
 	}
 
 	public void addSinkToPath(String name, List<String> path)
 	{
+		log.debug("Adding sink '{}' to path {}", name, path);
 		m_sinks.addToPath(name, path);
 	}
 
 	public void addFormatterToPath(String name, List<String> path)
 	{
+		log.debug("Adding formatter '{}' to path {}", name, path);
 		m_formatters.addToPath(name, path);
 	}
 
 	public void addTriggerToPath(String name, List<String> path)
 	{
+		log.debug("Adding trigger '{}' to path {}", name, path);
 		m_triggers.addToPath(name, path);
 	}
 
 	public void registerSink(String name, MetricSink sink)
 	{
-		sink.init(this);
+		log.debug("Registering sink {}", name);
 		m_sinks.addComponent(name, new SinkQueue(sink, name));
 	}
 
 	public void registerCollector(String name, Collector collector)
 	{
-		collector.init(this);
+		log.debug("Registering collector {}", name);
 		m_collectors.addComponent(name, collector);
 	}
 
 	public void registerFormatter(String name, Formatter formatter)
 	{
-		formatter.init(this);
+		log.debug("Registering formatter {}", name);
 		m_formatters.addComponent(name, new AssignedFormatter(formatter, "*"));
 	}
 
 	public void registerAssignedFormatter(String name, Formatter formatter, String sinkName)
 	{
-		formatter.init(this);
+		log.debug("Registering assigned formatter {}", name);
 		m_formatters.addComponent(name, new AssignedFormatter(formatter, sinkName));
 	}
 
 	public void registerTrigger(String name, Trigger trigger)
 	{
-		trigger.init(this);
+		log.debug("Registering trigger {}", name);
 		m_triggers.addComponent(name, new TriggerMetricCollection(trigger));
 	}
 
@@ -114,6 +122,11 @@ public class MetricsContextImpl implements MetricsContext
 		return triggerMetricCollection;
 	}
 
+	/**
+	 Caller must clone Collector
+	 @param name
+	 @return
+	 */
 	public Collector getCollector(String name)
 	{
 		Collector collector = m_collectors.getComponent(name);

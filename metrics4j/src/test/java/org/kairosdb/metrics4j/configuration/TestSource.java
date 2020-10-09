@@ -10,4 +10,5 @@ public interface TestSource
 	LongCollector countSomething();
 	DoubleCollector partiallyCountSomething();
 	LongCollector countSomethingElse();
+	LongCollector chainCount();
 }

@@ -75,6 +75,8 @@ public class SourceInvocationHandler implements InvocationHandler
 	 */
 	private CollectorCollection lookupCollectorClass(MethodArgKey key)
 	{
+		log.debug("Looking up collector for {}", key);
+
 		if (m_config.isDisabled(key))
 		{
 			return new DevNullCollectorCollection();

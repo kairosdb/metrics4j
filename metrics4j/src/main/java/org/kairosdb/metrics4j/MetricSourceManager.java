@@ -25,7 +25,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.LongSupplier;
 
 /**
- Need to put methods to set various components programatically.
+ Need to put methods to set various components programmatically.
 
  In kairos I want to set the reporter as a plugin to kairos that sends
  events using the event bus, but the configuration will reference this

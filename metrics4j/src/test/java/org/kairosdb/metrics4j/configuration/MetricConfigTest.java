@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.collectors.LongCollector;
+import org.kairosdb.metrics4j.collectors.impl.ChainedLongCollector;
 import org.kairosdb.metrics4j.collectors.impl.DoubleCounter;
 import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
@@ -114,8 +115,6 @@ class MetricConfigTest
 		FormattedMetric formattedMetric = new FormattedMetric(metric,
 				new HashMap<>(), new HashMap<>(), "");
 		formattedMetric.addSample(metric.getSamples().get(0), "org.kairosdb.metrics4j.configuration.TestSource.countSomething.count");
-
-		verify(m_sink1).init(any());
 
 		ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 

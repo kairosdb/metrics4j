@@ -40,4 +40,12 @@ public interface MetricsContext
 	void assignCollector(ArgKey key, CollectorCollection collectors,
 			Map<String, String> tags, Map<String, String> props, String metricName,
 			String help);
+
+	Collector getCollector(String name);
+
+	Formatter getFormatter(String name);
+
+	MetricSink getSink(String name);
+
+	Trigger getTrigger(String name);
 }
