@@ -207,7 +207,7 @@ public class MetricSourceManager
 	/**
 		This method is provided for unit test purposes.  It lets you define
 		a collectors object for a specific metric call.  See the unit tests
-		in ReporterFactoryTest to see how to use this method.
+		in MetricSourceManagerTest to see how to use this method.
 	*/
 	public static <T> T setCollectorForSource(MetricCollector stats, Class<T> reporterClass)
 	{
