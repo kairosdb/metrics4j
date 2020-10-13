@@ -79,6 +79,7 @@ public class SourceInvocationHandler implements InvocationHandler
 
 		if (m_config.isDisabled(key))
 		{
+			log.debug("Collector is disabled");
 			return new DevNullCollectorCollection();
 		}
 
@@ -114,6 +115,7 @@ public class SourceInvocationHandler implements InvocationHandler
 			 */
 			if (returnType.isInstance(collector))
 			{
+				log.debug("Returning collector {}", collector);
 				//Collector will be cloned before use in the adapter
 				ret = new CollectorCollectionAdapter(collector, key);
 
