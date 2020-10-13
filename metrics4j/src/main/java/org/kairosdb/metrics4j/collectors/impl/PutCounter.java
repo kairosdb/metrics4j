@@ -74,7 +74,7 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 	@Override
 	public Collector clone()
 	{
-		return new LongCounter(reset, reportZero);
+		return new PutCounter(reset, reportZero);
 	}
 
 	@Override
