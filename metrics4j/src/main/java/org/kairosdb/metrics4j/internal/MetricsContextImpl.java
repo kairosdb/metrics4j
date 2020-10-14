@@ -172,6 +172,7 @@ public class MetricsContextImpl implements MetricsContext
 		for (SinkQueue sinkQueue : sinkQueues)
 		{
 			String sinkName = sinkQueue.getSinkName();
+			log.debug("Assigning metric {} to sink {}", metricName, sinkName);
 
 			for (AssignedFormatter formatter : formatters)
 			{
