@@ -2,6 +2,8 @@ package org.kairosdb.metrics4j.internal;
 
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.Objects;
  */
 public class CollectorContainer
 {
+	private static Logger log = LoggerFactory.getLogger(CollectorContainer.class);
+
 	private final CollectorCollection m_collector;
 	private final ArgKey m_argKey;
 	private Map<String, Formatter> m_formatters;
@@ -59,6 +63,8 @@ public class CollectorContainer
 			for (ReportedMetric.Sample sample : metric.getSamples())
 			{
 				String metricName = formatter.formatReportedMetric(metric, sample, m_metricName);
+
+				log.debug("Reporting metric {} to sink {}", metricName, sinkQueue.getSinkName());
 				formattedMetric.addSample(sample, metricName);
 			}
 
