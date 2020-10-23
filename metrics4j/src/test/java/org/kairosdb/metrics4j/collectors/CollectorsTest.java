@@ -5,6 +5,8 @@ import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.helpers.ChainedCollector;
 import org.kairosdb.metrics4j.collectors.impl.*;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
+import org.kairosdb.metrics4j.reporting.LongValue;
+import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,9 +15,12 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class CollectorsTest
@@ -301,10 +306,55 @@ public class CollectorsTest
 
 		collector.init(context);
 
+		verify(collector1).init(context);
+		verify(collector2).init(context);
+
 		Instant now = Instant.now();
 		collector.put(now);
 
 		verify(collector1).put(now);
 		verify(collector2).put(now);
+	}
+
+	@Test
+	public void testChainedCollector_initAndClone_onSubCollectors()
+	{
+		ChainedLongCollector collector = new ChainedLongCollector();
+
+		List<String> collectors = new ArrayList<>();
+		collectors.add("collectorOne");
+		collectors.add("collectorTwo");
+		collector.setCollectors(collectors);
+
+		List<String> prefixes = new ArrayList<>();
+		prefixes.add("prefixOne.");
+		prefixes.add("prefixTwo.");
+		collector.setPrefixes(prefixes);
+
+		MetricsContext context = mock(MetricsContext.class);
+
+		when(context.getCollector("collectorOne")).thenReturn(new LongCounter());
+		when(context.getCollector("collectorTwo")).thenReturn(new LongCounter());
+
+		collector.init(context);
+
+		ChainedLongCollector clone = (ChainedLongCollector)collector.clone();
+
+		collector.put(42);
+
+		//The clone should not interact with the others collectors
+		clone.put(5);
+
+		MetricReporter reporter = mock(MetricReporter.class);
+		collector.reportMetric(reporter);
+
+		verify(reporter).put(eq("prefixOne.count"), eq(new LongValue(42)));
+		verify(reporter).put(eq("prefixTwo.count"), eq(new LongValue(42)));
+
+		MetricReporter cloneReporter = mock(MetricReporter.class);
+		clone.reportMetric(cloneReporter);
+
+		verify(cloneReporter).put(eq("prefixOne.count"), eq(new LongValue(5)));
+		verify(cloneReporter).put(eq("prefixTwo.count"), eq(new LongValue(5)));
 	}
 }

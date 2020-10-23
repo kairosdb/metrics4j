@@ -29,7 +29,17 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 
 	public Collector clone()
 	{
-		return (Collector)super.clone();
+		ChainedCollector clone = (ChainedCollector)super.clone();
+		List<PrefixMetricReporter<C>> clonedCollectors = new ArrayList<>();
+
+		for (Object chainedCollector : clone.m_chainedCollectors)
+		{
+			clonedCollectors.add(((PrefixMetricReporter)chainedCollector).clone());
+		}
+
+		clone.m_chainedCollectors = clonedCollectors;
+
+		return clone;
 	}
 
 	@Override
@@ -47,6 +57,7 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 				throw new ConfigurationException("Collector name '"+collectors.get(I)+"' is invalid");
 
 			C validatedCollector = validateCollector(contextCollector.clone());
+			validatedCollector.init(context);
 
 			m_chainedCollectors.add(new PrefixMetricReporter<C>(validatedCollector, prefix));
 		}
@@ -71,6 +82,12 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 		{
 			m_collector = collector;
 			m_prefix = prefix;
+		}
+
+		@Override
+		public PrefixMetricReporter<C> clone()
+		{
+			return new PrefixMetricReporter(m_collector.clone(), m_prefix);
 		}
 
 		public C getCollector()
