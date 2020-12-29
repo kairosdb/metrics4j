@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StaticCollectorCollection extends MetricsGatherer implements CollectorCollection
 {
@@ -19,7 +20,7 @@ public class StaticCollectorCollection extends MetricsGatherer implements Collec
 	public StaticCollectorCollection(ArgKey argKey)
 	{
 		m_argKey = argKey;
-		m_collectors = new HashMap<>();
+		m_collectors = new ConcurrentHashMap<>();
 	}
 
 	@Override

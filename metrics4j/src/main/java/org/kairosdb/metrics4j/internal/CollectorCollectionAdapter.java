@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CollectorCollectionAdapter extends MetricsGatherer implements CollectorCollection
 {
@@ -24,7 +25,7 @@ public class CollectorCollectionAdapter extends MetricsGatherer implements Colle
 	{
 		m_baseCollector = baseCollector;
 		m_argKey = argKey;
-		m_collectors = new HashMap<>();
+		m_collectors = new ConcurrentHashMap<>();
 	}
 
 	private MetricCollector newCollector(TagKey tagKey)

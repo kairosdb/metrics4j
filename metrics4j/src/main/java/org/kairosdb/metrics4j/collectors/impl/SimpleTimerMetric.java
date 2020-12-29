@@ -27,12 +27,6 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	@EqualsAndHashCode.Exclude
 	protected final Object m_dataLock = new Object();
 
-	/**
-	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
-	 */
-	//todo add validation
-	@Setter
-	protected ChronoUnit reportUnit = ChronoUnit.MILLIS;
 
 	/**
 	 Report zero values during interval if no data is received.
@@ -82,21 +76,6 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 
 			clear();
 			return ret;
-		}
-	}
-
-	private long getValue(Duration duration)
-	{
-		switch (reportUnit)
-		{
-			case NANOS: return duration.toNanos();
-			case MICROS: return duration.toNanos() / 1000;
-			case MILLIS: return duration.toMillis();
-			case SECONDS: return duration.getSeconds();
-			case MINUTES: return duration.toMinutes();
-			case HOURS: return duration.toHours();
-			case DAYS: return duration.toDays();
-			default: return 0;
 		}
 	}
 

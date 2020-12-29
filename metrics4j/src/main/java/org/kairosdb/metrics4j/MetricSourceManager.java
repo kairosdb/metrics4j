@@ -226,7 +226,7 @@ public class MetricSourceManager
 
 	public MetricsContext getMetricsContext()
 	{
-		return null;
+		return getMetricConfig().getContext();
 	}
 
 }

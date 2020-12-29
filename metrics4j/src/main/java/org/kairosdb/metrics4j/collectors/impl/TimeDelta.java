@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- This records the difference between now - computers local clock - and the timestamp
+ This records the difference between now (computers local clock) and the timestamp
  provided.  The deltas are recorded as a SimpleTimerMetric
  */
 @ToString
