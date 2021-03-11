@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -28,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.kairosdb.metrics4j.configuration.MetricConfig.CONFIG_SYSTEM_PROPERTY;
+import static org.kairosdb.metrics4j.configuration.MetricConfig.OVERRIDES_SYSTEM_PROPERTY;
 import static org.kairosdb.metrics4j.configuration.MetricConfig.appendSourceName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -65,16 +69,38 @@ class MetricConfigTest
 	public void cleanup()
 	{
 		MetricSourceManager.clearConfig();
+		System.clearProperty(CONFIG_SYSTEM_PROPERTY);
+		System.clearProperty(OVERRIDES_SYSTEM_PROPERTY);
 	}
 
 
 	@Test
-	public void testReadingConfiguration() throws IOException, SAXException, ParserConfigurationException
+	public void testReadingConfiguration()
 	{
 		MetricConfig metricConfig = MetricConfig.parseConfig("test_config.conf", "Not_there");
 
-		System.out.println(m_context.getSink("slf4j"));
+		assertThat(metricConfig.getContext().getSink("slf4j")).isNotNull();
+	}
 
+	@Test
+	public void testReadingConfigurationNotThere()
+	{
+		MetricConfig metricConfig = MetricConfig.parseConfig("nope", "nope");
+
+		assertThat(metricConfig.getContext().getSink("slf4j")).isNull();
+	}
+
+	@Test
+	public void testReadingFileConfiguration()
+	{
+		String configPath = "metrics4j/src/test/resources/test_config.conf"; //path used when running in intellij
+		if (new File("src").exists())
+			configPath = "src/test/resources/test_config.conf"; //path used by maven
+
+		System.setProperty(CONFIG_SYSTEM_PROPERTY, configPath);
+		MetricConfig metricConfig = MetricConfig.parseConfig("nope", "nope");
+
+		assertThat(metricConfig.getContext().getSink("slf4j")).isNotNull();
 	}
 
 	private List<String> createPath(String... paths)

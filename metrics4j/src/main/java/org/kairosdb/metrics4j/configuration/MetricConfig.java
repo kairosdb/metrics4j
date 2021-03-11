@@ -38,6 +38,9 @@ public class MetricConfig
 	public static final String DUMP_FILE = "_dump-file";
 	public static final String METRIC_NAME = "_metric-name";
 
+	public static final String CONFIG_SYSTEM_PROPERTY = "METRICS4J_CONFIG";
+	public static final String OVERRIDES_SYSTEM_PROPERTY = "METRICS4J_OVERRIDES";
+
 
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
@@ -330,12 +333,32 @@ public class MetricConfig
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
-		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		if (contextClassLoader.getResource(baseConfig) == null)
-			log.info("Unable to locate "+baseConfig+" are you sure it is in the classpath?");
+		String configFile = System.getProperty(CONFIG_SYSTEM_PROPERTY);
+		String overridesFile = System.getProperty(OVERRIDES_SYSTEM_PROPERTY);
 
-		Config base = ConfigFactory.parseResources(baseConfig);
-		Config overrides = ConfigFactory.parseResources(overridesConfig);
+		Config base, overrides;
+
+		if (configFile != null)
+		{
+			base = ConfigFactory.parseFile(new File(configFile));
+		}
+		else
+		{
+			ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+			if (contextClassLoader.getResource(baseConfig) == null)
+				log.info("Unable to locate " + baseConfig + " are you sure it is in the classpath?");
+
+			base = ConfigFactory.parseResources(baseConfig);
+		}
+
+		if (overridesFile != null)
+		{
+			overrides = ConfigFactory.parseFile(new File(overridesFile));
+		}
+		else
+		{
+			overrides = ConfigFactory.parseResources(overridesConfig);
+		}
 
 		Config config = overrides.withFallback(base).resolve();
 
