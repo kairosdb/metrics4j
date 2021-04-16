@@ -44,7 +44,6 @@ public class SourceInvocationHandler implements InvocationHandler
 		CollectorCollection collection = collectorContext.getCollection();
 
 		TagKey tagKey = key.getTagKey(collectorContext.getTags());
-		//TagKey tagKey = key.getTagKey(Collections.emptyMap());
 
 		MetricCollector ret = collection.getCollector(tagKey);
 
