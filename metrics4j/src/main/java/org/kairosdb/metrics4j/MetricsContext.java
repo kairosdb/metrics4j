@@ -4,6 +4,7 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.internal.CollectorCollection;
 import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.ArgKey;
+import org.kairosdb.metrics4j.internal.CollectorContext;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
@@ -37,7 +38,7 @@ public interface MetricsContext
 
 	void addSinkToPath(String name, List<String> path);
 
-	void assignCollector(ArgKey key, CollectorCollection collectors,
+	CollectorContext assignCollector(ArgKey key, CollectorCollection collectors,
 			Map<String, String> tags, Map<String, String> props, String metricName,
 			String help);
 

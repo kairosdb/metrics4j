@@ -19,6 +19,6 @@ public class DevNullCollectorCollection implements CollectorCollection
 	@Override
 	public Iterable<ReportedMetric> gatherMetrics(Instant now)
 	{
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 }

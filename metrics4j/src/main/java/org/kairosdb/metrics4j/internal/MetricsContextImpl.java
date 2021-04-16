@@ -152,18 +152,18 @@ public class MetricsContextImpl implements MetricsContext
 	 @param collectors
 	 @param collectorTags
 	 */
-	public void assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> collectorTags,
+	public CollectorContext assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> collectorTags,
 			Map<String, String> properties, String metricName, String help)
 	{
 		//todo make sure assignment doesn't already exist
-		CollectorContainer collectorContainer = new CollectorContainer(collectors, key);
+		CollectorContextImpl collectorContext = new CollectorContextImpl(collectors, key);
 
 		if (metricName != null)
-			collectorContainer.setMetricName(metricName);
+			collectorContext.setMetricName(metricName);
 
-		collectorContainer.setTags(collectorTags);
-		collectorContainer.setProps(properties);
-		collectorContainer.setHelp(help);
+		collectorContext.setTags(collectorTags);
+		collectorContext.setProps(properties);
+		collectorContext.setHelp(help);
 
 		List<AssignedFormatter> formatters = m_formatters.getComponentsForKey(key);
 		List<SinkQueue> sinkQueues = m_sinks.getComponentsForKey(key);
@@ -184,12 +184,14 @@ public class MetricsContextImpl implements MetricsContext
 			}
 		}
 
-		collectorContainer.setFormatters(collectorFormatters);
+		collectorContext.setFormatters(collectorFormatters);
 
-		collectorContainer.addSinkQueue(sinkQueues);
+		collectorContext.addSinkQueue(sinkQueues);
 
 		TriggerMetricCollection trigger = getTriggerForKey(key);
-		trigger.addCollector(collectorContainer);
+		trigger.addCollector(collectorContext);
+
+		return collectorContext;
 	}
 
 	@Override

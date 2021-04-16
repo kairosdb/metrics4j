@@ -2,6 +2,7 @@ package org.kairosdb.metrics4j;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.sinks.MetricSink;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,11 +26,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,6 +105,82 @@ public class Metrics4jTest
 		formattedMetric.addSample(expected.getSamples().get(0), "my_metric.count_something.count");
 
 		verify(m_sink1).reportMetrics(Collections.singletonList(formattedMetric));
+	}
+
+	@Test
+	public void test_tagOverride()
+	{
+		TestSource source = MetricSourceManager.getSource(TestSource.class);
+
+		//we report twice with different tags - these are overridden to be bob
+		//and will get aggregated together instead of reported separately.
+		source.countOverride("client1").put(5);
+		source.countOverride("client2").put(5);
+
+		Instant now = Instant.now();
+		m_testTrigger.triggerCollection(now);
+
+		Map<String, String> tags = new HashMap<>();
+		tags.put("host", "localhost_override");
+		tags.put("datacenter", "dc-aws");
+		tags.put("client", "bob");
+
+		ReportedMetricImpl expected = new ReportedMetricImpl();
+		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setMethodName("countOverride")
+				.setTime(now)
+				.setTags(Collections.singletonMap("client", "bob")) //Reported as single value
+				.addSample("count", new LongValue(10));
+
+		FormattedMetric formattedMetric = new FormattedMetric(expected,
+				Collections.emptyMap(), tags, "");
+		formattedMetric.addSample(expected.getSamples().get(0), "metric4j.org.kairosdb.metrics4j.configuration.TestSource.countOverride.count");
+
+		verify(m_sink1).reportMetrics(Collections.singletonList(formattedMetric));
+	}
+
+	@Test
+	public void test_tagNoOverride()
+	{
+		TestSource source = MetricSourceManager.getSource(TestSource.class);
+
+		//client tag is not overridden so it should report two values
+		source.countNoOverride("client1").put(5);
+		source.countNoOverride("client2").put(5);
+
+		Instant now = Instant.now();
+		m_testTrigger.triggerCollection(now);
+
+		Map<String, String> tags = new HashMap<>();
+		tags.put("host", "localhost_override");
+		tags.put("datacenter", "dc-aws");
+
+		ReportedMetricImpl expected1 = new ReportedMetricImpl();
+		expected1.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setMethodName("countNoOverride")
+				.setTime(now)
+				.setTags(Collections.singletonMap("client", "client1"))
+				.addSample("count", new LongValue(5));
+
+		FormattedMetric formattedMetric1 = new FormattedMetric(expected1,
+				Collections.emptyMap(), tags, "");
+		formattedMetric1.addSample(expected1.getSamples().get(0), "metric4j.org.kairosdb.metrics4j.configuration.TestSource.countNoOverride.count");
+
+		ReportedMetricImpl expected2 = new ReportedMetricImpl();
+		expected2.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setMethodName("countNoOverride")
+				.setTime(now)
+				.setTags(Collections.singletonMap("client", "client2"))
+				.addSample("count", new LongValue(5));
+
+		FormattedMetric formattedMetric2 = new FormattedMetric(expected2,
+				Collections.emptyMap(), tags, "");
+		formattedMetric2.addSample(expected2.getSamples().get(0), "metric4j.org.kairosdb.metrics4j.configuration.TestSource.countNoOverride.count");
+
+		ArgumentCaptor<List> argument = ArgumentCaptor.forClass(List.class);
+		verify(m_sink1).reportMetrics(argument.capture());
+
+		assertThat(argument.getValue()).containsExactlyInAnyOrder(formattedMetric1, formattedMetric2);
 	}
 
 	@Test

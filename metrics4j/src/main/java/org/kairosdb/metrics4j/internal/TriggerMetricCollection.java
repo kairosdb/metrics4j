@@ -4,8 +4,6 @@ import org.kairosdb.metrics4j.triggers.MetricCollection;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class TriggerMetricCollection implements MetricCollection
 {
 	private final Trigger m_trigger;
-	private List<CollectorContainer> m_collectors;
+	private List<CollectorContext> m_collectors;
 	private Set<SinkQueue> m_sinkQueues; //we use this to flush the sinks when we are done.
 
 	public TriggerMetricCollection(Trigger trigger)
@@ -35,7 +33,7 @@ public class TriggerMetricCollection implements MetricCollection
 		return m_trigger;
 	}
 
-	public void addCollector(CollectorContainer collector)
+	public void addCollector(CollectorContext collector)
 	{
 		m_collectors.add(collector);
 
@@ -45,7 +43,7 @@ public class TriggerMetricCollection implements MetricCollection
 	@Override
 	public void reportMetrics(Instant now)
 	{
-		for (CollectorContainer collector : m_collectors)
+		for (CollectorContext collector : m_collectors)
 		{
 			//maybe just pass a timestamp into this
 			collector.reportMetrics(now);

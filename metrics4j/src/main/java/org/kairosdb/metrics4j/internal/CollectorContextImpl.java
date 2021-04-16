@@ -11,13 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- Wraps a collector and associates it with a formatter and a list of sinks to send
- metrics to.  Also contains static tags to add to metric.
- */
-public class CollectorContainer
+public class CollectorContextImpl implements CollectorContext
 {
-	private static Logger log = LoggerFactory.getLogger(CollectorContainer.class);
+	private static Logger log = LoggerFactory.getLogger(CollectorContext.class);
 
 	private final CollectorCollection m_collector;
 	private final ArgKey m_argKey;
@@ -28,20 +24,25 @@ public class CollectorContainer
 	private String m_metricName;
 	private String m_help = "";
 
-	public CollectorContainer(CollectorCollection collector, ArgKey argKey)
+	public CollectorContextImpl(CollectorCollection collector, ArgKey argKey)
 	{
 		m_collector = Objects.requireNonNull(collector);
 		m_argKey = argKey;
 		m_sinkQueueList = new ArrayList<>();
 	}
 
-	public CollectorContainer setFormatters(Map<String, Formatter> formatters)
+	public CollectorCollection getCollection()
+	{
+		return m_collector;
+	}
+
+	public CollectorContext setFormatters(Map<String, Formatter> formatters)
 	{
 		m_formatters = formatters;
 		return this;
 	}
 
-	public CollectorContainer addSinkQueue(List<SinkQueue> queue)
+	public CollectorContext addSinkQueue(List<SinkQueue> queue)
 	{
 		m_sinkQueueList.addAll(queue);
 		return this;
@@ -84,6 +85,11 @@ public class CollectorContainer
 	public void setTags(Map<String, String> tags)
 	{
 		m_tags = tags;
+	}
+
+	public Map<String, String> getTags()
+	{
+		return m_tags;
 	}
 
 	public void setMetricName(String metricName)

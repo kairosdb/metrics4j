@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +20,7 @@ public class SourceInvocationHandler implements InvocationHandler
 	private static Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
 	public static final String COLLECTOR_PACKAGE = "org.kairosdb.metrics4j.collectors";
 
-	private final Map<MethodArgKey, CollectorCollection> m_statsMap = new ConcurrentHashMap<>();
+	private final Map<MethodArgKey, CollectorContext> m_statsMap = new ConcurrentHashMap<>();
 	private final MetricConfig m_config;
 
 	//ephemeral collectors should only be within this class
@@ -29,19 +30,21 @@ public class SourceInvocationHandler implements InvocationHandler
 		m_config = config;
 	}
 
-	private CollectorCollection getCollectorCollection(MethodArgKey key)
+	private CollectorContext getCollectorContext(MethodArgKey key)
 	{
 		return m_statsMap.computeIfAbsent(key, (MethodArgKey k) ->
-				lookupCollectorClass(k));
+				lookupCollectorContext(k));
 	}
 
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
 	{
 		MethodArgKey key = new MethodArgKey(method, args);
 
-		TagKey tagKey = key.getTagKey();
+		CollectorContext collectorContext = getCollectorContext(key);
+		CollectorCollection collection = collectorContext.getCollection();
 
-		CollectorCollection collection = getCollectorCollection(key);
+		TagKey tagKey = key.getTagKey(collectorContext.getTags());
+		//TagKey tagKey = key.getTagKey(Collections.emptyMap());
 
 		MetricCollector ret = collection.getCollector(tagKey);
 
@@ -58,14 +61,18 @@ public class SourceInvocationHandler implements InvocationHandler
 					" does not match return type for method "+key.getMethod().getName()+" which should be "+returnType.getName());
 		}
 
-		CollectorCollection collection = m_statsMap.get(key);
-		if ((collection == null) || (!(collection instanceof CollectorCollectionAdapter)))
+		CollectorContext context = m_statsMap.get(key);
+		if ((context == null) || (!(context.getCollection() instanceof CollectorCollectionAdapter)))
 		{
-			collection = new CollectorCollectionAdapter(new DevNullCollector(), key);
-			m_statsMap.put(key, collection);
+			CollectorCollection collection = new CollectorCollectionAdapter(new DevNullCollector(), key);
+
+			context = new TestingCollectorContext(collection);
+			m_statsMap.put(key, context);
 		}
 
-		((CollectorCollectionAdapter)collection).addCollector(key.getTagKey(), statsObject);
+		CollectorCollection collection = context.getCollection();
+
+		((CollectorCollectionAdapter)collection).addCollector(key.getTagKey(context.getTags()), statsObject);
 	}
 
 	/**
@@ -73,14 +80,14 @@ public class SourceInvocationHandler implements InvocationHandler
 	 @param key
 	 @return
 	 */
-	private CollectorCollection lookupCollectorClass(MethodArgKey key)
+	private CollectorContext lookupCollectorContext(MethodArgKey key)
 	{
 		log.debug("Looking up collector for {}", key);
 
 		if (m_config.isDisabled(key))
 		{
 			log.debug("Collector is disabled");
-			return new DevNullCollectorCollection();
+			return new DevNullCollectorContext();
 		}
 
 		Class<?> returnType = key.getMethod().getReturnType();
@@ -90,7 +97,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		{
 			throw new ImplementationException("You have specified a return type on "+key.getClassName()+"."+key.getMethodName()+" that is not a generic collector interface as found in "+COLLECTOR_PACKAGE);
 		}
-		CollectorCollection ret = null;
+		CollectorContext ret = null;
 
 		Iterator<Collector> collectors = m_config.getContext().getCollectorsForKey(key).iterator();
 		String helpText = "";
@@ -117,11 +124,11 @@ public class SourceInvocationHandler implements InvocationHandler
 			{
 				log.debug("Returning collector {}", collector);
 				//Collector will be cloned before use in the adapter
-				ret = new CollectorCollectionAdapter(collector, key);
+				CollectorCollectionAdapter collectorCollection = new CollectorCollectionAdapter(collector, key);
 
 				Map<String, String> tagsForKey = m_config.getTagsForKey(key);
 
-				m_config.getContext().assignCollector(key, ret, tagsForKey, m_config.getPropsForKey(key),
+				ret = m_config.getContext().assignCollector(key, collectorCollection, tagsForKey, m_config.getPropsForKey(key),
 						m_config.getMetricNameForKey(key), helpText);
 
 				break;
@@ -136,7 +143,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		if (ret == null)
 		{
 			log.info("Unable to find collector for "+key);
-			ret = new DevNullCollectorCollection();
+			ret = new DevNullCollectorContext();
 		}
 
 		return ret;

@@ -47,7 +47,7 @@ public class MethodArgKey implements ArgKey
 	}
 
 
-	public TagKey getTagKey()
+	public TagKey getTagKey(Map<String, String> overrides)
 	{
 		if (m_args == null || m_args.length == 0)
 			return TagKey.newBuilder().build();
@@ -66,13 +66,23 @@ public class MethodArgKey implements ArgKey
 					{
 						Key key = (Key)annotation;
 						tagKey = key.value();
+						break;
 					}
 				}
 
 				if (tagKey == null)
 					throw new ImplementationException("All parameters on "+m_method.getDeclaringClass().getName()+"."+m_method.getName()+" must be annotated with @Key()");
 
-				if (m_args[i] instanceof String)
+				/*
+				If there is an override configured for a tag that is a parameter we must
+				set it in the tag key.  This will make sure that the same collector is
+				returned and the data is aggregated properly.
+				 */
+				String override = overrides.get(tagKey);
+
+				if (override != null)
+					builder.addTag(tagKey, override);
+				else if (m_args[i] instanceof String)
 					builder.addTag(tagKey, (String)m_args[i]);
 				else
 					throw new ImplementationException("All parameters on "+m_method.getDeclaringClass().getName()+"."+m_method.getName()+" must be of type String");

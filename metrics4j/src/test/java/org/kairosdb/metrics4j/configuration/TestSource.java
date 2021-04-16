@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.configuration;
 
+import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.impl.DoubleCounter;
@@ -11,4 +12,6 @@ public interface TestSource
 	DoubleCollector partiallyCountSomething();
 	LongCollector countSomethingElse();
 	LongCollector chainCount();
+	LongCollector countOverride(@Key("client")String client);
+	LongCollector countNoOverride(@Key("client")String client);
 }
