@@ -6,6 +6,7 @@ import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.PostConfig;
 import org.kairosdb.metrics4j.PostConstruct;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.BeanInjector;
@@ -61,6 +62,7 @@ public class MetricConfig
 	private String m_dumpFile;
 	private Map<String, Object> m_dumpConfig;
 	private final List<PostConstruct> m_postConstructs;
+	private final List<PostConfig> m_postConfigs;
 
 
 	private String formatValue(String value)
@@ -161,6 +163,11 @@ public class MetricConfig
 			if (classInstance instanceof PostConstruct)
 			{
 				m_postConstructs.add((PostConstruct)classInstance);
+			}
+
+			if (classInstance instanceof PostConfig)
+			{
+				m_postConfigs.add((PostConfig)classInstance);
 			}
 
 			if (classInstance instanceof Closeable)
@@ -366,7 +373,7 @@ public class MetricConfig
 		{
 			Config metrics4j = config.getConfig("metrics4j");
 
-			//Parse out the sinks
+			registerIfNotNull(config, "metrics4j.plugins", (plugins) -> ret.registerStuff(plugins, context::registerPlugin));
 			registerIfNotNull(config, "metrics4j.sinks", (sinks) -> ret.registerStuff(sinks, context::registerSink));
 			registerIfNotNull(config, "metrics4j.collectors", (collectors) -> ret.registerStuff(collectors, context::registerCollector));
 			registerIfNotNull(config, "metrics4j.formatters", (formatters) -> ret.registerStuff(formatters, context::registerFormatter));
@@ -383,6 +390,17 @@ public class MetricConfig
 
 				ret.m_dumpMetrics = true;
 				ret.m_dumpConfig = new HashMap<>();
+
+				Thread dumpThread = new Thread(() -> {
+					try
+					{
+						Thread.sleep(60000);
+					}
+					catch (InterruptedException e) { }
+					ret.dumpConfFile();
+				});
+				dumpThread.setDaemon(true);
+				dumpThread.start();
 			}
 
 			registerIfNotNull(config, "metrics4j.sources", (sources) -> ret.parseSources(sources));
@@ -402,6 +420,7 @@ public class MetricConfig
 		m_mappedMetricNames = new HashMap<>();
 		m_disabledPaths = new HashMap<>();
 		m_postConstructs = new ArrayList<>();
+		m_postConfigs = new ArrayList<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -415,6 +434,14 @@ public class MetricConfig
 		}));
 	}
 
+	public void runPostConfigInit()
+	{
+		for (PostConfig postConfig : m_postConfigs)
+		{
+			postConfig.init();
+		}
+	}
+
 	private void shutdown()
 	{
 		log.debug("Shutdown called for Metrics4j");
@@ -426,10 +453,14 @@ public class MetricConfig
 			}
 			catch (Exception e)
 			{
-				log.error("Error closing "+closeable.getClass().getName(), e);
+				log.error("Error closing " + closeable.getClass().getName(), e);
 			}
 		}
+		dumpConfFile();
+	}
 
+	private void dumpConfFile()
+	{
 		if (m_dumpFile != null)
 		{
 			log.debug("Writing dump file {}", m_dumpFile);

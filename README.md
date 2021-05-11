@@ -197,6 +197,9 @@ Metrics4j is designed to let you, the admin, determine for each metric being rep
 When Metrics4j loads it will try to find two files named metrics4j.conf and metrics4j.properties in the classpath.
 If neither file is found, all the reporting methods are effectively no-ops.
 
+The location of the above files can also be specified using java system properties
+METRICS4J_CONFIG and METRICS4J_OVERRIDES.  Example: -DMETRICS4J_CONFIG=/etc/metrics4j.conf
+
 What is a .conf file?  Metrics4j has the Hocon library from LightBend shaded into the jar (https://github.com/lightbend/config)
 Hocon is a human readable json format that is awesome.  We will only cover the basics here, it is worth
 your time to review their documentation as they have some cool features.
@@ -402,7 +405,8 @@ metrics4j: {
 }
 ```
 Start the application and let it run for a bit and then shut it down.  Metrics4j
-will dump out all the sources it saw while running.
+will dump out all the sources it saw while running.  In case the shutdown hook
+is not ran metrics4j will also dump the config after 1 minute.
 
 ##### Disabling sources
 
@@ -668,3 +672,22 @@ triggers: {
 * _interval:_ Set the trigger interval to gather metrics.
 
 
+### Plugins
+
+#### JMXReporter
+JMXReporter started as an external project that used metrics4j to report JMX metrics. https://github.com/kairosdb/JMXReporter
+This code was brought inside Metrics4j so JMX metrics can be reported by simply 
+including the JMXReporter plugin.
+```hocon
+metrics4j {
+  plugins {
+    jmx: {
+      _class: "org.kairosdb.metrics4j.plugins.JMXReporter"
+    }
+  }
+}
+```
+
+Once you have included the JMXReporter plugin add a _dump-file config and run your application.
+When you shutdown your application all possible JMX metrics will be dumped to the config
+file so you can turn on and off metrics you are looking for.

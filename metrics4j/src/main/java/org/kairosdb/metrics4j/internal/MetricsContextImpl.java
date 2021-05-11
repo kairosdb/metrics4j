@@ -8,6 +8,7 @@ import org.kairosdb.metrics4j.SinkNotification;
 import org.kairosdb.metrics4j.TriggerNotification;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.formatters.Formatter;
+import org.kairosdb.metrics4j.plugins.Plugin;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.kairosdb.metrics4j.triggers.Trigger;
 import org.slf4j.Logger;
@@ -88,6 +89,12 @@ public class MetricsContextImpl implements MetricsContext
 	{
 		log.debug("Registering trigger {}", name);
 		m_triggers.addComponent(name, new TriggerMetricCollection(trigger));
+	}
+
+	public void registerPlugin(String name, Plugin plugin)
+	{
+		log.debug("Registering plugin {}", name);
+		//Nothing to do as registerStuff did it all for plain plugins
 	}
 
 	public MetricSink getSink(String name)

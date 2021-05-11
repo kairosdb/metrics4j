@@ -37,7 +37,7 @@ public class MetricSourceManager
 	private static Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
 	private static Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
 
-	private static MetricConfig s_metricConfig;
+	private static volatile MetricConfig s_metricConfig;
 
 	/**
 	 For testing purposes only, not to be used in production
@@ -65,6 +65,7 @@ public class MetricSourceManager
 			try
 			{
 				s_metricConfig = MetricConfig.parseConfig("metrics4j.conf", "metrics4j.properties");
+				s_metricConfig.runPostConfigInit();
 			}
 			catch (Exception e)
 			{
