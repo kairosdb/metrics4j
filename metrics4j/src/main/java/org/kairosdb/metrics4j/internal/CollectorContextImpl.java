@@ -59,17 +59,22 @@ public class CollectorContextImpl implements CollectorContext
 		{
 			Formatter formatter = m_formatters.computeIfAbsent(sinkQueue.getSinkName(), (sq) -> sinkQueue.getSink().getDefaultFormatter());
 
-			FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags, m_help);
-
-			for (ReportedMetric.Sample sample : metric.getSamples())
+			if (formatter != null)
 			{
-				String metricName = formatter.formatReportedMetric(metric, sample, m_metricName);
+				FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags, m_help);
 
-				log.debug("Reporting metric {} to sink {}", metricName, sinkQueue.getSinkName());
-				formattedMetric.addSample(sample, metricName);
+				for (ReportedMetric.Sample sample : metric.getSamples()) {
+					String metricName = formatter.formatReportedMetric(metric, sample, m_metricName);
+
+					log.debug("Reporting metric {} to sink {}", metricName, sinkQueue.getSinkName());
+					formattedMetric.addSample(sample, metricName);
+				}
+
+				sinkQueue.addMetric(formattedMetric);
 			}
-
-			sinkQueue.addMetric(formattedMetric);
+			else {
+				log.warn("No formatter configured for metric {}", metric.getMethodName());
+			}
 		}
 	}
 

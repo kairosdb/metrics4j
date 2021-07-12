@@ -6,6 +6,8 @@ import org.kairosdb.metrics4j.collectors.MetricCollector;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.kairosdb.metrics4j.configuration.MetricConfig.PATH_SPLITTER_REGEX;
+
 @ToString
 public class CustomArgKey implements ArgKey
 {
@@ -21,7 +23,7 @@ public class CustomArgKey implements ArgKey
 	public List<String> getConfigPath()
 	{
 		List<String> ret = new ArrayList<>();
-		String[] split = m_collector.getClass().getDeclaringClass().getName().split("\\.");
+		String[] split = m_collector.getClass().getDeclaringClass().getName().split(PATH_SPLITTER_REGEX);
 		for (String s : split)
 		{
 			ret.add(s);

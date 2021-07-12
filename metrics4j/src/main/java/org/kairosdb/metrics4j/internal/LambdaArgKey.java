@@ -5,6 +5,8 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.kairosdb.metrics4j.configuration.MetricConfig.PATH_SPLITTER_REGEX;
+
 @ToString
 public class LambdaArgKey implements ArgKey
 {
@@ -21,7 +23,7 @@ public class LambdaArgKey implements ArgKey
 	public List<String> getConfigPath()
 	{
 		List<String> ret = new ArrayList<>();
-		String[] split = m_className.split("\\.");
+		String[] split = m_className.split(PATH_SPLITTER_REGEX);
 		for (String s : split)
 		{
 			ret.add(s);

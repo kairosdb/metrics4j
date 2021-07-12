@@ -6,6 +6,7 @@ import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
 import org.kairosdb.metrics4j.MetricsContext;
+import org.kairosdb.metrics4j.PostConfig;
 import org.kairosdb.metrics4j.PostConstruct;
 import org.kairosdb.metrics4j.internal.ArgKey;
 import org.kairosdb.metrics4j.internal.BeanInjector;
@@ -41,6 +42,7 @@ public class MetricConfig
 	public static final String CONFIG_SYSTEM_PROPERTY = "METRICS4J_CONFIG";
 	public static final String OVERRIDES_SYSTEM_PROPERTY = "METRICS4J_OVERRIDES";
 
+	public static final String PATH_SPLITTER_REGEX = "[\\.\\$]";
 
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
@@ -61,6 +63,7 @@ public class MetricConfig
 	private String m_dumpFile;
 	private Map<String, Object> m_dumpConfig;
 	private final List<PostConstruct> m_postConstructs;
+	private final List<PostConfig> m_postConfigs;
 
 
 	private String formatValue(String value)
@@ -148,7 +151,7 @@ public class MetricConfig
 		Set<String> keys = new HashSet<>();
 		for (Map.Entry<String, ConfigValue> config : configs.entrySet())
 		{
-			keys.add(config.getKey().split("\\.")[0]);
+			keys.add(config.getKey().split(PATH_SPLITTER_REGEX)[0]);
 		}
 
 		for (String name : keys)
@@ -163,6 +166,11 @@ public class MetricConfig
 				m_postConstructs.add((PostConstruct)classInstance);
 			}
 
+			if (classInstance instanceof PostConfig)
+			{
+				m_postConfigs.add((PostConfig)classInstance);
+			}
+
 			if (classInstance instanceof Closeable)
 			{
 				m_closeables.add((Closeable)classInstance);
@@ -174,7 +182,7 @@ public class MetricConfig
 	{
 		List<String> copy = new ArrayList<>(parent);
 
-		String[] splitNames = child.split("\\.");
+		String[] splitNames = child.split(PATH_SPLITTER_REGEX);
 
 		copy.addAll(Arrays.asList(splitNames));
 		return copy;
@@ -217,7 +225,7 @@ public class MetricConfig
 		Set<Map.Entry<String, ConfigValue>> entries = root.entrySet();
 		for (Map.Entry<String, ConfigValue> entry : entries)
 		{
-			String[] path = entry.getKey().split("\\.");
+			String[] path = entry.getKey().split(PATH_SPLITTER_REGEX);
 
 			for (int i = (path.length -1); i >= 0 ; i--)
 			{
@@ -366,7 +374,7 @@ public class MetricConfig
 		{
 			Config metrics4j = config.getConfig("metrics4j");
 
-			//Parse out the sinks
+			registerIfNotNull(config, "metrics4j.plugins", (plugins) -> ret.registerStuff(plugins, context::registerPlugin));
 			registerIfNotNull(config, "metrics4j.sinks", (sinks) -> ret.registerStuff(sinks, context::registerSink));
 			registerIfNotNull(config, "metrics4j.collectors", (collectors) -> ret.registerStuff(collectors, context::registerCollector));
 			registerIfNotNull(config, "metrics4j.formatters", (formatters) -> ret.registerStuff(formatters, context::registerFormatter));
@@ -383,6 +391,17 @@ public class MetricConfig
 
 				ret.m_dumpMetrics = true;
 				ret.m_dumpConfig = new HashMap<>();
+
+				Thread dumpThread = new Thread(() -> {
+					try
+					{
+						Thread.sleep(60000);
+					}
+					catch (InterruptedException e) { }
+					ret.dumpConfFile();
+				});
+				dumpThread.setDaemon(true);
+				dumpThread.start();
 			}
 
 			registerIfNotNull(config, "metrics4j.sources", (sources) -> ret.parseSources(sources));
@@ -402,6 +421,7 @@ public class MetricConfig
 		m_mappedMetricNames = new HashMap<>();
 		m_disabledPaths = new HashMap<>();
 		m_postConstructs = new ArrayList<>();
+		m_postConfigs = new ArrayList<>();
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -415,6 +435,14 @@ public class MetricConfig
 		}));
 	}
 
+	public void runPostConfigInit()
+	{
+		for (PostConfig postConfig : m_postConfigs)
+		{
+			postConfig.init();
+		}
+	}
+
 	private void shutdown()
 	{
 		log.debug("Shutdown called for Metrics4j");
@@ -426,10 +454,14 @@ public class MetricConfig
 			}
 			catch (Exception e)
 			{
-				log.error("Error closing "+closeable.getClass().getName(), e);
+				log.error("Error closing " + closeable.getClass().getName(), e);
 			}
 		}
+		dumpConfFile();
+	}
 
+	private void dumpConfFile()
+	{
 		if (m_dumpFile != null)
 		{
 			log.debug("Writing dump file {}", m_dumpFile);
@@ -550,7 +582,7 @@ public class MetricConfig
 	{
 		Map<String, Object> sources = getAdd(getAdd(m_dumpConfig, "metrics4j"), "sources");
 
-		String[] split = src.split("\\.");
+		String[] split = src.split(PATH_SPLITTER_REGEX);
 
 		for (int i = 0; i < split.length; i++)
 		{
