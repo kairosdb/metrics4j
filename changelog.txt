@@ -1,0 +1,7 @@
+0.16.0:
+	- Incorporated JMXReporter into metrics4j
+	- Changed tag parameter types to be any type, calls toString() on parameter
+	- Dump config files are dumped after 60sec from startup in case shutdown hook fails
+	- Added post config init for plugins
+	- Fixed config paths that have inner classes
+	- Fixed failure when formatter is not configured for a collector
