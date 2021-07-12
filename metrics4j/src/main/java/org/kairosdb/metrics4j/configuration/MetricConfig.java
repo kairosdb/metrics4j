@@ -42,6 +42,7 @@ public class MetricConfig
 	public static final String CONFIG_SYSTEM_PROPERTY = "METRICS4J_CONFIG";
 	public static final String OVERRIDES_SYSTEM_PROPERTY = "METRICS4J_OVERRIDES";
 
+	public static final String PATH_SPLITTER_REGEX = "[\\.\\$]";
 
 	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
@@ -150,7 +151,7 @@ public class MetricConfig
 		Set<String> keys = new HashSet<>();
 		for (Map.Entry<String, ConfigValue> config : configs.entrySet())
 		{
-			keys.add(config.getKey().split("\\.")[0]);
+			keys.add(config.getKey().split(PATH_SPLITTER_REGEX)[0]);
 		}
 
 		for (String name : keys)
@@ -181,7 +182,7 @@ public class MetricConfig
 	{
 		List<String> copy = new ArrayList<>(parent);
 
-		String[] splitNames = child.split("\\.");
+		String[] splitNames = child.split(PATH_SPLITTER_REGEX);
 
 		copy.addAll(Arrays.asList(splitNames));
 		return copy;
@@ -224,7 +225,7 @@ public class MetricConfig
 		Set<Map.Entry<String, ConfigValue>> entries = root.entrySet();
 		for (Map.Entry<String, ConfigValue> entry : entries)
 		{
-			String[] path = entry.getKey().split("\\.");
+			String[] path = entry.getKey().split(PATH_SPLITTER_REGEX);
 
 			for (int i = (path.length -1); i >= 0 ; i--)
 			{
@@ -581,7 +582,7 @@ public class MetricConfig
 	{
 		Map<String, Object> sources = getAdd(getAdd(m_dumpConfig, "metrics4j"), "sources");
 
-		String[] split = src.split("\\.");
+		String[] split = src.split(PATH_SPLITTER_REGEX);
 
 		for (int i = 0; i < split.length; i++)
 		{

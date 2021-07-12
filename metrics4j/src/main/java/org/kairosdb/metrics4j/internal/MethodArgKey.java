@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.kairosdb.metrics4j.configuration.MetricConfig.PATH_SPLITTER_REGEX;
+
 @ToString
 public class MethodArgKey implements ArgKey
 {
@@ -27,7 +29,7 @@ public class MethodArgKey implements ArgKey
 		m_args = args;
 
 		m_configPath = new ArrayList<>();
-		String[] split = m_method.getDeclaringClass().getName().split("\\.");
+		String[] split = m_method.getDeclaringClass().getName().split(PATH_SPLITTER_REGEX);
 		for (String s : split)
 		{
 			m_configPath.add(s);
@@ -82,14 +84,11 @@ public class MethodArgKey implements ArgKey
 
 				if (override != null)
 					builder.addTag(tagKey, override);
-				else if (m_args[i] instanceof String)
-					builder.addTag(tagKey, (String)m_args[i]);
 				else
-					throw new ImplementationException("All parameters on "+m_method.getDeclaringClass().getName()+"."+m_method.getName()+" must be of type String");
+					builder.addTag(tagKey, m_args[i].toString());
 			}
 
 			TagKey tag = builder.build();
-			//System.out.println(tag);
 
 			return tag;
 		}

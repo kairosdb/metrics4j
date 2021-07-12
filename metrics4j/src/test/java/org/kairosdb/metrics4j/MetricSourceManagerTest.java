@@ -55,6 +55,18 @@ class MetricSourceManagerTest
 		assertThat(reporter.reportSize("127.0.0.1")).isNotSameAs(myCounter);
 	}
 
+	@Test
+	public void test_booleanParameter()
+	{
+		TestMetricSource reporter = MetricSourceManager.getSource(TestMetricSource.class);
+
+		LongCounter myCounter = new LongCounter();
+
+		MetricSourceManager.setCollectorForSource(myCounter, TestMetricSource.class).reportStatus(true);
+
+		reporter.reportStatus(true);
+	}
+
 	/**
 	 This test shows how to use the api with a mock framework to verify
 	 certain metrics are being reported from some class being tested.
@@ -114,16 +126,7 @@ class MetricSourceManagerTest
 		assertThat(exception.getMessage()).isEqualTo("You have specified a return type on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.reportCounter that is not a generic collector interface as found in org.kairosdb.metrics4j.collectors");
 	}
 
-	@Test
-	public void test_wrongParamType()
-	{
-		BadMetric source = MetricSourceManager.getSource(BadMetric.class);
-		ImplementationException exception = assertThrows(ImplementationException.class, () -> {
-			source.badParameter(42).put(42);
-		});
-
-		assertThat(exception.getMessage()).isEqualTo("All parameters on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.badParameter must be of type String");
-	}
+	
 
 	@Test
 	public void test_missingAnnotation()

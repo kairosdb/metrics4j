@@ -120,6 +120,10 @@ Notice the `@Key("host")` annotation on the host parameter.  This lets metrics4j
 know that you want to specify the host tag each time this is called, in this way
 you separate the metrics for each host.
 
+While the parameters to a reporting method are usually strings they can be any type,
+Metrics4j will call .toString() on the parameter so it can be passed as a string
+tag to the timeseries backend.
+
 **Note:** Not all timeseries backends support tags.  In those cases you will need to include 
 the tag as part of the metric name using a formatter (see below)
 
@@ -379,6 +383,9 @@ metrics4j: {
 
 The above example sets tags a two different levels and the more nested overrides
 those towards the root.
+
+This can also be used to override a noisy tag value in order to reduce the 
+cardinality of a particular metric.
 
 ###### Props
 Props (properties) are a way to pass context information to formatters or sinks about
