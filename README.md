@@ -408,8 +408,8 @@ will dump out all the sources it saw while running.
 
 If a source hasn't been configured with a collector it will not report but sometimes
 it is easier to disable portions of the source tree.  You can disable any part of the 
-source tree by adding a `_disable: true` at the level you wish to disable.  Disabled 
-sources can be overridden by adding `_disable: false` further down the tree.
+source tree by adding a `_disabled: true` at the level you wish to disable.  Disabled 
+sources can be overridden by adding `_disabled: false` further down the tree.
 
 ### Sinks
 A sink defines a destination to send the metrics to.  The following are built in 
