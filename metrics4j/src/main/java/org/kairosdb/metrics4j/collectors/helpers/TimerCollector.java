@@ -36,9 +36,18 @@ public abstract class TimerCollector implements DurationCollector
 	}
 
 	@Override
-	public <T> T time(Callable<T> callable) throws Exception
+	public <T> T timeEx(Callable<T> callable) throws Exception
 	{
-		try (BlockTimer timer = time())
+		try (BlockTimer ignored = time())
+		{
+			return callable.call();
+		}
+	}
+
+	@Override
+	public <T> T time(TimeCallable<T> callable)
+	{
+		try (BlockTimer ignored = time())
 		{
 			return callable.call();
 		}

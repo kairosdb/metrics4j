@@ -17,8 +17,11 @@ public class BlockTimer implements AutoCloseable
 		m_start = m_ticker.read();
 	}
 
+	/**
+	 Stops timer and reports duration recorded
+	 */
 	@Override
-	public void close() throws Exception
+	public void close()
 	{
 		m_collector.put(Duration.ofNanos(m_ticker.read() - m_start));
 	}

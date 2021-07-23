@@ -12,6 +12,12 @@ import java.util.concurrent.Callable;
 public interface DurationCollector extends Collector
 {
 	void put(Duration duration);
-	<T> T time(Callable<T> callable) throws Exception;
+	<T> T timeEx(Callable<T> callable) throws Exception;
+	<T> T time(TimeCallable<T> callable);
 	BlockTimer time();
+
+	interface TimeCallable<T>
+	{
+		T call();
+	}
 }

@@ -157,13 +157,31 @@ what the metric is.
 
 ## Different ways to report metrics
 
-todo:
+All of the collectors (`LongCollector`, `DurationCollector`, etc) have a put method
+for reporting the value.  The method is named `put` so as to not imply any kind of 
+aggregation that may be done on the metric.  Aggregation is defined in configuration.
 
-Put values into a collector
+The DurationCollector has three helper methods to make it easier to record 
+how long something takes.  `time()`, `time(TimeCallable<T>)` and `timeEx(Callable<T>)`
 
-Duration helper methods
+`BlockTimer time()` 
+This method returns a `BlockTimer` object that is `AutoClosable` so it can be used
+in a try-with-resources statement:
+```java
+try (BlockTimer ignored = reporter.reportTime("localhost").time())
+{
+  longOperation();
+}
+```
 
-Custom MetricCollector
+`<T> time(TimeCallable<T>)` This method lets you pass a lambda expression to be timed.
+The expresion can also return a value if needed.
+```java
+String response = reporter.reportTime("localhost").time(() -> longOperation());
+```
+
+`<T> time(TimeCallable<T>) throws Exception` Exactly the same as the above method
+but this one allows your expression to throw an exception.
 
 
 ## Testing with the library
