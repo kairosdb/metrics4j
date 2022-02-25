@@ -589,12 +589,81 @@ will match the type so if you define both a LongCounter and a DoubleCounter it w
 know to grab the LongCounter as it inherits from LongCollector.  The following
 collectors are all in the `org.kairosdb.metrics4j.collectors.impl` package.
 
+Here is an example of defining a LongCounter:
+```hocon
+metrics4j {
+  ...
+  collectors: {
+    myLongCounter: { #This is your name for the collector that you can reference when assigning the collector
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
+      reset: true  #Many collectors have options that you can set to change behavior
+    }
+  }
+  ...
+}
+```
+
+#### BagCollector
+This collector does not do any aggregation.  Whatever value was put into the collector
+is reported using the time of the put or the Instant if one was provided.
+BagCollector can collect Long, Double and String values.
+
+#### Chained Collectors
+There is a chain collector for each type of data: ChainedDoubleCollector, 
+ChainedDurationCollector, ChainedLongCollector, ChainedStringCollector, ChainedTimeCollector
+
+The chain collector lets you put data into multiple collectors where each one is 
+reported.
+
+For example lets say you have a value that you want to both count and report
+the max value from
+```hocon
+metrics4j {
+  ...
+  collectors: {
+    myLongCounter: { 
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
+    }
+    myMax: {
+      _class: "org.kairosdb.metrics4j.collectors.impl.MaxLongGuage"
+    }
+    myChainCollector: { 
+      _class: "org.kairosdb.metrics4j.collectors.impl.ChainedLongCollector"
+      collectors: ["myLongCounter", "myMax"]
+      prefixes: ["count.", "max."] #prefix to identify each metric
+    }
+  }
+  ...
+}
+```
+
+The prefixes are applied to the collectors that are defined respectively.  If the 
+metric being reported was `myMetric.value`, the chain collector would report two
+values `myMetric.count.value` and `myMetric.max.value`.  The prefix is applied
+to the last part of the metric.
+
+* _collectors:_ List of collectors to chain together
+* _prefixes:_ Prefix to add to each collector respectively
+
 #### DoubleCounter
 Counts up double values to be reported.  The counter can be reset when values are reported
 by setting reset: true in the conf
 
 * _reset:_ (true/false), when true the counter resets after reporting
 * _report-zero:_ (true/false), when set to false will not report zero values
+
+#### DoubleGauge
+Simple gauge that reports the most recently received value.
+
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
+
+#### LastTime
+LastTime collects Duration metrics and when reporting it simply reports the last
+Duration it received.  The Duration is cleared once it is reported so it is
+only reported once.
+
+* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set
+  the unites values are reported in
 
 #### LongCounter
 Counts up long values to be reported.  The counter can be reset when values are reported
@@ -613,10 +682,16 @@ Extends LongGauge and only stores and reports the max value over the reporting p
 
 * _reset:_ (true/false), when true the gauge sets to zero after reporting
 
-#### DoubleGauge
-Simple gauge that reports the most recently received value.
+#### NullCollector
+If you are familiar with /dev/null, this is the same concept.  A way of turning
+off certain metrics.
 
-* _reset:_ (true/false), when true the gauge sets to zero after reporting
+#### PutCounter
+Counts the number of times the put method is called on a collector.  Can be used 
+with any data type.
+
+* _reset:_ (true/false), when true the counter resets after reporting
+* _report-zero:_ (true/false), when set to false will not report zero values
 
 #### SimpleStats
 This reports the min, max, sum, count and avg for the set of values received since
@@ -637,6 +712,29 @@ the unites values are reported in
 #### StringReporter
 No aggregation is done in this collector.  All strings are reported with the time
 they were received.
+
+#### TimeDelta
+This records the difference between now (computers local clock) and the timestamp
+provided.  The deltas are recorded as a SimpleTimerMetric
+
+Takes the same parameters as SimpleTimerMetric
+
+#### TimestampCounter
+This collector records a count of timestamps during a configurable amount of time.
+The initial use of this collector was to count events going in and out of an event
+system.  The idea is to count all events that occur in a bucket of time and report
+them using a timestamp within that bucket.
+
+The default configuration can handle the same timestamp (rounded to the minute)
+being reported for just short of 2 weeks (13 ish days) before potentially overwriting
+the same timestamp when reporting data.
+
+Basically a timestamp (rounded to the minute) can be counted and reported for about 2 weeks
+each time it reports it will use a slightly different timestamp so as to not overwrite
+previous counts
+
+For a detail description of how this works see: 
+https://github.com/kairosdb/metrics4j/wiki/TimestampCounter
 
 ### Formatters
 A formatter can change the name to your liking ie. underscore vs period

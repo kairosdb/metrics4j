@@ -3,12 +3,14 @@ package org.kairosdb.metrics4j.collectors.impl;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
+import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.StringCollector;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
+import java.time.Instant;
 
 /**
  Collector to use if you want to effectively turn off a source.
@@ -21,7 +23,17 @@ public class NullCollector extends TimerCollector implements LongCollector, Doub
 	}
 
 	@Override
+	public void put(Instant time, double count)
+	{
+	}
+
+	@Override
 	public void put(long value)
+	{
+	}
+
+	@Override
+	public void put(Instant time, long count)
 	{
 	}
 
@@ -48,7 +60,17 @@ public class NullCollector extends TimerCollector implements LongCollector, Doub
 	}
 
 	@Override
+	public void put(Instant time, String value)
+	{
+	}
+
+	@Override
 	public void put(Duration duration)
+	{
+	}
+
+	@Override
+	public void put(Instant time, Duration duration)
 	{
 	}
 }

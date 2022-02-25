@@ -9,6 +9,8 @@ import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+import java.time.Instant;
+
 
 @ToString
 @EqualsAndHashCode
@@ -39,6 +41,12 @@ public class DoubleGauge implements DoubleCollector
 		{
 			m_gauge = value;
 		}
+	}
+
+	@Override
+	public void put(Instant time, double value)
+	{
+		put(value);
 	}
 
 	@Override

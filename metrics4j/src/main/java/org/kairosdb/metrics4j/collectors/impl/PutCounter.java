@@ -45,11 +45,17 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 		this(false, true);
 	}
 
+	@Override
 	public void put(long count)
 	{
 		m_count.incrementAndGet();
 	}
 
+	@Override
+	public void put(Instant time, long value)
+	{
+		m_count.incrementAndGet();
+	}
 
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
@@ -84,7 +90,19 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 	}
 
 	@Override
+	public void put(Instant time, double value)
+	{
+		m_count.incrementAndGet();
+	}
+
+	@Override
 	public void put(Duration duration)
+	{
+		m_count.incrementAndGet();
+	}
+
+	@Override
+	public void put(Instant time, Duration duration)
 	{
 		m_count.incrementAndGet();
 	}
@@ -96,7 +114,19 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 	}
 
 	@Override
+	public void put(Instant time, String value)
+	{
+		m_count.incrementAndGet();
+	}
+
+	@Override
 	public void put(Instant time)
+	{
+		m_count.incrementAndGet();
+	}
+
+	@Override
+	public void put(Instant time, Instant value)
 	{
 		m_count.incrementAndGet();
 	}

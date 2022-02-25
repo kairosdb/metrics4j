@@ -9,6 +9,8 @@ import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+import java.time.Instant;
+
 @ToString
 @EqualsAndHashCode
 public class DoubleCounter implements DoubleCollector
@@ -42,6 +44,12 @@ public class DoubleCounter implements DoubleCollector
 		{
 			m_count += value;
 		}
+	}
+
+	@Override
+	public void put(Instant time, double value)
+	{
+		put(value);
 	}
 
 	@Override

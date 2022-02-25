@@ -4,6 +4,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.kairosdb.metrics4j.collectors.Collector;
 
+import java.time.Instant;
+
 @ToString
 @EqualsAndHashCode
 public class MaxLongGauge extends LongGauge
@@ -28,5 +30,11 @@ public class MaxLongGauge extends LongGauge
 	public void put(long value)
 	{
 		m_gauge.accumulateAndGet(value, Long::max);
+	}
+
+	@Override
+	public void put(Instant time, long count)
+	{
+		put(count);
 	}
 }

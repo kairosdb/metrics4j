@@ -10,11 +10,20 @@ import java.time.Instant;
 public class ChainedTimeCollector extends ChainedCollector<TimeCollector> implements TimeCollector
 {
 	@Override
-	public void put(Instant time)
+	public void put(Instant value)
 	{
 		for (PrefixMetricReporter<TimeCollector> chainedCollector : m_chainedCollectors)
 		{
-			chainedCollector.getCollector().put(time);
+			chainedCollector.getCollector().put(value);
+		}
+	}
+
+	@Override
+	public void put(Instant time, Instant value)
+	{
+		for (PrefixMetricReporter<TimeCollector> chainedCollector : m_chainedCollectors)
+		{
+			chainedCollector.getCollector().put(time, value);
 		}
 	}
 

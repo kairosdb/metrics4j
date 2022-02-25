@@ -13,6 +13,7 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @ToString
@@ -113,6 +114,12 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 			m_sum = m_sum.plus(duration);
 			m_count++;
 		}
+	}
+
+	@Override
+	public void put(Instant time, Duration duration)
+	{
+		put(duration);
 	}
 
 

@@ -59,9 +59,9 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 
 
 	@Override
-	public void put(Instant time)
+	public void put(Instant value)
 	{
-		Instant bucketTime = time.truncatedTo(ChronoUnit.MINUTES);
+		Instant bucketTime = value.truncatedTo(ChronoUnit.MINUTES);
 
 		synchronized (m_mapLock)
 		{
@@ -69,6 +69,12 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 
 			counter.incrementAndGet();
 		}
+	}
+
+	@Override
+	public void put(Instant time, Instant value)
+	{
+		put(value);
 	}
 
 	@Override

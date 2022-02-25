@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleSupplier;
 import java.util.function.LongSupplier;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  Need to put methods to set various components programmatically.
 
@@ -76,12 +78,12 @@ public class MetricSourceManager
 		return s_metricConfig;
 	}
 
-	public static void registerMetricCollector(MetricCollector collector)
+	/*public static void registerMetricCollector(MetricCollector collector)
 	{
 		ArgKey key = new CustomArgKey(collector);
 
-		//getMetricConfig().getContext().assignCollector(key, collector, new HashMap<>(), new HashMap<>(), null);
-	}
+		getMetricConfig().getContext().assignCollector(key, collector, new HashMap<>(), new HashMap<>(), null);
+	}*/
 
 	public static <T> T getSource(Class<T> tClass)
 	{
@@ -102,6 +104,7 @@ public class MetricSourceManager
 
 		//todo need to do some validation on tClass, makes ure all methods only take strings and are annotated with Keys
 
+		requireNonNull(tClass, "Source class object cannot be null");
 		InvocationHandler handler = s_invocationMap.computeIfAbsent(tClass, (klass) -> {
 			MetricConfig metricConfig = getMetricConfig();
 			if (metricConfig.isDumpMetrics())
@@ -165,8 +168,22 @@ public class MetricSourceManager
 		return builder.build();
 	}
 
+	/**
+	 In some cases it is more helpful to have the metrics code call into your code
+	 to gather the metric or state of the system at the time of collection.  This
+	 method allows you to artificially create a MetricCollector that will be called
+	 when metrics are collected to be reported
+	 @param className The class name to identify this collector for configuration purposes.
+	 @param methodName The method name to identify this collector for configuration purposes.
+	 @param tags Tags associated with this collector
+	 @param help Help text for this collector
+	 @param collector A instance that implements MetricCollector to be called when collecting metrics.
+	 */
 	public static void addSource(String className, String methodName, Map<String, String> tags, String help, MetricCollector collector)
 	{
+		requireNonNull(className, "className cannot be null");
+		requireNonNull(methodName, "methodName cannot be null");
+		requireNonNull(collector, "collector cannot be null");
 		ArgKey key = new LambdaArgKey(className, methodName);
 		MetricConfig metricConfig = getMetricConfig();
 
@@ -195,11 +212,27 @@ public class MetricSourceManager
 		collection.addCollector(buildTagKey(tags), collector);
 	}
 
+	/**
+	 A helper method that lets you pass a lambda function as the MetricCollector see {@link #addSource(String, String, Map, String, MetricCollector) addSource} method.
+	 @param className The class name to identify this collector for configuration purposes.
+	 @param methodName The method name to identify this collector for configuration purposes.
+	 @param tags Tags associated with this collector
+	 @param help Help text for this collector
+	 @param supplier Lambda function that returns a long value.
+	 */
 	public static void addSource(String className, String methodName, Map<String, String> tags, String help, LongSupplier supplier)
 	{
 		addSource(className, methodName, tags, help, new LongLambdaCollectorAdaptor(supplier));
 	}
 
+	/**
+	 A helper method that lets you pass a lambda function as the MetricCollector see {@link #addSource(String, String, Map, String, MetricCollector) addSource} method.
+	 @param className The class name to identify this collector for configuration purposes.
+	 @param methodName The method name to identify this collector for configuration purposes.
+	 @param tags Tags associated with this collector
+	 @param help Help text for this collector
+	 @param supplier Lambda function that returns a double value.
+	 */
 	public static void addSource(String className, String methodName, Map<String, String> tags, String help, DoubleSupplier supplier)
 	{
 		addSource(className, methodName, tags, help, new DoubleLambdaCollectorAdaptor(supplier));

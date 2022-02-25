@@ -9,6 +9,7 @@ import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 @ToString
@@ -37,6 +38,12 @@ public class LongGauge implements LongCollector
 	public void put(long value)
 	{
 		m_gauge.set(value);
+	}
+
+	@Override
+	public void put(Instant time, long count)
+	{
+		put(count);
 	}
 
 	@Override

@@ -11,6 +11,7 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 @ToString
@@ -49,6 +50,12 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 	public void put(Duration duration)
 	{
 		m_lastTime.set(duration);
+	}
+
+	@Override
+	public void put(Instant time, Duration duration)
+	{
+		put(duration);
 	}
 
 

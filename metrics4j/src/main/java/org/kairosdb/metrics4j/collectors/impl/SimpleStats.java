@@ -12,6 +12,7 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,6 +63,12 @@ public class SimpleStats implements LongCollector, MetricCollector
 			m_sum += value;
 			m_count++;
 		}
+	}
+
+	@Override
+	public void put(Instant time, long value)
+	{
+		put(value);
 	}
 
 	public void reset()

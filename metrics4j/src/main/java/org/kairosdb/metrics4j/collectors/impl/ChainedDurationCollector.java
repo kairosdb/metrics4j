@@ -9,6 +9,7 @@ import org.kairosdb.metrics4j.collectors.helpers.Ticker;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Callable;
 
 public class ChainedDurationCollector extends ChainedCollector<DurationCollector> implements DurationCollector
@@ -21,6 +22,15 @@ public class ChainedDurationCollector extends ChainedCollector<DurationCollector
 		for (PrefixMetricReporter<DurationCollector> chainedCollector : m_chainedCollectors)
 		{
 			chainedCollector.getCollector().put(duration);
+		}
+	}
+
+	@Override
+	public void put(Instant time, Duration duration)
+	{
+		for (PrefixMetricReporter<DurationCollector> chainedCollector : m_chainedCollectors)
+		{
+			chainedCollector.getCollector().put(time, duration);
 		}
 	}
 

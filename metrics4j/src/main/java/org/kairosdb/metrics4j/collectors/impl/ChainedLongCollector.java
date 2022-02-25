@@ -5,6 +5,8 @@ import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.helpers.ChainedCollector;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
 
+import java.time.Instant;
+
 
 public class ChainedLongCollector extends ChainedCollector<LongCollector> implements LongCollector
 {
@@ -14,6 +16,15 @@ public class ChainedLongCollector extends ChainedCollector<LongCollector> implem
 		for (PrefixMetricReporter<LongCollector> chainedCollector : m_chainedCollectors)
 		{
 			chainedCollector.getCollector().put(value);
+		}
+	}
+
+	@Override
+	public void put(Instant time, long value)
+	{
+		for (PrefixMetricReporter<LongCollector> chainedCollector : m_chainedCollectors)
+		{
+			chainedCollector.getCollector().put(time, value);
 		}
 	}
 

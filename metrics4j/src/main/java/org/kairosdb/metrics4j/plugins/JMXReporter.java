@@ -157,7 +157,7 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	public void handleNotification(Notification notification, Object handback)
 	{
 		if (!(notification instanceof MBeanServerNotification)) {
-			System.out.println("Ignored notification of class " + notification.getClass().getName());
+			logger.debug("Ignored notification of class " + notification.getClass().getName());
 			return;
 		}
 		MBeanServerNotification mbsn = (MBeanServerNotification) notification;

@@ -32,10 +32,16 @@ public class TimeDelta extends SimpleTimerMetric implements TimeCollector
 
 
 	@Override
-	public void put(Instant time)
+	public void put(Instant value)
 	{
-		Duration between = Duration.between(time, Instant.ofEpochMilli(m_clock.now())).abs();
+		Duration between = Duration.between(value, Instant.ofEpochMilli(m_clock.now())).abs();
 		super.put(between);
+	}
+
+	@Override
+	public void put(Instant time, Instant value)
+	{
+		put(value);
 	}
 
 	@Override

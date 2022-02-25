@@ -31,6 +31,12 @@ public class StringReporter implements StringCollector
 	}
 
 	@Override
+	public void put(Instant time, String value)
+	{
+		put(value);
+	}
+
+	@Override
 	public Collector clone()
 	{
 		return new StringReporter();

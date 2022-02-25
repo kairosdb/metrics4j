@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.internal;
 import org.kairosdb.metrics4j.annotation.Help;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.collectors.impl.NullCollector;
 import org.kairosdb.metrics4j.configuration.ImplementationException;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		CollectorContext context = m_statsMap.get(key);
 		if ((context == null) || (!(context.getCollection() instanceof CollectorCollectionAdapter)))
 		{
-			CollectorCollection collection = new CollectorCollectionAdapter(new DevNullCollector(), key);
+			CollectorCollection collection = new CollectorCollectionAdapter(new NullCollector(), key);
 
 			context = new TestingCollectorContext(collection);
 			m_statsMap.put(key, context);

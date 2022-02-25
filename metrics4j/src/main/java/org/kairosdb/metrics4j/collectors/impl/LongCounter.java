@@ -9,6 +9,7 @@ import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -37,11 +38,17 @@ public class LongCounter implements LongCollector
 		this(false, true);
 	}
 
+	@Override
 	public void put(long count)
 	{
 		m_count.addAndGet(count);
 	}
 
+	@Override
+	public void put(Instant time, long count)
+	{
+		put(count);
+	}
 
 	@Override
 	public void reportMetric(MetricReporter metricReporter)

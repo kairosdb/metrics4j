@@ -13,6 +13,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ ChainedCollector lets you report metrics to more than one collector.
+ @param <C>
+ */
 @ToString
 @EqualsAndHashCode
 public abstract class ChainedCollector<C extends Collector> extends Cloneable implements Collector

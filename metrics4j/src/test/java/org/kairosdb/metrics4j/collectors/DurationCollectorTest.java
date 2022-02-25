@@ -5,7 +5,7 @@ import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.TestMetricSource;
 import org.kairosdb.metrics4j.collectors.helpers.BlockTimer;
 import org.kairosdb.metrics4j.collectors.impl.LongCounter;
-import org.kairosdb.metrics4j.internal.DevNullCollector;
+import org.kairosdb.metrics4j.collectors.impl.NullCollector;
 
 import java.time.Duration;
 
@@ -34,7 +34,7 @@ public class DurationCollectorTest
 		TestMetricSource reporter = MetricSourceManager.getSource(TestMetricSource.class);
 
 		LongCounter myCounter = new LongCounter();
-		DurationCollector collector = spy(new DevNullCollector());
+		DurationCollector collector = spy(new NullCollector());
 
 		MetricSourceManager.setCollectorForSource(collector, TestMetricSource.class).reportTime("localhost");
 
@@ -51,7 +51,7 @@ public class DurationCollectorTest
 		TestMetricSource reporter = MetricSourceManager.getSource(TestMetricSource.class);
 
 		LongCounter myCounter = new LongCounter();
-		DurationCollector collector = spy(new DevNullCollector());
+		DurationCollector collector = spy(new NullCollector());
 
 		MetricSourceManager.setCollectorForSource(collector, TestMetricSource.class).reportTime("localhost");
 		String response;
