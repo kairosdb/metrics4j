@@ -125,4 +125,20 @@ class TemplateFormatterTest
 
 		assertThat(metricName).isEqualTo("metric4j.MyClass.myMethod.work_machine.value");
 	}
+
+	@Test
+	void test_formatReportedMetric_metricTemplate()
+	{
+		TemplateFormatter templateFormatter = new TemplateFormatter("metric4j.%{metricName}.%{field}");
+		templateFormatter.init(null);
+
+		ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
+		reportedMetric.setClassName("MyClass");
+		reportedMetric.setMethodName("myMethod");
+		reportedMetric.setTags(Collections.singletonMap("host", "work_machine"));
+		reportedMetric.addSample("value", new LongValue(1));
+		String metricName = templateFormatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "foo.bar");
+
+		assertThat(metricName).isEqualTo("metric4j.foo.bar.value");
+	}
 }

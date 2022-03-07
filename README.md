@@ -214,7 +214,8 @@ Metrics4j is designed to let you, the admin, determine for each metric being rep
 1. How to aggregate metric data while waiting to be reported (by specifying what Collector to use)
 1. Where to send the metrics - KairosDB, InfluxDB, etc..
 
-(The following is subject to change as we work through the beta)
+_Note._ When trying to diagnose what is going on with the loading of configuration
+it is a good idea to set your logging to debug for ```org.kairosdb.metrics4j```
 
 When Metrics4j loads it will try to find two files named metrics4j.conf and metrics4j.properties in the classpath.
 If neither file is found, all the reporting methods are effectively no-ops.
@@ -411,7 +412,7 @@ the metric.  For example you way want to tell the statsd sink that the value is 
 ```hocon
 sources: {
   foo.MyClass.myMethod: {
-    _props: {
+    _prop: {
       statsd_type: "c"
     }
   }
@@ -802,15 +803,48 @@ JMXReporter started as an external project that used metrics4j to report JMX met
 This code was brought inside Metrics4j so JMX metrics can be reported by simply 
 including the JMXReporter plugin.
 ```hocon
-metrics4j {
-  plugins {
+metrics4j: {
+  plugins: {
     jmx: {
       _class: "org.kairosdb.metrics4j.plugins.JMXReporter"
+      type-map: {
+        java.lang.Object: "long"
+        sausage: "double"
+      }
+      class-name-attributes: ["type", "name"]
+    }
+  }
+  _dump-file: "/home/bhawkins/programs/kafka_2.13-2.5.1/dump.conf"
+}
+
+```
+
+* _type-map:_ Map a jmx type to one of the supported JMXReporter types (ie int, long, float and double).  The plugin 
+also supports CompositeData but this is a special case.
+* _class-name-attributes:_ A list of JMX attributes used to create the class name and how each JMX source shows up in the configuration file.
+Attributes not specified as part of the class name will show up as tags on the reported metric.
+
+The type can be overridden at the source level by adding the _jmx_type_ property.  For example
+when reporting JMX metrics from Kakfa they declar the type to be `java.lang.Object`.  Most
+of the time that is a long value but in some cases it is an int, so for those, an exception
+is added directly to that source like in the example below.
+```hocon
+metrics4j: {
+  sources: {
+    kafka.server: {
+      ReplicaManager: {
+        UnderReplicatedPartitions.Value: {
+          _prop: {
+            jmx_type: "int"
+          }
+        }
+      }
     }
   }
 }
+
 ```
 
 Once you have included the JMXReporter plugin add a _dump-file config and run your application.
-When you shutdown your application all possible JMX metrics will be dumped to the config
+When you shutdown your application, all possible JMX metrics will be dumped to the config
 file so you can turn on and off metrics you are looking for.

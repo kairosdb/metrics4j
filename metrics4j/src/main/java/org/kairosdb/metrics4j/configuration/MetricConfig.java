@@ -341,14 +341,19 @@ public class MetricConfig
 		MetricsContextImpl context = new MetricsContextImpl();
 		MetricConfig ret = new MetricConfig(context);
 
-		String configFile = System.getProperty(CONFIG_SYSTEM_PROPERTY);
+		String configFilePath = System.getProperty(CONFIG_SYSTEM_PROPERTY);
 		String overridesFile = System.getProperty(OVERRIDES_SYSTEM_PROPERTY);
 
 		Config base, overrides;
 
-		if (configFile != null)
+		if (configFilePath != null)
 		{
-			base = ConfigFactory.parseFile(new File(configFile));
+			log.info("Loading metrics4j config file: "+configFilePath);
+			File configFile = new File(configFilePath);
+			if (!configFile.exists())
+				log.info("Unable to locate file: "+configFilePath);
+
+			base = ConfigFactory.parseFile(configFile);
 		}
 		else
 		{
@@ -588,5 +593,10 @@ public class MetricConfig
 		{
 			sources = getAdd(sources, split[i]);
 		}
+
+
+
+		if (helpText != null)
+			sources.put("_help", helpText);
 	}
 }

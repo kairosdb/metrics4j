@@ -45,7 +45,6 @@ public class BeanInjector
 
 		for (PropertyDescriptor propertyDescriptor : propertyDescriptors)
 		{
-			//todo change to dash name
 			m_propMap.put(getDashPropertyName(propertyDescriptor.getName()), propertyDescriptor);
 		}
 	}
@@ -80,7 +79,7 @@ public class BeanInjector
 			throw new ConfigurationException(msg);
 		}
 
-		Set<Map.Entry<String, ConfigValue>> props = config.entrySet();
+		Set<Map.Entry<String, ConfigValue>> props = config.root().entrySet();
 		for (Map.Entry<String, ConfigValue> prop : props)
 		{
 			String property = prop.getKey();
@@ -177,6 +176,10 @@ public class BeanInjector
 			else if (compareType == Duration.class)
 			{
 				return config.getDuration(configPropName);
+			}
+			else if (compareType == Config.class)
+			{
+				return config.getConfig(configPropName);
 			}
 			else if (compareType.equals(List.class))
 			{

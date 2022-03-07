@@ -1,5 +1,11 @@
 package org.kairosdb.metrics4j.plugins;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
+import com.typesafe.config.ConfigValue;
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
@@ -18,17 +24,50 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+@ToString
+@EqualsAndHashCode
 public class JMXReporter implements Plugin, Closeable, NotificationListener
 {
 	private static final Logger logger = LoggerFactory.getLogger(JMXReporter.class);
+	public static final String JMX_TYPE_PROP = "jmx_type";
 
 	private final Map<ObjectName, List<SourceKey>> m_sourceKeyMap = new HashMap<>();
 
 	private MBeanServer m_server;
+
+	private Map<String, String> m_typeMap = new HashMap<>();
+	private List<String> m_classNameAttributes = Collections.emptyList();
+
+	public JMXReporter()
+	{
+	}
+
+	//used for testing
+	public JMXReporter(MBeanServer server)
+	{
+		m_server = server;
+	}
+
+	public void setTypeMap(Config typeMap)
+	{
+		for (Map.Entry<String, ConfigValue> entry : typeMap.entrySet())
+		{
+			logger.debug("ADDING "+entry.getKey()+ " - " + entry.getValue().unwrapped().toString());
+			m_typeMap.put(entry.getKey(), entry.getValue().unwrapped().toString());
+		}
+	}
+
+	public void setClassNameAttributes(List<String> attributes)
+	{
+		m_classNameAttributes = attributes;
+	}
 
 	@Override
 	public void init()
@@ -62,7 +101,7 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 		}
 	}
 
-	/*package*/ void loadExistingMBeans()
+	private void loadExistingMBeans()
 	{
 		for (ObjectInstance queryMBean : m_server.queryMBeans(null, null))
 		{
@@ -75,51 +114,86 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 		m_server.addNotificationListener(MBeanServerDelegate.DELEGATE_NAME, this, null, null);
 	}
 
+	private String addTagsToName(String baseName, Map<String, String> tags)
+	{
+		StringBuilder ret = new StringBuilder();
+		ret.append(baseName);
+
+		for (String attribute : m_classNameAttributes)
+		{
+			if (tags.containsKey(attribute))
+			{
+				ret.append(".").append(tags.remove(attribute));
+			}
+		}
+
+		return ret.toString();
+	}
+
 	private void registerMBean(ObjectName beanName)
 	{
+		if (m_sourceKeyMap.containsKey(beanName))
+			return;
+		
 		List<SourceKey> sourceKeys = new ArrayList<>();
 		try
 		{
 			for (MBeanAttributeInfo attribute : m_server.getMBeanInfo(beanName).getAttributes())
 			{
+				//This identifies metrics
 				if (attribute.isReadable() && !attribute.isWritable())
 				{
+					Map<String, String> tags = new LinkedHashMap<>(beanName.getKeyPropertyList());
+
 					String type = attribute.getType();
-					String className = beanName.getDomain()+"."+beanName.getKeyProperty("type");
+					//Change type if user defined a mapping
+					type = m_typeMap.getOrDefault(type, type);
+
+					String className = addTagsToName(beanName.getDomain(), tags);
 					String methodName = attribute.getName();
-					Map<String, String> tags = beanName.getKeyPropertyList();
-					//System.out.println(attribute.getName());
-					//System.out.println(attribute.getDescription());
+
+					Map<String, String> sourceProps = MetricSourceManager.getSourceProps(className, methodName);
+					type = sourceProps.getOrDefault(JMX_TYPE_PROP, type);
+
+					String helpText = null;
+					if (!tags.isEmpty())
+						helpText = "tags:"+tags.keySet().stream().collect(Collectors.joining(","));
+
 					if (type.equals("int"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, null, new IntAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new IntAttributeSource(beanName, attribute.getName()));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("long"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, null, new LongAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new LongAttributeSource(beanName, attribute.getName()));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("float"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, null, new FloatAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new FloatAttributeSource(beanName, attribute.getName()));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("double"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, null, new DoubleAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new DoubleAttributeSource(beanName, attribute.getName()));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("javax.management.openmbean.CompositeData"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, null, new CompositeAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new CompositeAttributeSource(beanName, attribute.getName()));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
+					else
+					{
+						logger.debug("UNKNOWN TYPE: "+type + " for class "+className);
+					}
+
 				}
 			}
 		}
@@ -136,7 +210,7 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	{
 		try
 		{
-			List<SourceKey> sourceKeys = m_sourceKeyMap.get(beanName);
+			List<SourceKey> sourceKeys = m_sourceKeyMap.remove(beanName);
 
 			if (sourceKeys != null)
 			{

@@ -12,6 +12,8 @@ import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 import org.kairosdb.metrics4j.internal.TagKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
@@ -36,6 +38,7 @@ import static java.util.Objects.requireNonNull;
  */
 public class MetricSourceManager
 {
+	private static Logger log = LoggerFactory.getLogger(MetricSourceManager.class);
 	private static Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
 	private static Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
 
@@ -71,6 +74,7 @@ public class MetricSourceManager
 			}
 			catch (Exception e)
 			{
+				log.debug("Failed to load configuration", e);
 				throw new RuntimeException(e);
 			}
 		}
@@ -189,7 +193,7 @@ public class MetricSourceManager
 
 		if (metricConfig.isDumpMetrics())
 		{
-			metricConfig.addDumpSource(className+"."+methodName, null);
+			metricConfig.addDumpSource(className+"."+methodName, help);
 		}
 
 		if (metricConfig.isDisabled(key))
@@ -204,12 +208,32 @@ public class MetricSourceManager
 			if (tags != null)
 				configTags.putAll(tags);
 
-			context.assignCollector(key, staticCollection, configTags, metricConfig.getPropsForKey(key), null, help);
+			context.assignCollector(key, staticCollection, configTags, metricConfig.getPropsForKey(key),
+					metricConfig.getMetricNameForKey(key), help);
 
 			return staticCollection;
 		});
 
 		collection.addCollector(buildTagKey(tags), collector);
+	}
+
+
+	/**
+	 Returns properties set in configuration for the given class name and method name.
+	 This is the key value data that shows up under the _props key in the configuration
+	 file.
+	 @param className
+	 @param methodName
+	 @return
+	 */
+	public static Map<String, String> getSourceProps(String className, String methodName)
+	{
+		requireNonNull(className, "className cannot be null");
+		requireNonNull(methodName, "methodName cannot be null");
+		ArgKey key = new LambdaArgKey(className, methodName);
+		MetricConfig metricConfig = getMetricConfig();
+
+		return metricConfig.getPropsForKey(key);
 	}
 
 	/**
