@@ -11,6 +11,7 @@ import org.kairosdb.metrics4j.reporting.StringValue;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @ToString
 @EqualsAndHashCode
@@ -65,5 +66,11 @@ public class StringReporter implements StringCollector
 		{
 			metricReporter.put("value", new StringValue(data.get(i)), times.get(i));
 		}
+	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
 	}
 }

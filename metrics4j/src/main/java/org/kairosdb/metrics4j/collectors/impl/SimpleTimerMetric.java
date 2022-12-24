@@ -87,9 +87,9 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 
 		if (data.count != 0)
 		{
-			long total = getValue(data.sum);
-			metricReporter.put("min", new LongValue(getValue(data.min)));
-			metricReporter.put("max", new LongValue(getValue(data.max)));
+			long total = getValue(reportUnit, data.sum);
+			metricReporter.put("min", new LongValue(getValue(reportUnit, data.min)));
+			metricReporter.put("max", new LongValue(getValue(reportUnit, data.max)));
 			metricReporter.put("total", new LongValue(total));
 			metricReporter.put("count", new LongValue(data.count));
 			metricReporter.put("avg", new DoubleValue((double)total / (double)data.count));

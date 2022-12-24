@@ -41,7 +41,7 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 
 		if (lastTime != null)
 		{
-			metricReporter.put("value", new LongValue(getValue(lastTime)));
+			metricReporter.put("value", new LongValue(getValue(reportUnit, lastTime)));
 		}
 
 	}

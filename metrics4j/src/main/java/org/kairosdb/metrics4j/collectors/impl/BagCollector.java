@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.collectors.impl;
 
+import org.kairosdb.metrics4j.MetricThreadHelper;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.*;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
@@ -11,7 +12,8 @@ import java.util.ArrayList;
 
 /**
  This collector does not do any aggregation.  Whatever value was put into the collector
- is reported using the time of the put or the Instant if one was provided.
+ is reported using the time of the put or the Instant if one was provided.  This collector
+ will also honor any request time set on the thread via MetricThreadHelper
  */
 public class BagCollector extends TimerCollector implements LongCollector, DoubleCollector, StringCollector
 {
@@ -20,9 +22,13 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 
 	private void addToBag(Instant time, MetricValue value)
 	{
+		Instant reportTime = MetricThreadHelper.getReportTime();
+		if (reportTime == Instant.MIN) //time was not set on thread.
+			reportTime = time;
+
 		synchronized (m_bagLock)
 		{
-			m_bag.add(new TimedValue(time, value));
+			m_bag.add(new TimedValue(reportTime, value));
 		}
 	}
 
@@ -62,7 +68,7 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	@Override
 	public void put(Instant time, Duration duration)
 	{
-		addToBag(time, new LongValue(getValue(duration)));
+		addToBag(time, new LongValue(getValue(reportUnit, duration)));
 	}
 
 	@Override

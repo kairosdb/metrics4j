@@ -51,6 +51,11 @@ public class SourceInvocationHandler implements InvocationHandler
 		return ret;
 	}
 
+	/**
+	 Used to override a collector for a given set of arguments.  Used for unit testing.
+	 @param key
+	 @param statsObject
+	 */
 	public void setCollector(MethodArgKey key, MetricCollector statsObject)
 	{
 		Class<?> returnType = key.getMethod().getReturnType();
@@ -64,7 +69,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		CollectorContext context = m_statsMap.get(key);
 		if ((context == null) || (!(context.getCollection() instanceof CollectorCollectionAdapter)))
 		{
-			CollectorCollection collection = new CollectorCollectionAdapter(new NullCollector(), key);
+			CollectorCollection collection = new CollectorCollectionAdapter(new NullCollector(), key, Collections.emptyMap());
 
 			context = new TestingCollectorContext(collection);
 			m_statsMap.put(key, context);
@@ -123,12 +128,13 @@ public class SourceInvocationHandler implements InvocationHandler
 			if (returnType.isInstance(collector))
 			{
 				log.debug("Returning collector {}", collector);
+				Map<String, String> contextProperties = m_config.getPropsForKey(key);
 				//Collector will be cloned before use in the adapter
-				CollectorCollectionAdapter collectorCollection = new CollectorCollectionAdapter(collector, key);
+				CollectorCollectionAdapter collectorCollection = new CollectorCollectionAdapter(collector, key, contextProperties);
 
 				Map<String, String> tagsForKey = m_config.getTagsForKey(key);
 
-				ret = m_config.getContext().assignCollector(key, collectorCollection, tagsForKey, m_config.getPropsForKey(key),
+				ret = m_config.getContext().assignCollector(key, collectorCollection, tagsForKey, contextProperties,
 						m_config.getMetricNameForKey(key), helpText);
 
 				break;

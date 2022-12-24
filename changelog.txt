@@ -5,3 +5,15 @@
 	- Added post config init for plugins
 	- Fixed config paths that have inner classes
 	- Fixed failure when formatter is not configured for a collector
+
+
+0.20.0:
+	- Added thread local storage for tags to be added to metrics reported on that thread
+	- Methods annotated with Reported can be added
+	- Methods annotated with Snapshot will be called just before gathering metrics
+	- Ability to set report-unit in the source as a property
+	- Context properties are passed to collector instances after they are cloned.
+	- System and Environment variables can override metrics4j settings
+	- Collectors that have not reported anything in 10 min will be removed.
+		This is to save memory, they will be autmatically recreated if needed again.
+	- KairosSink you can specify the ttl as a context property in sources

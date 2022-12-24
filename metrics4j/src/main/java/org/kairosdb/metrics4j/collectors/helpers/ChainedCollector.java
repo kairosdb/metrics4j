@@ -12,6 +12,7 @@ import org.kairosdb.metrics4j.reporting.MetricValue;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  ChainedCollector lets you report metrics to more than one collector.
@@ -76,6 +77,15 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 		}
 	}
 
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+		for (PrefixMetricReporter<C> chainedCollector : m_chainedCollectors)
+		{
+			chainedCollector.setContextProperties(contextProperties);
+		}
+	}
+
 	protected static class PrefixMetricReporter<C extends Collector> implements MetricReporter
 	{
 		private MetricReporter m_innerReporter;
@@ -121,6 +131,11 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 			sb.append(m_prefix).append(field);
 
 			m_innerReporter.put(sb.toString(), value, time);
+		}
+
+		public void setContextProperties(Map<String, String> contextProperties)
+		{
+			m_collector.setContextProperties(contextProperties);
 		}
 	}
 }

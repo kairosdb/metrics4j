@@ -5,6 +5,7 @@ import org.kairosdb.metrics4j.CollectorNotification;
 import org.kairosdb.metrics4j.FormatterNotification;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.SinkNotification;
+import org.kairosdb.metrics4j.Snapshot;
 import org.kairosdb.metrics4j.TriggerNotification;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.formatters.Formatter;
@@ -137,7 +138,6 @@ public class MetricsContextImpl implements MetricsContext
 	public Collector getCollector(String name)
 	{
 		Collector collector = m_collectors.getComponent(name);
-		//todo clone collector
 		return collector;
 	}
 
@@ -199,6 +199,13 @@ public class MetricsContextImpl implements MetricsContext
 		trigger.addCollector(collectorContext);
 
 		return collectorContext;
+	}
+
+	@Override
+	public void assignSnapshot(ArgKey key, Snapshot snapshot)
+	{
+		TriggerMetricCollection trigger = getTriggerForKey(key);
+		trigger.addSnapshot(snapshot);
 	}
 
 	@Override

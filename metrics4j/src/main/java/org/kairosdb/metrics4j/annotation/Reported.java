@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface Reported
 {
-	String help();
+	String help() default "";
+	String field() default "value";
 }

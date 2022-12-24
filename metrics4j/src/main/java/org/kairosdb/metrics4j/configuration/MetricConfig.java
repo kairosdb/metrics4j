@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +65,8 @@ public class MetricConfig
 	private Map<String, Object> m_dumpConfig;
 	private final List<PostConstruct> m_postConstructs;
 	private final List<PostConfig> m_postConfigs;
+
+	private Config m_config;
 
 
 	private String formatValue(String value)
@@ -373,7 +376,18 @@ public class MetricConfig
 			overrides = ConfigFactory.parseResources(overridesConfig);
 		}
 
-		Config config = overrides.withFallback(base).resolve();
+		Config config = overrides.withFallback(base);
+
+		//Load system properties
+		Config sysConfig = ConfigFactory.systemProperties();
+		config = sysConfig.withFallback(config);
+
+		//Get environment variables
+		config = applyEnvironmentVariables(config);
+
+
+		config = config.resolve();
+		ret.m_config = config;
 
 		if (config.hasPath("metrics4j"))
 		{
@@ -413,6 +427,31 @@ public class MetricConfig
 		}
 
 		return ret;
+	}
+
+	protected static String toEnvVarName(String propName) {
+		return propName.toUpperCase().replace('.', '_');
+	}
+
+	/*
+	 * allow overwriting any existing property via correctly named environment variable
+	 * e.g. kairosdb.datastore.cassandra.host_list via KAIROSDB_DATASTORE_CASSANDRA_HOST_LIST
+	 */
+	protected static Config applyEnvironmentVariables(Config config)
+	{
+		Map<String, String> env = System.getenv();
+		Map<String, String> props = new HashMap<>();
+		for (Map.Entry<String, ConfigValue> propName : config.entrySet())
+		{
+			String envVarName = toEnvVarName(propName.getKey());
+			if (env.containsKey(envVarName))
+			{
+				props.put(propName.getKey(), env.get(envVarName));
+			}
+		}
+
+		Config envConfig = ConfigFactory.parseMap(props);
+		return envConfig.withFallback(config);
 	}
 
 
@@ -563,9 +602,14 @@ public class MetricConfig
 		return ret;
 	}
 
+	/**
+	 returns immutable map of properties for the specified key context
+	 @param argKey
+	 @return
+	 */
 	public Map<String, String> getPropsForKey(ArgKey argKey)
 	{
-		return getValuesForKey(argKey, m_mappedProps);
+		return Collections.unmodifiableMap(getValuesForKey(argKey, m_mappedProps));
 	}
 
 	public boolean isDumpMetrics()
@@ -598,5 +642,25 @@ public class MetricConfig
 
 		if (helpText != null)
 			sources.put("_help", helpText);
+	}
+
+	/**
+	 Returns any configuration that was used in initializing metrics4j
+	 @param config
+	 @return String representation of value
+	 */
+	public String getConfigString(String config)
+	{
+		return m_config.getString(config);
+	}
+
+	/**
+	 Returns any configuration that was used in initializing metrics4j
+	 @param config
+	 @return ConfigValue object you can unwrap
+	 */
+	public ConfigValue getConfigValue(String config)
+	{
+		return m_config.getValue(config);
 	}
 }

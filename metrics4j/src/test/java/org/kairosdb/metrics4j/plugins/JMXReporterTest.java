@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
+import org.kairosdb.metrics4j.configuration.TestTrigger;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.internal.MetricsContextImpl;

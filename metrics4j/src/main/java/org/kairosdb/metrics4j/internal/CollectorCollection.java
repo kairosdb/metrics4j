@@ -5,6 +5,7 @@ import org.kairosdb.metrics4j.internal.TagKey;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
+import java.util.Map;
 
 
 /**

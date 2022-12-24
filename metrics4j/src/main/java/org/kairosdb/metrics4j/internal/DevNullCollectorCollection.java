@@ -6,6 +6,7 @@ import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Map;
 
 public class DevNullCollectorCollection implements CollectorCollection
 {
@@ -22,4 +23,5 @@ public class DevNullCollectorCollection implements CollectorCollection
 	{
 		return Collections.emptyList();
 	}
+
 }

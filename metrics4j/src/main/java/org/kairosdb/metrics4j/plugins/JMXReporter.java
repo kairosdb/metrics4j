@@ -285,6 +285,12 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 			m_objectName = objectName;
 			m_attribute = attribute;
 		}
+
+		@Override
+		public void setContextProperties(Map<String, String> contextProperties)
+		{
+			//Nothing to do with them.
+		}
 	}
 
 

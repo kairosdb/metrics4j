@@ -7,9 +7,9 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 public class StringValue extends MetricValue
 {
-	private final String m_value;
+	private final CharSequence m_value;
 
-	public StringValue(String value)
+	public StringValue(CharSequence value)
 	{
 		super(TYPE_STRING);
 		m_value = value;
@@ -18,7 +18,7 @@ public class StringValue extends MetricValue
 	@Override
 	public String getValueAsString()
 	{
-		return m_value;
+		return m_value.toString();
 	}
 
 }

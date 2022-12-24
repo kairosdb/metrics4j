@@ -10,6 +10,7 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @ToString
@@ -69,6 +70,12 @@ public class LongGauge implements LongCollector
 			value = m_gauge.get();
 
 		metricReporter.put("gauge", new LongValue(value));
+	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
 	}
 
 }

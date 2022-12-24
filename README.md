@@ -55,7 +55,7 @@
 # metrics4j
 Library for abstracting the reporting of metrics in your code from sending them to a time series service.
 
-This library is still in development, keep checking back as progress is moving quickly
+Metrics4j is ideal for open source projects where you don't know what environment your code will be running in.
 
 #### Have you ever wanted to ...
  * change how often an application reports metrics
@@ -63,10 +63,10 @@ This library is still in development, keep checking back as progress is moving q
  * change the name of a metric
  * turn a metric off or on 
  * report a metric to more than one timeseries backend
- * have an application report to something besides prometheus
+ * add tags to a metric but don't want to clutter your interfaces passing those tags around
  
-All of the above on an application already deployed in production?  Then this library is for your 
-(or the developers that wrote the application)
+All of the above on an application already deployed in production?  Then they should have used this library.
+All of the above is possible with Metrics4j.
 
 ## Philosophy of using Metrics4j
 The metrics4j library is designed to separate the role of the application developer
@@ -99,7 +99,7 @@ in a deployed application.
 
 # Section 1 (Developer)
 
-Checkout the short video I did on using Metrics4j in your application: https://youtu.be/9r-NvsIezUc
+Checkout the short video on using Metrics4j in your application: https://youtu.be/9r-NvsIezUc
 
 ## Using the library
 Anyone wanting to instrument their code will only have to do three things.
@@ -113,8 +113,8 @@ at run time based on a configuration file. (covered in section 2)
 Each metric reported consists of a value (long, double, duration or string) a timestamp (determined
 by when the metric is reported) and a set of tags (key value pairs).
 
-Lets look at an example of how this would be done.  Lets say you have a service
-that receives messages and you want to report the amount of data your service is
+Let's look at an example of how this would be done.  Lets say you have a service
+that receives messages, you want to report the amount of data your service is
 receiving.  First step is to create an interface in your code that defines what 
 you are reporting:
 ```java
@@ -157,8 +157,10 @@ of the message on to the LongCollector that is returned.
 reporter.reportSize(host).put(messageSize);
 ```
 
-That's it.  You may be wondering what your metric name will look like?  Well 
-that isn't up to you, it's up to whomever configures and runs your software.
+That's it.  You may be wondering what your metric name will look like?  The actual
+metric name is determined by the configuration in metrics4j.conf.  Deploying your
+application with a default metrics4j.conf file is a good idea and gives admins something
+to start from if they want to change things around.
 Both the interface name and the method name are available for formatting the metric
 name so it is a good idea to name them something appropriate.  You can also annotate
 your methods with `@Help("good help text here")` to give your users clues as to 
@@ -170,6 +172,7 @@ All of the collectors (`LongCollector`, `DurationCollector`, etc) have a put met
 for reporting the value.  The method is named `put` so as to not imply any kind of 
 aggregation that may be done on the metric.  Aggregation is defined in configuration.
 
+### Duration Helpers
 The DurationCollector has three helper methods to make it easier to record 
 how long something takes.  `time()`, `time(TimeCallable<T>)` and `timeEx(Callable<T>)`
 
@@ -189,9 +192,58 @@ The expresion can also return a value if needed.
 String response = reporter.reportTime("localhost").time(() -> longOperation());
 ```
 
-`<T> time(TimeCallable<T>) throws Exception` Exactly the same as the above method
+`<T> timeEx(TimeCallable<T>) throws Exception` Exactly the same as the above method
 but this one allows your expression to throw an exception.
 
+### Annotations
+
+#### Reported
+Reported takes two parameters, `help` and `field`.  Help defaults to an empty string and 
+field defaults to "value".
+
+The method `MetricSourceManager.addSource(Object o, Map<String, String> tags)` lets
+you add methods on object `o` annotated with `@Reported` to be called when gathering 
+metrics.  Lets say you have a queue and you would like to report the size of that queue
+as a metric.  In your queue class add a method to get the size of the queue and annotate it.
+```java
+public class MyAwesomeQueue
+{
+  ...
+	public MyAwesomeQueue()
+    {
+		MetricSourceManager.addSource(this, mapOfTags);
+    }
+	 
+	@Reported(help = "Size of awesome queue", field = "size") 
+	public long getQueueSize()
+    {
+		return queue.size(); 
+    }
+  ...
+}
+```
+Every time metrics are to be reported getQueueSize will be called and the current
+queue size will be sent.
+
+#### Snapshot
+On any object where you pass to the `addSource` method mentioned above you can also
+annotate a method that takes no parameters and returns void as `@Snapshot`.
+This ensures that metrics4j will call this method before collecting any metrics 
+from other methods.  This gives you a chance to prepare the metrics before they are
+gathered.
+
+## Setting Tags on a Thread
+In some cases you want to tag your metrics but the tag value isn't available where 
+the metric is being reported.  Lets say you have a rest server that inserts data 
+into the database.  You have a metric that times the insert operation and you would
+like to tag it with the user that made the request.  The database code doesn't have 
+the user info but the rest layer does.
+
+The solution is to use the `MetricThreadHelper` static methods.  These methods
+allow you to set a report time or add tags to the thread local storage.  These 
+values are read when reporting metrics.  In the example above the rest call can
+add the user as a tag using `MetricThreadHelper.addTag("user", username)` and if
+the database insert is done on the same thread the tag will be added to that metric.
 
 ## Testing with the library
 As any good developer will do you will want to test your code to make sure
@@ -271,7 +323,8 @@ metrics4j: {
 Collectors are cloned for each source, Sinks, Formatters and Triggers are treated
 as singletons.
 
-Metrics4j uses bean property injection when loading plugins.  The properties should be
+Metrics4j uses bean property injection when loading plugins and all ofther classes
+defined in the configuration file.  The properties should be
 dash delimited in the hocon file, so if your sink has a `setHostName(String name)` method
 you will set `host-name: ""` in the conf file and it will get injected after the plugin
 is loaded but before `init()` is called.
@@ -285,14 +338,69 @@ in a separate class loader and isolated to prevent conflicts.
 
 #### Configuration Parameters
 
-For any attribute or element value you can insert a parameter surrounded by ${ } that
-will be replaced by either a properties value or an environment value (this is the Hocon substitution feature).
+How to pass runtime configuration parameters to metrics4j.  Environment variables,
+java system properties can all be used within the metrics4j configuration file.
+
+##### Java System Properties
+Given the following configuration file:
+```hocon
+metrics4j: {
+  collectors: {
+    myCounter: {
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
+      reset: true
+    }
+  }
+}
+```
+You can change the reset value with the following system property:
+`java -D metrics4j.collectors.myCounter.reset=false`
+
+##### Environment Variables
+Environment variables can be passed to the configuration in one of two ways.
+
+*Variable translation*: Because dot (.) delimited variables can be problematic on 
+some platforms, After metrics4j loads in the configuration it goes through every 
+property and looks for a corresponding environment variable with the following translation:
+all characters are changed to uppercase and periods are replaced with underscore.  So using
+the previous example `metrics4j.collectors.myCounter.reset` the code would look for
+`METRICS4J_COLLECTORS_MYCOUNTER_RESET` to see if it gets overwritten.
+
+*Hocon Substitution*:  Hocon provides a way to insert environment variables using `${}` 
+notation.  In the previous example you could do the following
+```hocon
+metrics4j: {
+  collectors: {
+    myCounter: {
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
+      reset: ${COUNTER_RESET}
+    }
+  }
+}
+```
+You can then `export COUNTER_RESET=false` and false will get inserted into the 
+configuration.  This same notation can also be used to reference other parts of
+the configuration like this:
+```hocon
+counter.reset: false
+metrics4j: {
+  collectors: {
+    myCounter: {
+      _class: "org.kairosdb.metrics4j.collectors.impl.LongCounter"
+      reset: ${counter.reset}
+    }
+  }
+}
+```
+Now you have a default set and can override it with either a system property or
+environment variable.
+
 
 ### Sources
 The purpose of sources is to associate a sink/collector/formatter/trigger with 
 the various sources of metrics throughout the application.
 
-Lets look at the previous example of MessageSizeReporter and I want to set reportSize() 
+Lets look at the previous example of MessageSizeReporter and you want to set reportSize() 
 to use a counter, this is how that would look (assuming MessageSizeReporter was in package foo.com):
 
 ```hocon
@@ -312,8 +420,8 @@ metrics4j: {
 ```
 
 When MessageSizeReporter is created metrics4j will search up the tree looking for a
-defined LongCollector for reportSize to return.  If I knew I wanted all collectors
-to be the same then I could reference the collector at the root once and all would
+defined LongCollector for reportSize to return.  If you knew you wanted all collectors
+to be the same then you could reference the collector at the root once and all would
 use it.  The above collector is configured to reset its value after it is reported.
 
 When using Hocon the '.' is the same as a nested object so the following configurations
@@ -352,20 +460,21 @@ of strings if you want to reference more than one at the same level.
 
 ###### Overrides
 
-Just a quick note on overriding values using Hocon.  Lets say in the above example I want
-to configure the reset option of myCounter using configuration management.  If I use the 
-metrics4j.properties file I can do this in one of two ways.
+Besides passing system properties or environment variables as mentioned above 
+you can override values using Hocon.  Let's say in the above example you want
+to configure the reset option of myCounter using configuration management.  If you use the 
+metrics4j.properties file you can do this in one of two ways.
 
 Override
 
-In this case I replace the value using the .properties like so
+In this case you replace the value using the .properties like so
 ```properties
 metrics4j.collectors.myCounter.rest=false
 ```
 
 Substitution
 
-In the .conf file I replace the value of rest with ${reset-option} and then my .properties file looks
+In the .conf file you replace the value of rest with ${reset-option} and then your .properties file looks
 like this
 ```properties
 reset-option=false
@@ -427,6 +536,9 @@ sources: {
   }
 }
 ```
+Props are also passed to collectors.  Any of the Duration collectors will read a
+property called `report-unit` that lets you override the time unit to report values
+in for the specific collector.
 
 ##### Getting available sources
 
@@ -576,7 +688,7 @@ the kairosdb client.
 * _host-url:_ (**http://localhost**) Url endpoint for sending http metrics to kairosdb
 * _telnet-host:_ (**null**) Telnet host to send metrics to kairosdb
 * _telnet-port:_ (**4242**) Telnet port
-* _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h"
+* _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h", this can also be set as a prop in the source for specific metrics  
 
 #### TimescaleDBSink
 
@@ -593,7 +705,7 @@ the type of metric, it defaults to 'g'
 * _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
 
 ### Collectors
-A collector defines how to collect values from a source.  For reportSize() I could
+A collector defines how to collect values from a source.  For reportSize() you could
 use a LongCounter or a LongGauge.  When looking for a collector for a source metrics4j
 will match the type so if you define both a LongCounter and a DoubleCounter it will 
 know to grab the LongCounter as it inherits from LongCollector.  The following
@@ -616,7 +728,10 @@ metrics4j {
 #### BagCollector
 This collector does not do any aggregation.  Whatever value was put into the collector
 is reported using the time of the put or the Instant if one was provided.
-BagCollector can collect Long, Double and String values.
+BagCollector can collect Long, Double, Duration and String values.
+
+* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set
+  the units values are reported in.  This only applies to Duration values.
 
 #### Chained Collectors
 There is a chain collector for each type of data: ChainedDoubleCollector, 
@@ -713,10 +828,10 @@ last reporting.
 Used for reporting measured durations.  The collector reports min, max, total,
 count and avg for the measurements received during the last reporting period.
 Values are reported as milliseconds by default but maybe changed using the
-report-unit attribute.
+report-unit attribute.  The report-unit can also be passed as a prop in the sources.
 
 * _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set 
-the unites values are reported in
+the units values are reported in
 * _report-zero:_ (true/false), when set to false will not report zero values
 
 #### StringReporter
@@ -781,7 +896,7 @@ sources.com.kairosdb.CrazyClassNamePath: {
 **Note** The template formatter uses `%{}` so as to not be confused with `${}` used
 by hocon substitution - and so you can use both in a template. like so 
 `template: ${metric-prefix}".%{className}.%{methodName}.%{tag.status}.%{field}"`  
-I only quote the template replace portion.
+You only quote the template replace portion.
 
 * _template:_ template to use when formatting metric names, see above.
 

@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.internal;
 
+import org.kairosdb.metrics4j.Snapshot;
 import org.kairosdb.metrics4j.triggers.MetricCollection;
 import org.kairosdb.metrics4j.triggers.Trigger;
 
@@ -18,6 +19,7 @@ public class TriggerMetricCollection implements MetricCollection
 {
 	private final Trigger m_trigger;
 	private List<CollectorContext> m_collectors;
+	private List<Snapshot> m_snapshots;
 	private Set<SinkQueue> m_sinkQueues; //we use this to flush the sinks when we are done.
 
 	public TriggerMetricCollection(Trigger trigger)
@@ -26,6 +28,7 @@ public class TriggerMetricCollection implements MetricCollection
 		m_trigger.setMetricCollection(this);
 		m_collectors = new CopyOnWriteArrayList<>();
 		m_sinkQueues = new CopyOnWriteArraySet<>();
+		m_snapshots = new CopyOnWriteArrayList<>();
 	}
 
 	public Trigger getTrigger()
@@ -40,9 +43,20 @@ public class TriggerMetricCollection implements MetricCollection
 		m_sinkQueues.addAll(collector.getSinkQueueList());
 	}
 
+	public void addSnapshot(Snapshot snapshot)
+	{
+		m_snapshots.add(snapshot);
+	}
+
 	@Override
 	public void reportMetrics(Instant now)
 	{
+		for (Snapshot snapshot : m_snapshots)
+		{
+			//Trigger all snapshots first
+			snapshot.run();
+		}
+
 		for (CollectorContext collector : m_collectors)
 		{
 			//maybe just pass a timestamp into this

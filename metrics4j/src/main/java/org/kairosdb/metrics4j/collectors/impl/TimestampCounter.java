@@ -115,4 +115,10 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 		}
 
 	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
+	}
 }

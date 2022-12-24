@@ -1,15 +1,14 @@
 package org.kairosdb.metrics4j.internal;
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.kairosdb.metrics4j.MetricThreadHelper;
 import org.kairosdb.metrics4j.annotation.Key;
-import org.kairosdb.metrics4j.configuration.ConfigurationException;
 import org.kairosdb.metrics4j.configuration.ImplementationException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,6 +85,20 @@ public class MethodArgKey implements ArgKey
 					builder.addTag(tagKey, override);
 				else
 					builder.addTag(tagKey, m_args[i].toString());
+			}
+
+			//Add any tags that are set on the thread.
+			Iterator<Map.Entry<String, String>> tagIterator = MetricThreadHelper.getTagIterator();
+			while (tagIterator.hasNext())
+			{
+				Map.Entry<String, String> tagEntry = tagIterator.next();
+				String key = tagEntry.getKey();
+				String override = overrides.get(key);
+
+				if (override != null)
+					builder.addTag(key, override);
+				else
+					builder.addTag(key, tagEntry.getValue());
 			}
 
 			TagKey tag = builder.build();

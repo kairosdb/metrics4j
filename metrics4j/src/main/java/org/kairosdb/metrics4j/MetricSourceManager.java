@@ -1,9 +1,9 @@
 package org.kairosdb.metrics4j;
 
 import org.kairosdb.metrics4j.annotation.Help;
+import org.kairosdb.metrics4j.annotation.Reported;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.internal.ArgKey;
-import org.kairosdb.metrics4j.internal.CustomArgKey;
 import org.kairosdb.metrics4j.internal.DoubleLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.LambdaArgKey;
 import org.kairosdb.metrics4j.internal.LongLambdaCollectorAdaptor;
@@ -12,14 +12,21 @@ import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 import org.kairosdb.metrics4j.internal.TagKey;
+import org.kairosdb.metrics4j.internal.adapters.DoubleMethodCollectorAdapter;
+import org.kairosdb.metrics4j.internal.adapters.DurationMethodCollectorAdapter;
+import org.kairosdb.metrics4j.internal.adapters.LongMethodCollectorAdapter;
+import org.kairosdb.metrics4j.internal.adapters.MethodSnapshotAdapter;
+import org.kairosdb.metrics4j.internal.adapters.StringMethodCollectorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -143,9 +150,65 @@ public class MetricSourceManager
 	 */
 	public static void addSource(Object o, Map<String, String> tags)
 	{
-		//todo check object annotated with @Reported and add collector for them
-		//make sure to check if disabled
+		//disable check is done in addSource call below
+		MetricConfig metricConfig = getMetricConfig();
+		MetricsContext context = metricConfig.getContext();
+
+		List<Method> annotatedMethods = getAnnotatedMethods(o.getClass(), Reported.class);
+
+		for (Method method : annotatedMethods)
+		{
+			Class<?> returnType = method.getReturnType();
+			Reported annotation = method.getAnnotation(Reported.class);
+			String helpText = annotation.help();
+			String field = annotation.field();
+			String className = o.getClass().getName();
+
+			if (returnType == long.class || returnType == Long.class)
+			{
+				addSource(className, method.getName(), tags, helpText, new LongMethodCollectorAdapter(o, method, field));
+			}
+			else if (returnType == double.class || returnType == Double.class)
+			{
+				addSource(className, method.getName(), tags, helpText, new DoubleMethodCollectorAdapter(o, method, field));
+			}
+			else if (Duration.class.isAssignableFrom(returnType))
+			{
+				addSource(className, method.getName(), tags, helpText, new DurationMethodCollectorAdapter(o, method, field));
+			}
+			else if (CharSequence.class.isAssignableFrom(returnType))
+			{
+				addSource(className, method.getName(), tags, helpText, new StringMethodCollectorAdapter(o, method, field));
+			}
+			else
+			{
+				log.error("Unrecognized return type for "+className+" "+method.getName()+". Must be Long, Double, Duration or CharSequence.");
+			}
+		}
+
+		annotatedMethods = getAnnotatedMethods(o.getClass(), org.kairosdb.metrics4j.annotation.Snapshot.class);
+
+		for (Method method : annotatedMethods)
+		{
+			String className = o.getClass().getName();
+
+			context.assignSnapshot(new LambdaArgKey(className, method.getName()), new MethodSnapshotAdapter(o, method));
+		}
 	}
+
+	private static List<Method> getAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotation)
+	{
+		List<Method> retList = new ArrayList<>();
+		for (Method method : clazz.getDeclaredMethods())
+		{
+			if (method.isAnnotationPresent(annotation) && !method.isSynthetic())
+			{
+				retList.add(method);
+			}
+		}
+		return retList;
+	}
+
 
 	public static void removeSource(String className, String methodName, Map<String, String> tags)
 	{
@@ -201,14 +264,16 @@ public class MetricSourceManager
 
 		StaticCollectorCollection collection = s_staticCollectors.computeIfAbsent(key, (k) ->
 		{
-			StaticCollectorCollection staticCollection = new StaticCollectorCollection(k);
+			Map<String, String> contextProperties = metricConfig.getPropsForKey(key);
+
+			StaticCollectorCollection staticCollection = new StaticCollectorCollection(k, contextProperties);
 			MetricsContext context = metricConfig.getContext();
 
 			Map<String, String> configTags = metricConfig.getTagsForKey(key);
 			if (tags != null)
 				configTags.putAll(tags);
 
-			context.assignCollector(key, staticCollection, configTags, metricConfig.getPropsForKey(key),
+			context.assignCollector(key, staticCollection, configTags, contextProperties,
 					metricConfig.getMetricNameForKey(key), help);
 
 			return staticCollection;

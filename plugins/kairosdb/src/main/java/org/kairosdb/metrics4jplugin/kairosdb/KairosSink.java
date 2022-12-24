@@ -49,16 +49,20 @@ public class KairosSink implements MetricSink, Closeable
 
 		for (FormattedMetric metric : metrics)
 		{
+			String metricTtl = metric.getProps().get("ttl");
+			long timeout = 0;
+			if (metricTtl != null)
+				timeout = Long.valueOf(metricTtl);
+			else
+				timeout = ttl.getSeconds();
+
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				Metric sendMetric = builder.addMetric(sample.getMetricName())
 						.addTags(metric.getTags());
 
-				long timeout = ttl.getSeconds();
 				if (timeout != 0)
 					sendMetric.addTtl((int)timeout);
-
-				//todo set ttl based on a property
 
 				MetricValue value = sample.getValue();
 				if (value instanceof LongValue)

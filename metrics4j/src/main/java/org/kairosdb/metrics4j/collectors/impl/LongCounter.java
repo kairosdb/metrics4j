@@ -10,6 +10,7 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -62,6 +63,12 @@ public class LongCounter implements LongCollector
 
 		if (value != 0L || reportZero)
 			metricReporter.put("count", new LongValue(value));
+	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
 	}
 
 	@Override

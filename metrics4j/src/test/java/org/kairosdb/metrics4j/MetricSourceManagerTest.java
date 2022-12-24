@@ -4,13 +4,22 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.annotation.Key;
+import org.kairosdb.metrics4j.annotation.Reported;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.impl.LongCounter;
+import org.kairosdb.metrics4j.collectors.impl.StringReporter;
 import org.kairosdb.metrics4j.configuration.ImplementationException;
+import org.kairosdb.metrics4j.configuration.TestTrigger;
+import org.kairosdb.metrics4j.internal.MetricsContextImpl;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -139,6 +148,74 @@ class MetricSourceManagerTest
 		assertThat(exception.getMessage()).isEqualTo("All parameters on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.noAnnotation must be annotated with @Key()");
 	}
 
+	@Test
+	public void test_addSource_long()
+	{
+		List<String> rootPath = Collections.emptyList();
+		Map<String, String> tags = new HashMap<>();
+		MetricsContextImpl context = (MetricsContextImpl) MetricSourceManager.getMetricConfig().getContext();
 
+		TestTrigger trigger = new TestTrigger();
+		TestSink sink = new TestSink();
+		context.registerTrigger("trigger", trigger);
+		context.registerCollector("collector", new LongCounter());
+		context.registerSink("sink", sink);
+
+
+		context.addSinkToPath("sink", rootPath);
+		context.addTriggerToPath("trigger", rootPath);
+		context.addCollectorToPath("collector", rootPath);
+
+		MetricSourceManager.addSource(new TestLongSource(), tags);
+
+		trigger.triggerCollection(Instant.now());
+
+		assertThat(sink.getResults("longStat").get(0).getValue().getValueAsString()).isEqualTo("42");
+	}
+
+	@Test
+	public void test_addSource_string()
+	{
+		List<String> rootPath = Collections.emptyList();
+		Map<String, String> tags = new HashMap<>();
+		MetricsContextImpl context = (MetricsContextImpl) MetricSourceManager.getMetricConfig().getContext();
+
+		TestTrigger trigger = new TestTrigger();
+		TestSink sink = new TestSink();
+		context.registerTrigger("trigger", trigger);
+		context.registerCollector("collector", new StringReporter());
+		context.registerSink("sink", sink);
+
+
+		context.addSinkToPath("sink", rootPath);
+		context.addTriggerToPath("trigger", rootPath);
+		context.addCollectorToPath("collector", rootPath);
+
+		MetricSourceManager.addSource(new TestStringSource(), tags);
+
+		trigger.triggerCollection(Instant.now());
+
+		assertThat(sink.getResults("stringStat").get(0).getValue().getValueAsString()).isEqualTo("Happy");
+	}
+
+
+	public static class TestLongSource
+	{
+		@Reported(help = "help text", field = "my_value")
+		public long longStat()
+		{
+			return 42L;
+		}
+	}
+
+
+	public static class TestStringSource
+	{
+		@Reported(help = "help text", field = "my_value")
+		public String stringStat()
+		{
+			return "Happy";
+		}
+	}
 
 }

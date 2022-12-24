@@ -10,6 +10,7 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Map;
 
 @ToString
 @EqualsAndHashCode
@@ -75,5 +76,11 @@ public class DoubleCounter implements DoubleCollector
 			if (reset)
 				m_count = 0.0;
 		}
+	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
 	}
 }

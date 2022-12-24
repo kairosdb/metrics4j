@@ -1,5 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,10 +67,11 @@ public class TagKey
 			m_keyBuilder = new StringBuilder();
 		}
 
-		public void addTag(String key, String value)
+		public Builder addTag(String key, String value)
 		{
 			m_tags.put(key, value);
 			m_keyBuilder.append(key).append(value);
+			return this;
 		}
 
 		public TagKey build()

@@ -6,6 +6,7 @@ import org.kairosdb.metrics4j.collectors.DurationCollector;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 
@@ -20,7 +21,8 @@ public abstract class TimerCollector implements DurationCollector
 	@Setter
 	protected ChronoUnit reportUnit = ChronoUnit.MILLIS;
 
-	protected long getValue(Duration duration)
+	//Todo change this to return double and give fractional values
+	public static long getValue(ChronoUnit reportUnit, Duration duration)
 	{
 		switch (reportUnit)
 		{
@@ -61,4 +63,14 @@ public abstract class TimerCollector implements DurationCollector
 
 	public abstract Collector clone();
 
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+		String reportUnit = contextProperties.get("report-unit");
+
+		if (reportUnit != null)
+		{
+			this.reportUnit = ChronoUnit.valueOf(reportUnit);
+		}
+	}
 }

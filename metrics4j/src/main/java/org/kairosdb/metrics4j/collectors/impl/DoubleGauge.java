@@ -10,6 +10,7 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Map;
 
 
 @ToString
@@ -70,5 +71,11 @@ public class DoubleGauge implements DoubleCollector
 			if (reset)
 				m_gauge = 0.0;
 		}
+	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
 	}
 }

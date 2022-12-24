@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ This represents the context for a set of metrics.  Usually this is a bunch of
+ */
 public class CollectorContextImpl implements CollectorContext
 {
 	private static Logger log = LoggerFactory.getLogger(CollectorContext.class);

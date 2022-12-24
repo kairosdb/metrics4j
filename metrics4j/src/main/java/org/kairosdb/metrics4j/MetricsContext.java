@@ -19,6 +19,8 @@ public interface MetricsContext
 
 	//maybe a global context and a sink/trigger specific context
 
+	void assignSnapshot(ArgKey key, Snapshot snapshot);
+
 	void registerSinkNotification(SinkNotification notification);
 	void registerTriggerNotification(TriggerNotification notification);
 	void registerFormatterNotification(FormatterNotification notification);

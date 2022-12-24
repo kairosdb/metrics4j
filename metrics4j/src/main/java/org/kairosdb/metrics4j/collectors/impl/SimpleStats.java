@@ -116,4 +116,10 @@ public class SimpleStats implements LongCollector, MetricCollector
 			reset();
 		}
 	}
+
+	@Override
+	public void setContextProperties(Map<String, String> contextProperties)
+	{
+
+	}
 }
