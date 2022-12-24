@@ -45,9 +45,9 @@ import static java.util.Objects.requireNonNull;
  */
 public class MetricSourceManager
 {
-	private static Logger log = LoggerFactory.getLogger(MetricSourceManager.class);
-	private static Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
-	private static Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
+	private static final Logger log = LoggerFactory.getLogger(MetricSourceManager.class);
+	private static final Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
+	private static final Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
 
 	private static volatile MetricConfig s_metricConfig;
 

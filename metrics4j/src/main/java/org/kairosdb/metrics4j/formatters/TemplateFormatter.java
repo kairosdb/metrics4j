@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class TemplateFormatter implements Formatter
 {
-	private List<TemplateFragment> m_templateFragmentList = new ArrayList<>();
+	private final List<TemplateFragment> m_templateFragmentList = new ArrayList<>();
 
 	@Setter
 	private String template;
@@ -101,7 +101,7 @@ public class TemplateFormatter implements Formatter
 
 	private static class StaticTemplateFragment implements TemplateFragment
 	{
-		private String m_fragment;
+		private final String m_fragment;
 
 		public StaticTemplateFragment(String string)
 		{

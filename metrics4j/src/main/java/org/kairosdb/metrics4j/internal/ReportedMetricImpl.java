@@ -19,7 +19,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	private String m_className;
 	private String m_methodName;
 	private Map<String, String> m_tags = Collections.emptyMap();
-	private List<Sample> m_samples = new ArrayList<>();
+	private final List<Sample> m_samples = new ArrayList<>();
 
 
 	public ReportedMetricImpl setTime(Instant time)

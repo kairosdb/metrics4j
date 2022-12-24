@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class IntervalTrigger implements Trigger, Runnable
 {
-	private static Logger log = LoggerFactory.getLogger(IntervalTrigger.class);
+	private static final Logger log = LoggerFactory.getLogger(IntervalTrigger.class);
 
 	private MetricCollection m_collection;
 

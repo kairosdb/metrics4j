@@ -34,7 +34,7 @@ public class BeanInjector
 	public static final Logger logger = LoggerFactory.getLogger(BeanInjector.class);
 	private final String m_objName;
 	private final Class<?> m_class;
-	private Map<String, PropertyDescriptor> m_propMap = new HashMap<>();
+	private final Map<String, PropertyDescriptor> m_propMap = new HashMap<>();
 
 	public BeanInjector(String objName, Class<?> objClass) throws IntrospectionException
 	{

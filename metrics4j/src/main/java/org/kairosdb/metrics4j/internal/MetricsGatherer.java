@@ -79,7 +79,7 @@ public abstract class MetricsGatherer implements CollectorCollection
 
 	protected static class AgedMetricCollector
 	{
-		private MetricCollector m_metricCollector;
+		private final MetricCollector m_metricCollector;
 		private long m_lastUsed;
 
 		public AgedMetricCollector(MetricCollector metricCollector)

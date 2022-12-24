@@ -42,7 +42,7 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 
 	private MBeanServer m_server;
 
-	private Map<String, String> m_typeMap = new HashMap<>();
+	private final Map<String, String> m_typeMap = new HashMap<>();
 	private List<String> m_classNameAttributes = Collections.emptyList();
 
 	public JMXReporter()

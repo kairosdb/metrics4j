@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class DevNullCollectorContext implements CollectorContext
 {
-	private static CollectorCollection COLLECTION = new DevNullCollectorCollection();
+	private static final CollectorCollection COLLECTION = new DevNullCollectorCollection();
 
 	@Override
 	public CollectorCollection getCollection()

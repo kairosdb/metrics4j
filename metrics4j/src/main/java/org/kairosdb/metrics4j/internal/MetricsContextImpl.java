@@ -23,7 +23,7 @@ import java.util.Map;
 @ToString
 public class MetricsContextImpl implements MetricsContext
 {
-	private static Logger log = LoggerFactory.getLogger(MetricsContextImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(MetricsContextImpl.class);
 
 	private final ListComponentTracker<SinkQueue> m_sinks;
 	private final ListComponentTracker<Collector> m_collectors;

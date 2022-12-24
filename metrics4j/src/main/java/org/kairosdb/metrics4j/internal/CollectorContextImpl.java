@@ -16,12 +16,12 @@ import java.util.Objects;
  */
 public class CollectorContextImpl implements CollectorContext
 {
-	private static Logger log = LoggerFactory.getLogger(CollectorContext.class);
+	private static final Logger log = LoggerFactory.getLogger(CollectorContext.class);
 
 	private final CollectorCollection m_collector;
 	private final ArgKey m_argKey;
 	private Map<String, Formatter> m_formatters;
-	private List<SinkQueue> m_sinkQueueList;
+	private final List<SinkQueue> m_sinkQueueList;
 	private Map<String, String> m_tags;             //additional tags set in configuration
 	private Map<String, String> m_props;
 	private String m_metricName;

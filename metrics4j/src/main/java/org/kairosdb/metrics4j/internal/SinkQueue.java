@@ -12,7 +12,7 @@ public class SinkQueue
 	private final MetricSink m_sink;
 	private final String m_sinkName;
 	private List<FormattedMetric> m_metricList;
-	private Object m_queueLock = new Object();
+	private final Object m_queueLock = new Object();
 
 	public SinkQueue(MetricSink sink, String sinkName)
 	{

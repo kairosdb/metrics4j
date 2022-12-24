@@ -17,7 +17,7 @@ import java.util.ArrayList;
  */
 public class BagCollector extends TimerCollector implements LongCollector, DoubleCollector, StringCollector
 {
-	private Object m_bagLock = new Object();
+	private final Object m_bagLock = new Object();
 	private volatile ArrayList<TimedValue> m_bag = new ArrayList<>();
 
 	private void addToBag(Instant time, MetricValue value)

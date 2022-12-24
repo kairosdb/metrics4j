@@ -18,9 +18,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class TriggerMetricCollection implements MetricCollection
 {
 	private final Trigger m_trigger;
-	private List<CollectorContext> m_collectors;
-	private List<Snapshot> m_snapshots;
-	private Set<SinkQueue> m_sinkQueues; //we use this to flush the sinks when we are done.
+	private final List<CollectorContext> m_collectors;
+	private final List<Snapshot> m_snapshots;
+	private final Set<SinkQueue> m_sinkQueues; //we use this to flush the sinks when we are done.
 
 	public TriggerMetricCollection(Trigger trigger)
 	{

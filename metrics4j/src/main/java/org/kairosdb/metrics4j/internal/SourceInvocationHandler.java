@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SourceInvocationHandler implements InvocationHandler
 {
-	private static Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(SourceInvocationHandler.class);
 	public static final String COLLECTOR_PACKAGE = "org.kairosdb.metrics4j.collectors";
 
 	private final Map<MethodArgKey, CollectorContext> m_statsMap = new ConcurrentHashMap<>();

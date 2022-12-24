@@ -45,7 +45,7 @@ public class MetricConfig
 
 	public static final String PATH_SPLITTER_REGEX = "[\\.\\$]";
 
-	private static Logger log = LoggerFactory.getLogger(MetricConfig.class);
+	private static final Logger log = LoggerFactory.getLogger(MetricConfig.class);
 
 	private static final Pattern formatPattern = Pattern.compile("\\%\\{([^\\}]*)\\}");
 

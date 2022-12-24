@@ -31,8 +31,8 @@ public class MetricThreadHelper
 	}
 
 
-	private static CurrentTags s_currentTags = new CurrentTags();
-	private static ReporterTime s_reportTime = new ReporterTime();
+	private static final CurrentTags s_currentTags = new CurrentTags();
+	private static final ReporterTime s_reportTime = new ReporterTime();
 
 	private MetricThreadHelper()
 	{

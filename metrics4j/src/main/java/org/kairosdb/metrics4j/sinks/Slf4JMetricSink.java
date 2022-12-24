@@ -17,13 +17,13 @@ import org.slf4j.LoggerFactory;
 @ToString
 public class Slf4JMetricSink implements MetricSink
 {
-	private static Logger logger = LoggerFactory.getLogger(Slf4JMetricSink.class);
+	private static final Logger logger = LoggerFactory.getLogger(Slf4JMetricSink.class);
 	private static final Formatter DEFAULT_FORMATTER = new DefaultFormatter();
-	private static String TRACE = "trace";
-	private static String DEBUG = "debug";
-	private static String INFO = "info";
-	private static String WARN = "warn";
-	private static String ERROR = "error";
+	private static final String TRACE = "trace";
+	private static final String DEBUG = "debug";
+	private static final String INFO = "info";
+	private static final String WARN = "warn";
+	private static final String ERROR = "error";
 
 	@Setter
 	private String logLevel;

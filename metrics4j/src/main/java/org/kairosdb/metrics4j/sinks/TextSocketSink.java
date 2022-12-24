@@ -18,7 +18,7 @@ import java.net.Socket;
 
 enum Protocol
 {
-	TCP, UDP;
+	TCP, UDP
 }
 
 public abstract class TextSocketSink implements MetricSink, Closeable
