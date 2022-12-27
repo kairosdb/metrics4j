@@ -538,7 +538,8 @@ sources: {
 ```
 Props are also passed to collectors.  Any of the Duration collectors will read a
 property called `report-unit` that lets you override the time unit to report values
-in for the specific collector.
+in for the specific collector.  Check the description for each collector below to
+find what attributes can be set as props.
 
 ##### Getting available sources
 
@@ -730,8 +731,9 @@ This collector does not do any aggregation.  Whatever value was put into the col
 is reported using the time of the put or the Instant if one was provided.
 BagCollector can collect Long, Double, Duration and String values.
 
-* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set
-  the units values are reported in.  This only applies to Duration values.
+* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
+  the units values are reported in.  This only applies to Duration values.  Can be set as a property.
+* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
 
 #### Chained Collectors
 There is a chain collector for each type of data: ChainedDoubleCollector, 
@@ -787,8 +789,9 @@ LastTime collects Duration metrics and when reporting it simply reports the last
 Duration it received.  The Duration is cleared once it is reported so it is
 only reported once.
 
-* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set
-  the unites values are reported in
+* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
+  the unites values are reported in.  Can be set as a property.
+* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
 
 #### LongCounter
 Counts up long values to be reported.  The counter can be reset when values are reported
@@ -828,10 +831,11 @@ last reporting.
 Used for reporting measured durations.  The collector reports min, max, total,
 count and avg for the measurements received during the last reporting period.
 Values are reported as milliseconds by default but maybe changed using the
-report-unit attribute.  The report-unit can also be passed as a prop in the sources.
+report-unit attribute.  The report-unit and report-format can also be passed as a prop in the sources.
 
-* _report-unit:_ (NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS), set 
-the units values are reported in
+* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set 
+the units values are reported in.   Can be set as a property.
+* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
 * _report-zero:_ (true/false), when set to false will not report zero values
 
 #### StringReporter

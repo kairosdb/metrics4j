@@ -1,6 +1,9 @@
 package org.kairosdb.metrics4j.internal.adapters;
 
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
+import org.kairosdb.metrics4j.internal.DoubleTimeReporter;
+import org.kairosdb.metrics4j.internal.LongTimeReporter;
+import org.kairosdb.metrics4j.internal.TimeReporter;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.slf4j.Logger;
@@ -15,6 +18,16 @@ public class DurationMethodCollectorAdapter extends MethodCollectorAdapter
 {
 	private final Logger log = LoggerFactory.getLogger(DurationMethodCollectorAdapter.class);
 	private ChronoUnit m_reportUnit = ChronoUnit.MILLIS;
+	private TimerCollector.ReportFormat m_reportFormat = TimerCollector.ReportFormat.LONG;
+	private TimeReporter m_timeReporter;
+
+	private void updateTimeReporter()
+	{
+		if (m_reportFormat == TimerCollector.ReportFormat.LONG)
+			m_timeReporter = new LongTimeReporter(m_reportUnit);
+		else
+			m_timeReporter = new DoubleTimeReporter(m_reportUnit);
+	}
 
 	public DurationMethodCollectorAdapter(Object object, Method method, String fieldName)
 	{
@@ -27,7 +40,7 @@ public class DurationMethodCollectorAdapter extends MethodCollectorAdapter
 		try
 		{
 			Duration results = (Duration)m_method.invoke(m_object, null);
-			metricReporter.put(m_field, new LongValue(TimerCollector.getValue(m_reportUnit, results)));
+			metricReporter.put(m_field, m_timeReporter.getValue(results));
 		}
 		catch (Exception e)
 		{
@@ -40,10 +53,18 @@ public class DurationMethodCollectorAdapter extends MethodCollectorAdapter
 	{
 		super.setContextProperties(contextProperties);
 		String reportUnit = contextProperties.get("report-unit");
+		String reportFormat = contextProperties.get("report-format");
 
 		if (reportUnit != null)
 		{
 			m_reportUnit = ChronoUnit.valueOf(reportUnit);
 		}
+
+		if (reportFormat != null)
+		{
+			m_reportFormat = TimerCollector.ReportFormat.valueOf(reportFormat);
+		}
+
+		updateTimeReporter();
 	}
 }

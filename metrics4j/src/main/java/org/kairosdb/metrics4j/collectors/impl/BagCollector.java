@@ -42,7 +42,8 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	public Collector clone()
 	{
 		BagCollector ret = new BagCollector();
-		ret.reportUnit = reportUnit;
+		ret.setReportUnit(getReportUnit());
+		ret.setReportFormat(getReportFormat());
 
 		return ret;
 	}
@@ -68,7 +69,7 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	@Override
 	public void put(Instant time, Duration duration)
 	{
-		addToBag(time, new LongValue(getValue(reportUnit, duration)));
+		addToBag(time, m_timeReporter.getValue(duration));
 	}
 
 	@Override

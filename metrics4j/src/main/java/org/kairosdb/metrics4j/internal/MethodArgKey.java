@@ -50,7 +50,9 @@ public class MethodArgKey implements ArgKey
 
 	public TagKey getTagKey(Map<String, String> overrides)
 	{
-		if (m_args == null || m_args.length == 0)
+		Iterator<Map.Entry<String, String>> threadTagIterator = MetricThreadHelper.getTagIterator();
+
+		if ((m_args == null || m_args.length == 0) && (!threadTagIterator.hasNext()))
 			return TagKey.newBuilder().build();
 		else
 		{
@@ -88,10 +90,9 @@ public class MethodArgKey implements ArgKey
 			}
 
 			//Add any tags that are set on the thread.
-			Iterator<Map.Entry<String, String>> tagIterator = MetricThreadHelper.getTagIterator();
-			while (tagIterator.hasNext())
+			while (threadTagIterator.hasNext())
 			{
-				Map.Entry<String, String> tagEntry = tagIterator.next();
+				Map.Entry<String, String> tagEntry = threadTagIterator.next();
 				String key = tagEntry.getKey();
 				String override = overrides.get(key);
 

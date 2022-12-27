@@ -24,7 +24,8 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 	public Collector clone()
 	{
 		LastTime ret = new LastTime();
-		ret.reportUnit = reportUnit;
+		ret.setReportUnit(getReportUnit());
+		ret.setReportFormat(getReportFormat());
 
 		return ret;
 	}
@@ -41,7 +42,7 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 
 		if (lastTime != null)
 		{
-			metricReporter.put("value", new LongValue(getValue(reportUnit, lastTime)));
+			metricReporter.put("value", m_timeReporter.getValue(lastTime));
 		}
 
 	}

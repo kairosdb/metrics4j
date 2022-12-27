@@ -9,6 +9,8 @@ import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 public interface TestSource
 {
 	LongCollector countSomething();
+
+	LongCollector countSomethingWithTag(@Key("host") String host);
 	DoubleCollector partiallyCountSomething();
 	LongCollector countSomethingElse();
 	LongCollector chainCount();

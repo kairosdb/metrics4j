@@ -78,6 +78,16 @@ public class MetricThreadHelper
 	}
 
 	/**
+	 Returns a value of a tag if set on the thread, null otherwise.
+	 * @param name
+	 * @return
+	 */
+	public static String getTag(String name)
+	{
+		return s_currentTags.get().get(name);
+	}
+
+	/**
 	 Removes a single tag from the thread.
 	 @param name
 	 */

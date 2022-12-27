@@ -8,6 +8,8 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
+import org.kairosdb.metrics4j.internal.DoubleTimeReporter;
+import org.kairosdb.metrics4j.internal.LongTimeReporter;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
@@ -20,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 @EqualsAndHashCode
 public class SimpleTimerMetric extends TimerCollector implements DurationCollector, MetricCollector
 {
+	private DoubleTimeReporter m_doubleTimeReporter = new DoubleTimeReporter(ChronoUnit.MILLIS);
 	protected Duration m_min;
 	protected Duration m_max;
 	protected Duration m_sum;
@@ -43,10 +46,17 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	public SimpleTimerMetric(ChronoUnit unit, boolean reportZero)
 	{
 		this();
-		this.reportUnit = unit;
+		setReportUnit(unit);
 		this.reportZero = reportZero;
 	}
 
+	@Override
+	public void setReportUnit(ChronoUnit reportUnit)
+	{
+		super.setReportUnit(reportUnit);
+		//We have to maintain our own double reporter to get averages
+		m_doubleTimeReporter = new DoubleTimeReporter(reportUnit);
+	}
 
 	private void clear()
 	{
@@ -87,12 +97,11 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 
 		if (data.count != 0)
 		{
-			long total = getValue(reportUnit, data.sum);
-			metricReporter.put("min", new LongValue(getValue(reportUnit, data.min)));
-			metricReporter.put("max", new LongValue(getValue(reportUnit, data.max)));
-			metricReporter.put("total", new LongValue(total));
+			metricReporter.put("min", m_timeReporter.getValue(data.min));
+			metricReporter.put("max", m_timeReporter.getValue(data.max));
+			metricReporter.put("total", m_timeReporter.getValue(data.sum));
 			metricReporter.put("count", new LongValue(data.count));
-			metricReporter.put("avg", new DoubleValue((double)total / (double)data.count));
+			metricReporter.put("avg", m_doubleTimeReporter.getValue(data.avg));
 		}
 		else if (reportZero)
 		{
@@ -127,7 +136,8 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 	public Collector clone()
 	{
 		SimpleTimerMetric ret = new SimpleTimerMetric();
-		ret.reportUnit = reportUnit;
+		ret.setReportUnit(getReportUnit());
+		ret.setReportFormat(getReportFormat());
 		ret.reportZero = reportZero;
 		return ret;
 	}

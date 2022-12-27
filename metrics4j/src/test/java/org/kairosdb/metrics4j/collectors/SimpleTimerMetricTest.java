@@ -39,7 +39,7 @@ class SimpleTimerMetricTest
 		verify(reporter).put("max", new LongValue(300));
 		verify(reporter).put("total", new LongValue(361));
 		verify(reporter).put("count", new LongValue(3));
-		verify(reporter).put("avg", new DoubleValue(361.0/3.0));
+		verify(reporter).put("avg", new DoubleValue(120.333));
 	}
 
 	@Test
@@ -58,7 +58,7 @@ class SimpleTimerMetricTest
 		verify(reporter).put("max", new LongValue(0));
 		verify(reporter).put("total", new LongValue(1));
 		verify(reporter).put("count", new LongValue(3));
-		verify(reporter).put("avg", new DoubleValue(1.0/3.0));
+		verify(reporter).put("avg", new DoubleValue(0.333));
 	}
 
 	@Test

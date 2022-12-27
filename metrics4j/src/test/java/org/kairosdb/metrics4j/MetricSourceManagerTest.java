@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.annotation.Reported;
+import org.kairosdb.metrics4j.annotation.Snapshot;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
@@ -211,9 +212,17 @@ class MetricSourceManagerTest
 
 	public static class TestStringSource
 	{
+		boolean snapshot = false;
+		@Snapshot
+		public void callMeFirst()
+		{
+			snapshot = true;
+		}
+
 		@Reported(help = "help text", field = "my_value")
 		public String stringStat()
 		{
+			assertThat(snapshot).isTrue();
 			return "Happy";
 		}
 	}

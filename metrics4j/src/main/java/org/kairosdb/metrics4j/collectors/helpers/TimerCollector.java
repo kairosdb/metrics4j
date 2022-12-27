@@ -3,6 +3,9 @@ package org.kairosdb.metrics4j.collectors.helpers;
 import lombok.Setter;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
+import org.kairosdb.metrics4j.internal.DoubleTimeReporter;
+import org.kairosdb.metrics4j.internal.LongTimeReporter;
+import org.kairosdb.metrics4j.internal.TimeReporter;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -12,29 +15,50 @@ import java.util.concurrent.Callable;
 
 public abstract class TimerCollector implements DurationCollector
 {
+	public static enum ReportFormat
+	{
+		LONG,
+		DOUBLE
+	}
 	private final Ticker m_ticker = new SystemTicker();
+	private ChronoUnit m_reportUnit = ChronoUnit.MILLIS;
+	private ReportFormat m_reportFormat = ReportFormat.LONG;
+	protected TimeReporter m_timeReporter = new LongTimeReporter(ChronoUnit.MILLIS);
 
+	private void updateTimeReporter()
+	{
+		if (m_reportFormat == ReportFormat.LONG)
+			m_timeReporter = new LongTimeReporter(m_reportUnit);
+		else
+			m_timeReporter = new DoubleTimeReporter(m_reportUnit);
+	}
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
 	 */
-	//todo add validation
-	@Setter
-	protected ChronoUnit reportUnit = ChronoUnit.MILLIS;
-
-	//Todo change this to return double and give fractional values
-	public static long getValue(ChronoUnit reportUnit, Duration duration)
+	public void setReportUnit(ChronoUnit reportUnit)
 	{
-		switch (reportUnit)
-		{
-			case NANOS: return duration.toNanos();
-			case MICROS: return duration.toNanos() / 1000;
-			case MILLIS: return duration.toMillis();
-			case SECONDS: return duration.getSeconds();
-			case MINUTES: return duration.toMinutes();
-			case HOURS: return duration.toHours();
-			case DAYS: return duration.toDays();
-			default: return 0;
-		}
+		m_reportUnit = reportUnit;
+		updateTimeReporter();
+	}
+
+	public ChronoUnit getReportUnit()
+	{
+		return m_reportUnit;
+	}
+
+	/**
+	 Report format is either LONG or DOUBLE.  Double truncates at 3 decimal places
+	 * @param reportFormat
+	 */
+	public void setReportFormat(ReportFormat reportFormat)
+	{
+		m_reportFormat = reportFormat;
+		updateTimeReporter();
+	}
+
+	public ReportFormat getReportFormat()
+	{
+		return m_reportFormat;
 	}
 
 	@Override
@@ -70,7 +94,14 @@ public abstract class TimerCollector implements DurationCollector
 
 		if (reportUnit != null)
 		{
-			this.reportUnit = ChronoUnit.valueOf(reportUnit);
+			setReportUnit(ChronoUnit.valueOf(reportUnit));
+		}
+
+		String reportFormat = contextProperties.get("report-format");
+
+		if (reportFormat != null)
+		{
+			setReportFormat(ReportFormat.valueOf(reportFormat));
 		}
 	}
 }

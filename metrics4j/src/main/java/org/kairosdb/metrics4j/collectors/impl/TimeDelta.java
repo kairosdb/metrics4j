@@ -48,7 +48,8 @@ public class TimeDelta extends SimpleTimerMetric implements TimeCollector
 	public Collector clone()
 	{
 		TimeDelta ret = new TimeDelta();
-		ret.reportUnit = reportUnit;
+		ret.setReportUnit(getReportUnit());
+		ret.setReportFormat(getReportFormat());
 		ret.reportZero = reportZero;
 
 		return ret;
