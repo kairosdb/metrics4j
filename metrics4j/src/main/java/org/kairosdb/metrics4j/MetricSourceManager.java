@@ -53,7 +53,7 @@ public class MetricSourceManager
 
 	/**
 	 For testing purposes only, not to be used in production
-	 @param config
+	 @param config MetricConfig object to set
 	 */
 	public static void setMetricConfig(MetricConfig config)
 	{
@@ -145,8 +145,8 @@ public class MetricSourceManager
 	/**
 	 For registering a class to gather metrics from.  Methods annotated with
 	 Reported will be called
-	 @param o
-	 @param tags
+	 @param o Ojbect on which to look for <code>@Reported</code> and <code>@Snapshot</code> annotations
+	 @param tags Tags to set for @Reported method calls.
 	 */
 	public static void addSource(Object o, Map<String, String> tags)
 	{
@@ -287,9 +287,9 @@ public class MetricSourceManager
 	 Returns properties set in configuration for the given class name and method name.
 	 This is the key value data that shows up under the _props key in the configuration
 	 file.
-	 @param className
-	 @param methodName
-	 @return
+	 @param className Class name used as context for looking up properties
+	 @param methodName Method name used as context for looking up properties
+	 @return Combined properties for the context provided
 	 */
 	public static Map<String, String> getSourceProps(String className, String methodName)
 	{
