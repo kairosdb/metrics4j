@@ -67,6 +67,7 @@ public class MetricSourceManager
 	public static void clearConfig()
 	{
 		s_metricConfig = null;
+		//todo Should not clear this out.  Need to leave it and clear each invocation hnadler of data.
 		s_invocationMap.clear();
 	}
 

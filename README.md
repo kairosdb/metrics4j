@@ -849,21 +849,25 @@ provided.  The deltas are recorded as a SimpleTimerMetric
 Takes the same parameters as SimpleTimerMetric
 
 #### TimestampCounter
-This collector records a count of timestamps during a configurable amount of time.
+This collector records a count of timestamps during a configurable bucket of time.
 The initial use of this collector was to count events going in and out of an event
-system.  The idea is to count all events that occur in a bucket of time and report
-them using a timestamp within that bucket.
+system where each event had a timestamp set when it went in.  
+The idea is to count all event timestamps that occur in a bucket of time and report
+the count using a reporting timestamp within that bucket.
 
-The default configuration can handle the same timestamp (rounded to the minute)
+The default configuration can handle the same timestamp (truncated to the minute)
 being reported for just short of 2 weeks (13 ish days) before potentially overwriting
-the same timestamp when reporting data.
+the same reported timestamp when reporting the count.
 
-Basically a timestamp (rounded to the minute) can be counted and reported for about 2 weeks
-each time it reports it will use a slightly different timestamp so as to not overwrite
-previous counts
+Basically a timestamp (truncated to the minute) can be counted and reported for about 2 weeks
+each time it reports the count for a bucket it will use a slightly different timestamp so as to not overwrite
+previous counts.
 
 For a detail description of how this works see: 
 https://github.com/kairosdb/metrics4j/wiki/TimestampCounter
+
+* _increment-frequency:_ (20000) How often in milliseconds to increment the reporting timestamp.  Default 20sec.
+* _bucket-size:_ (60000) Size of timestamp counting bucket.  Default 1 min.
 
 ### Formatters
 A formatter can change the name to your liking ie. underscore vs period

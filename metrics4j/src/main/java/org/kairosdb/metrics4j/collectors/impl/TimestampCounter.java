@@ -42,10 +42,10 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 	private final Clock m_clock;
 
 	@Setter
-	protected long truncateMillis = 20_000L; //Increments the reported timestamp every 20 sec
+	protected long incrementFrequency = 20_000L; //Increments the reported timestamp every 20 sec
 
 	@Setter
-	protected long modTime = 60_000L;  //Aggregates report time to 1 minute intervals, this should match your reporting interval (defaults to 1 min)
+	protected long bucketSize = 60_000L;  //Aggregates report time to 1 minute intervals, this should match your reporting interval (defaults to 1 min)
 
 	public TimestampCounter()
 	{
@@ -105,7 +105,7 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 
 		long nowMillis = m_clock.now();
 
-		long additionalMillis = (nowMillis / truncateMillis) % modTime;
+		long additionalMillis = (nowMillis / incrementFrequency) % bucketSize;
 
 		for (Instant instant : timeBuckets.keySet())
 		{

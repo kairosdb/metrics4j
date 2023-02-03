@@ -77,13 +77,13 @@ public class MetricsContextImpl implements MetricsContext
 	public void registerFormatter(String name, Formatter formatter)
 	{
 		log.debug("Registering formatter {}", name);
-		m_formatters.addComponent(name, new AssignedFormatter(formatter, "*"));
+		m_formatters.addComponent(name, new AssignedFormatter(name, formatter, "*"));
 	}
 
 	public void registerAssignedFormatter(String name, Formatter formatter, String sinkName)
 	{
 		log.debug("Registering assigned formatter {}", name);
-		m_formatters.addComponent(name, new AssignedFormatter(formatter, sinkName));
+		m_formatters.addComponent(name, new AssignedFormatter(name, formatter, sinkName));
 	}
 
 	public void registerTrigger(String name, Trigger trigger)
@@ -185,6 +185,7 @@ public class MetricsContextImpl implements MetricsContext
 			{
 				if (formatter.getSinkRef().equals("*") || formatter.getSinkRef().equals(sinkName))
 				{
+					log.debug("Assigning metric {}.{} to formatter {}", key.getClassName(), key.getMethodName(), formatter.getName());
 					collectorFormatters.put(sinkName, formatter.getFormatter());
 					break;
 				}
