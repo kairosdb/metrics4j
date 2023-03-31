@@ -565,7 +565,11 @@ sources can be overridden by adding `_disabled: false` further down the tree.
 
 ### Sinks
 A sink defines a destination to send the metrics to.  The following are built in 
-sinks.
+sinks.  You can define one or more sinks and then reference them from the sources
+section using the `_sink` property.  The sink for a metric is found by searching
+under sources from the metric up towards the root.  The first `_sink` property 
+found is used.  Different metrics can be sent to different sinks.  The `_sink` 
+property can be a string or a list so you can send a metric to multiple sinks.
 
 #### Slf4JMetricSink
 Reports metrics to an Slf4j logger.  The log-level attribute controls the log level (DEBUG, WARN, INFO, etc).
