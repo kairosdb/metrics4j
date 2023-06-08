@@ -9,6 +9,7 @@ import org.kairosdb.metrics4j.formatters.Formatter;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +41,25 @@ public class Slf4JMetricSink implements MetricSink
 	{
 		for (FormattedMetric metric : metrics)
 		{
+			Map<String, String> tags = metric.getTags();
+			StringBuilder tagBuilder = new StringBuilder();
+			tagBuilder.append("{");
+			boolean first = true;
+			for (String tag : tags.keySet())
+			{
+				if (!first)
+					tagBuilder.append(',');
+				tagBuilder.append(tag).append("=").append(tags.get(tag));
+				first = false;
+			}
+			tagBuilder.append("}");
+
+			String tagString = tagBuilder.toString();
+
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
-				m_logWrapper.log("metric={}, time={}, value={}", sample.getMetricName(),
-						sample.getTime(), sample.getValue().getValueAsString());
+				m_logWrapper.log("metric={}, time={}, value={}, tags={}", sample.getMetricName(),
+						sample.getTime(), sample.getValue().getValueAsString(), tagString);
 			}
 
 		}
@@ -80,7 +96,6 @@ public class Slf4JMetricSink implements MetricSink
 		@Override
 		public void log(String format, Object... args)
 		{
-			//todo verify that passing args like this will work
 			logger.trace(format, args);
 		}
 	}

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -409,7 +410,7 @@ public class MetricConfig
 				ret.m_dumpFile = metrics4j.getString(DUMP_FILE);
 
 				ret.m_dumpMetrics = true;
-				ret.m_dumpConfig = new HashMap<>();
+				ret.m_dumpConfig = new ConcurrentHashMap<>();
 
 				Thread dumpThread = new Thread(() -> {
 					try
@@ -619,7 +620,7 @@ public class MetricConfig
 
 	private Map<String, Object> getAdd(Map<String, Object> root, String segment)
 	{
-		return (Map<String, Object>) root.computeIfAbsent(segment, s -> new HashMap<String, Object>());
+		return (Map<String, Object>) root.computeIfAbsent(segment, s -> new ConcurrentHashMap<>());
 	}
 
 	/**
