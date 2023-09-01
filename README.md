@@ -8,6 +8,7 @@
   * [Different ways to report metrics](#different-ways-to-report-metrics)
   * [Testing with the library](#testing-with-the-library)
 - [Section 2 (Admin)](#section-2--admin-)
+  * [The Config Files](the-config-files)
   * [Configuration](#configuration)
     - [Configuration Parameters](#configuration-parameters)
     + [Sources](#sources)
@@ -90,7 +91,7 @@ to determine the following
 1. Name of the metric and format
 1. How to interpret the metric, is it a guage, rate or counter?
 
-All of the above is determined through configuration via the metrics4j.conf file.  In some
+All of the above is determined through configuration via the `metrics4j.conf` file.  In some
 cases additional jar files may need to be placed in the classpath depending on the plugins used.
 
 The rest of the documentation is split into 2 sections, the first is for developers
@@ -158,8 +159,8 @@ reporter.reportSize(host).put(messageSize);
 ```
 
 That's it.  You may be wondering what your metric name will look like?  The actual
-metric name is determined by the configuration in metrics4j.conf.  Deploying your
-application with a default metrics4j.conf file is a good idea and gives admins something
+metric name is determined by the configuration in `metrics4j.conf`.  Deploying your
+application with a default `metrics4j.conf` file is a good idea and gives admins something
 to start from if they want to change things around.
 Both the interface name and the method name are available for formatting the metric
 name so it is a good idea to name them something appropriate.  You can also annotate
@@ -278,20 +279,22 @@ Metrics4j is designed to let you, the admin, determine for each metric being rep
 _Note._ When trying to diagnose what is going on with the loading of configuration
 it is a good idea to set your logging to debug for ```org.kairosdb.metrics4j```
 
-When Metrics4j loads it will try to find two files named metrics4j.conf and metrics4j.properties in the classpath.
+## The Config Files
+
+When Metrics4j loads it will try to find two files named `metrics4j.conf` and `metrics4j.properties` in the classpath.
 If neither file is found, all the reporting methods are effectively no-ops.
 
 The location of the above files can also be specified using java system properties
-METRICS4J_CONFIG and METRICS4J_OVERRIDES.  Example: -DMETRICS4J_CONFIG=/etc/metrics4j.conf
+_METRICS4J_CONFIG_ and _METRICS4J_OVERRIDES_.  Example: `-DMETRICS4J_CONFIG=/etc/metrics4j.conf`
 
-What is a .conf file?  Metrics4j has the Hocon library from LightBend shaded into the jar (https://github.com/lightbend/config)
+What is a `.conf` file?  Metrics4j has the Hocon library from LightBend shaded into the jar (https://github.com/lightbend/config)
 Hocon is a human readable json format that is awesome.  We will only cover the basics here, it is worth
 your time to review their documentation as they have some cool features.
 
-Metrics4j loads up the .conf file and then uses the .properties as overrides.  Most 
-configuration management systems can generate .properties files so it is easier to 
-place situation aware variables within the metrics4j.properties file and then reference them
-from the metrics4j.conf.
+Metrics4j loads up the `.conf` file and then uses the `.properties` as overrides.  Most 
+configuration management systems can generate `.properties` files so it is easier to 
+place situation aware variables within the `metrics4j.properties` file and then reference them
+from the `metrics4j.conf`.
  
 ## Configuration
 The top level of the configuration file looks like this
@@ -463,24 +466,24 @@ of strings if you want to reference more than one at the same level.
 Besides passing system properties or environment variables as mentioned above 
 you can override values using Hocon.  Let's say in the above example you want
 to configure the reset option of myCounter using configuration management.  If you use the 
-metrics4j.properties file you can do this in one of two ways.
+`metrics4j.properties` file you can do this in one of two ways.
 
-Override
+__Override__
 
-In this case you replace the value using the .properties like so
+In this case you replace the value using the `.properties` like so
 ```properties
 metrics4j.collectors.myCounter.rest=false
 ```
 
-Substitution
+__Substitution__
 
-In the .conf file you replace the value of rest with ${reset-option} and then your .properties file looks
+In the `.conf` file you replace the value of rest with ${reset-option} and then your `.properties` file looks
 like this
 ```properties
 reset-option=false
 ```
 
-Technically speaking the .properties file is loaded using the .conf file as a fallback and then resolved.
+Technically speaking the `.properties` file is loaded using the `.conf` file as a fallback and then resolved.
 
 ###### Metric Name
 You can explicitly call out the metric name for a source using the `_metric-name` attribute.
