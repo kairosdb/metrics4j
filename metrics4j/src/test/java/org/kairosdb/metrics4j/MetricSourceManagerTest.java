@@ -9,6 +9,8 @@ import org.kairosdb.metrics4j.annotation.Snapshot;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
+import org.kairosdb.metrics4j.collectors.helpers.BlockTimer;
+import org.kairosdb.metrics4j.collectors.impl.LastTime;
 import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 import org.kairosdb.metrics4j.collectors.impl.StringReporter;
 import org.kairosdb.metrics4j.configuration.ImplementationException;
@@ -75,6 +77,20 @@ class MetricSourceManagerTest
 		MetricSourceManager.setCollectorForSource(myCounter, TestMetricSource.class).reportStatus(true);
 
 		reporter.reportStatus(true);
+	}
+
+	@Test
+	public void test_enumParameter()
+	{
+		TestMetricSource reporter = MetricSourceManager.getSource(TestMetricSource.class);
+
+		LastTime lastTime = new LastTime();
+
+		MetricSourceManager.setCollectorForSource(lastTime, TestMetricSource.class).reportValue(TestMetricSource.TaskType.UPLOAD);
+
+		BlockTimer time = reporter.reportValue(TestMetricSource.TaskType.UPLOAD).time();
+
+		time.close();
 	}
 
 	/**

@@ -86,7 +86,12 @@ public class MethodArgKey implements ArgKey
 				if (override != null)
 					builder.addTag(tagKey, override);
 				else
-					builder.addTag(tagKey, m_args[i].toString());
+				{
+					if (m_args[i] == null)
+						builder.addTag(tagKey, "null");
+					else
+						builder.addTag(tagKey, m_args[i].toString());
+				}
 			}
 
 			//Add any tags that are set on the thread.

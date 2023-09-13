@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.kairosdb</groupId>
-	<artifactId>metrics4j</artifactId>
-	<version>0.21.0</version>
+	<groupId>org.kairosdb.metrics4jplugin</groupId>
+	<artifactId>m4j-otel</artifactId>
+	<version>0.1.0</version>
 
 	<parent>
 		<groupId>org.kairosdb</groupId>
@@ -14,8 +14,8 @@
 		<version>1.1.0</version>
 	</parent>
 
-	<name>metrics4j</name>
-	<description>Java library for reporting metrics to any timeseries database.</description>
+	<name>metrics4j-otel</name>
+	<description>Metrics4j plugin to send metrics to Open Telemetry Collector</description>
 	<url>https://github.com/kairosdb/metrics4j</url>
 
 	<scm>
@@ -42,11 +42,18 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+
 	<dependencies>
 		<dependency>
-			<groupId>com.typesafe</groupId>
-			<artifactId>config</artifactId>
-			<version>1.4.0</version>
+			<groupId>org.kairosdb</groupId>
+			<artifactId>metrics4j</artifactId>
+			<version>0.21.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+			<version>1.29.0</version>
 		</dependency>
 	</dependencies>
 
@@ -54,29 +61,25 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.2.0</version>
+
+				<configuration>
+					<descriptors>
+						<descriptor>src/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+
 				<executions>
 					<execution>
+						<id>jar-with-deps</id>
 						<phase>package</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>single</goal>
 						</goals>
-						<configuration>
-							<artifactSet>
-								<excludes>
-									<exclude>org.slf4j:slf4j-api</exclude>
-								</excludes>
-							</artifactSet>
-							<relocations>
-								<relocation>
-									<pattern>com.typesafe.config</pattern>
-									<shadedPattern>org.kairosdb.metrics4j.shaded.config</shadedPattern>
-								</relocation>
-							</relocations>
-						</configuration>
 					</execution>
 				</executions>
+
 			</plugin>
 		</plugins>
 	</build>
