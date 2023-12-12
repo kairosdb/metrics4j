@@ -17,7 +17,7 @@ class DefaultFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl()
 				.setClassName("AwesomeClass")
 				.setMethodName("testMethod")
-				.addSample("value", new LongValue(1L));
+				.addSample("value", new LongValue(1L)).reportedMetric();
 
 		String formattedMetric = formatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), null);
 
@@ -32,7 +32,7 @@ class DefaultFormatterTest
 		ReportedMetricImpl reportedMetric = new ReportedMetricImpl()
 				.setClassName("AwesomeClass")
 				.setMethodName("testMethod")
-				.addSample("value", new LongValue(1L));
+				.addSample("value", new LongValue(1L)).reportedMetric();
 
 		String formattedMetric = formatter.formatReportedMetric(reportedMetric, reportedMetric.getSamples().get(0), "BilboBaggins");
 

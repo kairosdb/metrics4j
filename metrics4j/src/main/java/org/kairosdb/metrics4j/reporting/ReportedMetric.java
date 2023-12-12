@@ -14,6 +14,8 @@ public interface ReportedMetric
 
 	List<ReportedMetric.Sample> getSamples();
 
+	Map<String, String> getContext();
+
 
 	interface Sample
 	{
@@ -22,5 +24,17 @@ public interface ReportedMetric
 		MetricValue getValue();
 
 		Instant getTime();
+
+		Sample setTime(Instant time);
+
+		/**
+		 Sets context for this sample.  The object set is determined
+		 by the type of metric that is being reported.  See ReportingContext
+		 * @param obj
+		 * @return
+		 */
+		Sample setSampleContext(Object obj);
+
+		Object getSampleContext();
 	}
 }

@@ -1,5 +1,6 @@
 package org.kairosdb.metrics4j.collectors.impl;
 
+import com.sun.javafx.image.BytePixelSetter;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,14 +11,23 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 
 @ToString
 @EqualsAndHashCode
 public class LongCounter implements LongCollector
 {
+	private Map<String, String> m_reportContext = new HashMap<>();
 	@EqualsAndHashCode.Exclude
 	protected final AtomicLong m_count = new AtomicLong(0);
 
@@ -62,7 +72,10 @@ public class LongCounter implements LongCollector
 			value = m_count.longValue();
 
 		if (value != 0L || reportZero)
+		{
+			metricReporter.setContext(m_reportContext);
 			metricReporter.put("count", new LongValue(value));
+		}
 	}
 
 	@Override
@@ -74,12 +87,22 @@ public class LongCounter implements LongCollector
 	@Override
 	public void init(MetricsContext context)
 	{
+		Map<String, String> reportContext = new HashMap<>();
+		if (reset)
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		else
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
 
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
 	public Collector clone()
 	{
-		return new LongCounter(reset, reportZero);
+		LongCounter lc = new LongCounter(reset, reportZero);
+		lc.m_reportContext = m_reportContext;
+		return lc;
 	}
 }

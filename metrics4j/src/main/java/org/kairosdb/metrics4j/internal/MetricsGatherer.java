@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,16 +42,17 @@ public abstract class MetricsGatherer implements CollectorCollection
 			MetricReporter reporter = new MetricReporter()
 			{
 				@Override
-				public void put(String field, MetricValue value)
+				public ReportedMetric.Sample put(String field, MetricValue value)
 				{
-					reportedMetric.addSample(field, value);
+					return reportedMetric.addSample(field, value);
 				}
 
 				@Override
-				public void put(String field, MetricValue value, Instant time)
+				public void setContext(Map<String, String> context)
 				{
-					reportedMetric.addSample(field, value, time);
+					reportedMetric.setContext(context);
 				}
+
 			};
 
 			AgedMetricCollector agedMetricCollector = entry.getValue();

@@ -319,6 +319,10 @@ public class MetricConfig
 						Boolean value = (Boolean)entry.getValue().unwrapped();
 						m_disabledPaths.put(createList(path, i - 1), value);
 					}
+					else if (internalProp.equals("_help"))
+					{
+						//Ignore
+					}
 					else
 					{
 						throw new ConfigurationException("Unknown configuration element: " + internalProp);

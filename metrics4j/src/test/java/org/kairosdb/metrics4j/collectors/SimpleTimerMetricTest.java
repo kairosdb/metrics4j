@@ -5,14 +5,19 @@ import org.kairosdb.metrics4j.collectors.impl.SimpleTimerMetric;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 class SimpleTimerMetricTest
 {
@@ -27,7 +32,10 @@ class SimpleTimerMetricTest
 	public void testOne()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MINUTES, false);
+		timer.init(null);
 
 		timer.put(Duration.ofHours(5));
 		timer.put(Duration.ofMinutes(1));
@@ -46,7 +54,10 @@ class SimpleTimerMetricTest
 	public void testTwo()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofMillis(399));
 		timer.put(Duration.ofMillis(1));
@@ -65,7 +76,10 @@ class SimpleTimerMetricTest
 	public void testReportNothing()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofSeconds(42));
 
@@ -77,6 +91,8 @@ class SimpleTimerMetricTest
 		verify(reporter).put("count", new LongValue(1));
 		verify(reporter).put("avg", new DoubleValue(42));
 
+		verify(reporter).setContext(anyMap());
+
 		timer.reportMetric(reporter);
 
 		verifyNoMoreInteractions(reporter);
@@ -86,7 +102,10 @@ class SimpleTimerMetricTest
 	public void testReportZeros()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, true);
+		timer.init(null);
 
 		timer.put(Duration.ofSeconds(42));
 
@@ -111,7 +130,10 @@ class SimpleTimerMetricTest
 	public void testNanos()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.NANOS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofMinutes(1));
 
@@ -128,7 +150,10 @@ class SimpleTimerMetricTest
 	public void testMicros()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MICROS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofMinutes(1));
 
@@ -145,7 +170,10 @@ class SimpleTimerMetricTest
 	public void testMillis()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MILLIS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofMinutes(1));
 
@@ -162,7 +190,10 @@ class SimpleTimerMetricTest
 	public void testSeconds()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.SECONDS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofMinutes(1));
 
@@ -179,7 +210,10 @@ class SimpleTimerMetricTest
 	public void testMinutes()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.MINUTES, false);
+		timer.init(null);
 
 		timer.put(Duration.ofHours(1));
 
@@ -196,7 +230,10 @@ class SimpleTimerMetricTest
 	public void testHours()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.HOURS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofDays(1));
 
@@ -213,7 +250,10 @@ class SimpleTimerMetricTest
 	public void testDays()
 	{
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 		SimpleTimerMetric timer = new SimpleTimerMetric(ChronoUnit.DAYS, false);
+		timer.init(null);
 
 		timer.put(Duration.ofHours(48));
 

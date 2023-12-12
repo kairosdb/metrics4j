@@ -47,13 +47,13 @@
 		<dependency>
 			<groupId>org.kairosdb</groupId>
 			<artifactId>metrics4j</artifactId>
-			<version>0.6.0</version>
+			<version>0.21.0-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5.13</version>
+			<version>4.5.14</version>
 		</dependency>
 	</dependencies>
 

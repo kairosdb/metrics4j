@@ -20,6 +20,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	private String m_methodName;
 	private Map<String, String> m_tags = Collections.emptyMap();
 	private final List<Sample> m_samples = new ArrayList<>();
+	private Map<String, String> m_context = Collections.emptyMap();
 
 
 	public ReportedMetricImpl setTime(Instant time)
@@ -73,16 +74,21 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
-	public ReportedMetricImpl addSample(String fieldName, MetricValue value)
+	public Map<String, String> getContext()
 	{
-		m_samples.add(new ReportedMetricImpl.SampleImpl(fieldName, value));
-		return this;
+		return m_context;
 	}
 
-	public ReportedMetricImpl addSample(String fieldName, MetricValue value, Instant time)
+	public void setContext(Map<String, String> context)
 	{
-		m_samples.add(new ReportedMetricImpl.SampleImpl(fieldName, value, time));
-		return this;
+		m_context = context;
+	}
+
+	public SampleImpl addSample(String fieldName, MetricValue value)
+	{
+		SampleImpl sample = new ReportedMetricImpl.SampleImpl(fieldName, value);
+		m_samples.add(sample);
+		return sample;
 	}
 
 	public List<Sample> getSamples()
@@ -97,7 +103,8 @@ public class ReportedMetricImpl implements ReportedMetric
 	{
 		private final String m_fieldName;
 		private final MetricValue m_value;
-		private final Instant m_time;
+		private Instant m_time;
+		private Object m_sampleContext;
 
 		public SampleImpl(String fieldName, MetricValue value)
 		{
@@ -105,14 +112,6 @@ public class ReportedMetricImpl implements ReportedMetric
 			m_value = value;
 			m_time = null;
 		}
-
-		public SampleImpl(String fieldName, MetricValue value, Instant time)
-		{
-			m_fieldName = fieldName;
-			m_value = value;
-			m_time = time;
-		}
-
 
 		public String getFieldName()
 		{
@@ -132,5 +131,29 @@ public class ReportedMetricImpl implements ReportedMetric
 				return ReportedMetricImpl.this.m_time;
 		}
 
+		@Override
+		public SampleImpl setTime(Instant time)
+		{
+			m_time = time;
+			return this;
+		}
+
+		@Override
+		public SampleImpl setSampleContext(Object obj)
+		{
+			m_sampleContext = obj;
+			return this;
+		}
+
+		@Override
+		public Object getSampleContext()
+		{
+			return m_sampleContext;
+		}
+
+		public ReportedMetricImpl reportedMetric()
+		{
+			return ReportedMetricImpl.this;
+		}
 	}
 }

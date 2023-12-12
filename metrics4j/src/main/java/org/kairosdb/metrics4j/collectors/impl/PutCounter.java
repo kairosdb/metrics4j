@@ -16,7 +16,16 @@ import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 /**
  Counts the number of times put is called to pass on a metric.
@@ -24,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PutCounter extends TimerCollector implements LongCollector, DoubleCollector,
 		StringCollector, DurationCollector, TimeCollector, MetricCollector
 {
+	private Map<String, String> m_reportContext = new HashMap<>();
 	@EqualsAndHashCode.Exclude
 	protected final AtomicLong m_count = new AtomicLong(0);
 
@@ -61,6 +71,7 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 	public void reportMetric(MetricReporter metricReporter)
 	{
 		long value;
+		metricReporter.setContext(m_reportContext);
 
 		if (reset)
 			value = m_count.getAndSet(0);
@@ -74,13 +85,23 @@ public class PutCounter extends TimerCollector implements LongCollector, DoubleC
 	@Override
 	public void init(MetricsContext context)
 	{
+		Map<String, String> reportContext = new HashMap<>();
+		if (reset)
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		else
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
 
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
 	public Collector clone()
 	{
-		return new PutCounter(reset, reportZero);
+		PutCounter ret = new PutCounter(reset, reportZero);
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override

@@ -42,7 +42,7 @@
 		<module>plugins/kairosdb</module>
 		<module>plugins/influxdb</module>
 		<module>plugins/prometheus</module>
-		<module>plugins/opentelementry</module>
+		<module>plugins/opentelemetry</module>
 	</modules>
 
 

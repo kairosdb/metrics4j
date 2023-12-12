@@ -4,10 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.collectors.impl.TimeDelta;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.util.Clock;
 
 import java.time.Instant;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -26,6 +29,8 @@ public class TimeDeltaTest
 		timeDelta.put(Instant.parse("2007-12-03T10:17:00.00Z"));
 
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 
 		timeDelta.reportMetric(reporter);
 
@@ -43,6 +48,8 @@ public class TimeDeltaTest
 		timeDelta.put(Instant.parse("2007-12-03T10:16:00.00Z"));
 
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample sample = mock(ReportedMetric.Sample.class);
+		when(reporter.put(anyString(), any())).thenReturn(sample);
 
 		timeDelta.reportMetric(reporter);
 

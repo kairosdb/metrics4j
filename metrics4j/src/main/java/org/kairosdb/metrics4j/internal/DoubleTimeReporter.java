@@ -48,4 +48,5 @@ public class DoubleTimeReporter implements TimeReporter
 	{
 		return new DoubleValue(m_toDoubleFunction.applyAsDouble(duration));
 	}
+
 }

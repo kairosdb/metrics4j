@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,8 +23,8 @@ public class CollectorContextImpl implements CollectorContext
 	private final ArgKey m_argKey;
 	private Map<String, Formatter> m_formatters;
 	private final List<SinkQueue> m_sinkQueueList;
-	private Map<String, String> m_tags;             //additional tags set in configuration
-	private Map<String, String> m_props;
+	private Map<String, String> m_tags = Collections.emptyMap();             //additional tags set in configuration
+	private Map<String, String> m_props = Collections.emptyMap();
 	private String m_metricName;
 	private String m_help = "";
 

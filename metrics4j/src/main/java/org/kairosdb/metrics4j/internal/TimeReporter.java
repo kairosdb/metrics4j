@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.internal;
 import org.kairosdb.metrics4j.reporting.MetricValue;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 public interface TimeReporter
 {

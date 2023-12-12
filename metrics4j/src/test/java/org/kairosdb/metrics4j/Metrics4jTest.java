@@ -34,6 +34,11 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +93,10 @@ public class Metrics4jTest
 		tags.put("host", "localhost_override");
 		tags.put("datacenter", "dc-aws");
 
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
 		Instant now = Instant.now();
 		m_testTrigger.triggerCollection(now);
 
@@ -99,6 +108,7 @@ public class Metrics4jTest
 				.setTags(new HashMap<>())
 				//.setProps(Collections.singletonMap("statsd:type", "c"))
 				.addSample("count", new LongValue(42));
+		expected.setContext(reportContext);
 
 		FormattedMetric formattedMetric = new FormattedMetric(expected,
 				Collections.singletonMap("statsd_type", "c"), tags, "");
@@ -125,12 +135,17 @@ public class Metrics4jTest
 		tags.put("datacenter", "dc-aws");
 		tags.put("client", "bob");
 
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
 		ReportedMetricImpl expected = new ReportedMetricImpl();
 		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
 				.setMethodName("countOverride")
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "bob")) //Reported as single value
 				.addSample("count", new LongValue(10));
+		expected.setContext(reportContext);
 
 		FormattedMetric formattedMetric = new FormattedMetric(expected,
 				Collections.emptyMap(), tags, "");
@@ -155,12 +170,17 @@ public class Metrics4jTest
 		tags.put("host", "localhost_override");
 		tags.put("datacenter", "dc-aws");
 
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
 		ReportedMetricImpl expected1 = new ReportedMetricImpl();
 		expected1.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
 				.setMethodName("countNoOverride")
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "client1"))
 				.addSample("count", new LongValue(5));
+		expected1.setContext(reportContext);
 
 		FormattedMetric formattedMetric1 = new FormattedMetric(expected1,
 				Collections.emptyMap(), tags, "");
@@ -172,6 +192,7 @@ public class Metrics4jTest
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "client2"))
 				.addSample("count", new LongValue(5));
+		expected2.setContext(reportContext);
 
 		FormattedMetric formattedMetric2 = new FormattedMetric(expected2,
 				Collections.emptyMap(), tags, "");
@@ -181,6 +202,45 @@ public class Metrics4jTest
 		verify(m_sink1).reportMetrics(argument.capture());
 
 		assertThat(argument.getValue()).containsExactlyInAnyOrder(formattedMetric1, formattedMetric2);
+	}
+
+	@Test
+	public void test_metricContext()
+	{
+		TestSource source = MetricSourceManager.getSource(TestSource.class);
+
+		source.testContext("my_tag").put(42);
+
+		Instant now = Instant.now();
+		m_testTrigger.triggerCollection(now);
+
+		Map<String, String> tags = new HashMap<>();
+		tags.put("host", "localhost_override");
+		tags.put("datacenter", "dc-aws");
+
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
+		ReportedMetricImpl expected1 = new ReportedMetricImpl();
+		expected1.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setMethodName("testContext")
+				.setTime(now)
+				.setTags(Collections.singletonMap("tag", "my_tag"))
+				.addSample("count", new LongValue(42));
+		expected1.setContext(reportContext);
+
+		FormattedMetric formattedMetric1 = new FormattedMetric(expected1,
+				Collections.emptyMap(), tags, "");
+		formattedMetric1.addSample(expected1.getSamples().get(0), "metric4j.org.kairosdb.metrics4j.configuration.TestSource.testContext.count");
+
+
+		ArgumentCaptor<List> argument = ArgumentCaptor.forClass(List.class);
+		verify(m_sink1).reportMetrics(argument.capture());
+
+		System.out.println(((FormattedMetric)argument.getValue().get(0)).getContext());
+
+		assertThat(argument.getValue()).containsExactlyInAnyOrder(formattedMetric1);
 	}
 
 	@Test

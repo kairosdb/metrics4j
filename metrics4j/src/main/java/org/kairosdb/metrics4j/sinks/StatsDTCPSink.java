@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.kairosdb.metrics4j.util.Properties.STATSD_TYPE;
+
 public class StatsDTCPSink extends TextSocketSink
 {
 	private static final Logger logger = LoggerFactory.getLogger(StatsDTCPSink.class);
@@ -23,7 +25,7 @@ public class StatsDTCPSink extends TextSocketSink
 		{
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
-				String type = metric.getProps().getOrDefault("statsd_type", "g");
+				String type = metric.getProps().getOrDefault(STATSD_TYPE, "g");
 				StringBuilder sb = new StringBuilder();
 
 				sb.append(sample.getMetricName())

@@ -136,7 +136,7 @@ class MetricConfigTest
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
-				.setTags(new HashMap<>()).addSample("count", new LongValue(1));
+				.setTags(new HashMap<>()).addSample("count", new LongValue(1)).reportedMetric();
 
 		FormattedMetric formattedMetric = new FormattedMetric(metric,
 				new HashMap<>(), new HashMap<>(), "");
