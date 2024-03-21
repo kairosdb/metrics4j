@@ -8,7 +8,7 @@
   * [Different ways to report metrics](#different-ways-to-report-metrics)
   * [Testing with the library](#testing-with-the-library)
 - [Section 2 (Admin)](#section-2--admin-)
-  * [The Config Files](the-config-files)
+  * [The Config Files](#the-config-files)
   * [Configuration](#configuration)
     - [Configuration Parameters](#configuration-parameters)
     + [Sources](#sources)
