@@ -35,6 +35,11 @@ public class FormattedMetric
 		m_samples.add(new Sample(sample, formattedName));
 	}
 
+	public ReportedMetric getMetric()
+	{
+		return m_metric;
+	}
+
 	public String getClassName()
 	{
 		return m_metric.getClassName();
@@ -63,6 +68,16 @@ public class FormattedMetric
 	public String getHelp()
 	{
 		return m_help;
+	}
+
+	/**
+	 Returns context specific to this data point.  The returned map must be considered
+	 immutable.  Do not try to modify it.
+	 * @return
+	 */
+	public Map<String, String> getContext()
+	{
+		return m_metric.getContext();
 	}
 
 

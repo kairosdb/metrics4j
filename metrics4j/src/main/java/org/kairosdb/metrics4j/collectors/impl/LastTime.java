@@ -14,6 +14,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
+
 @ToString
 @EqualsAndHashCode
 public class LastTime extends TimerCollector implements DurationCollector, MetricCollector
@@ -33,11 +39,14 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 	@Override
 	public void init(MetricsContext context)
 	{
+		m_reportContext.put(TYPE_KEY, TYPE_GAUGE_VALUE);
+		//m_reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
 	}
 
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
 	{
+		metricReporter.setContext(m_reportContext);
 		Duration lastTime = m_lastTime.getAndSet(null);
 
 		if (lastTime != null)

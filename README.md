@@ -739,8 +739,8 @@ is reported using the time of the put or the Instant if one was provided.
 BagCollector can collect Long, Double, Duration and String values.
 
 * _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
-  the units values are reported in.  This only applies to Duration values.  Can be set as a property.
-* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
+  the units values are reported in.  This only applies to Duration values.  Can be set as a source property.
+* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
 
 #### Chained Collectors
 There is a chain collector for each type of data: ChainedDoubleCollector, 
@@ -797,8 +797,8 @@ Duration it received.  The Duration is cleared once it is reported so it is
 only reported once.
 
 * _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
-  the unites values are reported in.  Can be set as a property.
-* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
+  the unites values are reported in.  Can be set as a source property.
+* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
 
 #### LongCounter
 Counts up long values to be reported.  The counter can be reset when values are reported
@@ -841,8 +841,8 @@ Values are reported as milliseconds by default but maybe changed using the
 report-unit attribute.  The report-unit and report-format can also be passed as a prop in the sources.
 
 * _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set 
-the units values are reported in.   Can be set as a property.
-* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a property.
+the units values are reported in.   Can be set as a source property.
+* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
 * _report-zero:_ (true/false), when set to false will not report zero values
 
 #### StringReporter

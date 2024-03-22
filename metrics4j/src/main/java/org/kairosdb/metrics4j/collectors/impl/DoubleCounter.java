@@ -10,12 +10,21 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 @ToString
 @EqualsAndHashCode
 public class DoubleCounter implements DoubleCollector
 {
+	private Map<String, String> m_reportContext = new HashMap<>();
 	protected double m_count;
 
 	@EqualsAndHashCode.Exclude
@@ -56,13 +65,23 @@ public class DoubleCounter implements DoubleCollector
 	@Override
 	public Collector clone()
 	{
-		return new DoubleCounter(reset, reportZero);
+		DoubleCounter ret = new DoubleCounter(reset, reportZero);
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override
 	public void init(MetricsContext context)
 	{
+		Map<String, String> reportContext = new HashMap<>();
+		if (reset)
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		else
+			reportContext.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
 
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
@@ -71,7 +90,10 @@ public class DoubleCounter implements DoubleCollector
 		synchronized (m_counterLock)
 		{
 			if (m_count != 0.0 || reportZero)
+			{
+				metricReporter.setContext(m_reportContext);
 				metricReporter.put("count", new DoubleValue(m_count));
+			}
 
 			if (reset)
 				m_count = 0.0;

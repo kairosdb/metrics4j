@@ -23,7 +23,9 @@ public class MaxLongGauge extends LongGauge
 	@Override
 	public Collector clone()
 	{
-		return new MaxLongGauge(reset);
+		MaxLongGauge ret = new MaxLongGauge(reset);
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override

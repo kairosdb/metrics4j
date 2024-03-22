@@ -15,7 +15,6 @@ public class LongTimeReporter implements TimeReporter
 
 	public LongTimeReporter(ChronoUnit reportUnit)
 	{
-
 		switch (reportUnit)
 		{
 			case NANOS:

@@ -9,6 +9,15 @@ import org.kairosdb.metrics4j.reporting.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 /**
  This collector does not do any aggregation.  Whatever value was put into the collector
@@ -17,6 +26,7 @@ import java.util.ArrayList;
  */
 public class BagCollector extends TimerCollector implements LongCollector, DoubleCollector, StringCollector
 {
+	private Map<String, String> m_reportContext = new HashMap<>();
 	private final Object m_bagLock = new Object();
 	private volatile ArrayList<TimedValue> m_bag = new ArrayList<>();
 
@@ -35,7 +45,11 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	@Override
 	public void init(MetricsContext context)
 	{
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
 
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
@@ -44,6 +58,7 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 		BagCollector ret = new BagCollector();
 		ret.setReportUnit(getReportUnit());
 		ret.setReportFormat(getReportFormat());
+		ret.m_reportContext = m_reportContext;
 
 		return ret;
 	}
@@ -87,6 +102,7 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
 	{
+		metricReporter.setContext(m_reportContext);
 		ArrayList<TimedValue> oldBag;
 		synchronized (m_bagLock)
 		{
@@ -96,7 +112,7 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 
 		for (TimedValue timedValue : oldBag)
 		{
-			metricReporter.put("value", timedValue.m_value, timedValue.m_time);
+			metricReporter.put("value", timedValue.m_value).setTime(timedValue.m_time);
 		}
 	}
 

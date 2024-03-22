@@ -16,4 +16,5 @@ public interface TestSource
 	LongCollector chainCount();
 	LongCollector countOverride(@Key("client")String client);
 	LongCollector countNoOverride(@Key("client")String client);
+	LongCollector testContext(@Key("tag")String tag);
 }

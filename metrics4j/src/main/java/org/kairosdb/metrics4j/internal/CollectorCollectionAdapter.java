@@ -18,7 +18,6 @@ public class CollectorCollectionAdapter extends MetricsGatherer implements Colle
 {
 	private final Collector m_baseCollector;
 
-	//todo change so we can keep track of how often they are used and get rid of old ones
 	private final Map<TagKey, AgedMetricCollector> m_collectors;
 	private final ArgKey m_argKey;
 	private final Map<String, String> m_contextProperties;

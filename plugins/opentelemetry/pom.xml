@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.kairosdb.metrics4jplugin</groupId>
+	<artifactId>m4j-otel</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+
+	<parent>
+		<groupId>org.kairosdb</groupId>
+		<artifactId>metrics4j-all</artifactId>
+		<version>1.1.0</version>
+	</parent>
+
+	<name>metrics4j-otel</name>
+	<description>Metrics4j plugin to send metrics to Open Telemetry Collector</description>
+	<url>https://github.com/kairosdb/metrics4j</url>
+
+	<scm>
+		<url/>
+		<connection/>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>brianhks</id>
+			<name>Brian</name>
+			<email>brianhks1+kairos@gmail.com</email>
+		</developer>
+	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>org.kairosdb</groupId>
+			<artifactId>metrics4j</artifactId>
+			<version>0.21.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+			<version>1.30.1</version>
+		</dependency>
+		<!--<dependency>
+			<groupId>org.kairosdb</groupId>
+			<artifactId>metrics4j</artifactId>
+			<version>0.21.0</version>
+			<scope>compile</scope>
+		</dependency>-->
+	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.2.0</version>
+
+				<configuration>
+					<descriptors>
+						<descriptor>src/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>jar-with-deps</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<excludePackageNames>io.opentelemetry.*</excludePackageNames>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

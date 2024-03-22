@@ -10,13 +10,23 @@ import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 @ToString
 @EqualsAndHashCode
 public class LongGauge implements LongCollector
 {
+	protected Map<String, String> m_reportContext = new HashMap<>();
 	@EqualsAndHashCode.Exclude
 	protected final AtomicLong m_gauge = new AtomicLong(0);
 
@@ -50,19 +60,26 @@ public class LongGauge implements LongCollector
 	@Override
 	public Collector clone()
 	{
-		return new LongGauge(reset);
+		LongGauge ret = new LongGauge(reset);
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override
 	public void init(MetricsContext context)
 	{
+		Map<String, String> reportContext = new HashMap<>();
 
+		reportContext.put(TYPE_KEY, TYPE_GAUGE_VALUE);
+
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
 	{
 		long value;
+		metricReporter.setContext(m_reportContext);
 
 		if (reset)
 			value = m_gauge.getAndSet(0);

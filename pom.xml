@@ -6,7 +6,7 @@
 
 	<groupId>org.kairosdb</groupId>
 	<artifactId>metrics4j-all</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<packaging>pom</packaging>
 
 	<name>metrics4j-all</name>
@@ -42,6 +42,7 @@
 		<module>plugins/kairosdb</module>
 		<module>plugins/influxdb</module>
 		<module>plugins/prometheus</module>
+		<module>plugins/opentelemetry</module>
 	</modules>
 
 

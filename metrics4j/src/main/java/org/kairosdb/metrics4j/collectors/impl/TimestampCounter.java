@@ -13,10 +13,17 @@ import org.kairosdb.metrics4j.util.Clock;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 /**
  This collector records a count of timestamps during a configurable amount of time.
@@ -36,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @EqualsAndHashCode
 public class TimestampCounter extends Cloneable implements TimeCollector
 {
+	private Map<String, String> m_reportContext = new HashMap<>();
 	private volatile Map<Instant, AtomicLong> m_timeBuckets = new HashMap<>();
 	private Object m_mapLock = new Object();
 
@@ -83,6 +91,7 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 		TimestampCounter clone = (TimestampCounter) super.clone();
 		clone.m_timeBuckets = new HashMap<>();
 		clone.m_mapLock = new Object();
+		clone.m_reportContext = m_reportContext;
 
 		return clone;
 	}
@@ -90,12 +99,17 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 	@Override
 	public void init(MetricsContext context)
 	{
-		//nothing to do
+		Map<String, String> reportContext = new HashMap<>();
+		reportContext.put(AGGREGATION_KEY, AGGREGATION_DELTA_VALUE);
+		reportContext.put(TYPE_KEY, TYPE_COUNTER_VALUE);
+
+		m_reportContext = Collections.unmodifiableMap(reportContext);
 	}
 
 	@Override
 	public void reportMetric(MetricReporter metricReporter)
 	{
+		metricReporter.setContext(m_reportContext);
 		Map<Instant, AtomicLong> timeBuckets;
 		synchronized (m_mapLock)
 		{
@@ -111,7 +125,7 @@ public class TimestampCounter extends Cloneable implements TimeCollector
 		{
 			AtomicLong counter = timeBuckets.get(instant);
 
-			metricReporter.put("count", new LongValue(counter.get()), instant.plusMillis(additionalMillis));
+			metricReporter.put("count", new LongValue(counter.get())).setTime(instant.plusMillis(additionalMillis));
 		}
 
 	}

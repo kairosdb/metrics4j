@@ -9,8 +9,16 @@ import org.kairosdb.metrics4j.internal.TimeReporter;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.CHRONO_UNIT_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 
 public abstract class TimerCollector implements DurationCollector
@@ -24,19 +32,32 @@ public abstract class TimerCollector implements DurationCollector
 	private ChronoUnit m_reportUnit = ChronoUnit.MILLIS;
 	private ReportFormat m_reportFormat = ReportFormat.LONG;
 	protected TimeReporter m_timeReporter = new LongTimeReporter(ChronoUnit.MILLIS);
+	protected Map<String, String> m_reportContext = new HashMap<>();
 
 	private void updateTimeReporter()
 	{
 		if (m_reportFormat == ReportFormat.LONG)
+		{
 			m_timeReporter = new LongTimeReporter(m_reportUnit);
+		}
 		else
+		{
 			m_timeReporter = new DoubleTimeReporter(m_reportUnit);
+		}
+
 	}
+
+	public TimerCollector()
+	{
+		m_reportContext.put(CHRONO_UNIT_KEY, ChronoUnit.MILLIS.name());
+	}
+
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
 	 */
 	public void setReportUnit(ChronoUnit reportUnit)
 	{
+		m_reportContext.put(CHRONO_UNIT_KEY, reportUnit.name());
 		m_reportUnit = reportUnit;
 		updateTimeReporter();
 	}

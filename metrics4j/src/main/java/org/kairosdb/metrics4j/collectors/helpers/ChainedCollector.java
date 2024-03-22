@@ -8,6 +8,7 @@ import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.configuration.ConfigurationException;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.MetricValue;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -116,21 +117,18 @@ public abstract class ChainedCollector<C extends Collector> extends Cloneable im
 		}
 
 		@Override
-		public void put(String field, MetricValue value)
+		public ReportedMetric.Sample put(String field, MetricValue value)
 		{
 			StringBuilder sb = new StringBuilder();
 			sb.append(m_prefix).append(field);
 
-			m_innerReporter.put(sb.toString(), value);
+			return m_innerReporter.put(sb.toString(), value);
 		}
 
 		@Override
-		public void put(String field, MetricValue value, Instant time)
+		public void setContext(Map<String, String> context)
 		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(m_prefix).append(field);
-
-			m_innerReporter.put(sb.toString(), value, time);
+			m_innerReporter.setContext(context);
 		}
 
 		public void setContextProperties(Map<String, String> contextProperties)

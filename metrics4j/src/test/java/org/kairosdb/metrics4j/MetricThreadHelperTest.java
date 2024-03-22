@@ -109,8 +109,8 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
 				.setTags(new HashMap<>())
-				.addSample("value", new LongValue(1), reportTime)
-				.addSample("value", new LongValue(2), now);
+				.addSample("value", new LongValue(1)).setTime(reportTime).reportedMetric()
+				.addSample("value", new LongValue(2)).setTime(now).reportedMetric();
 
 		FormattedMetric formattedMetric = new FormattedMetric(metric,
 				new HashMap<>(), new HashMap<>(), "");
@@ -154,7 +154,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
 				.setTags(myTags)
-				.addSample("count", new LongValue(1));
+				.addSample("count", new LongValue(1)).reportedMetric();
 
 		FormattedMetric formattedMetric = new FormattedMetric(metric1,
 				new HashMap<>(), new HashMap<>(), "");
@@ -165,7 +165,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomething")
 				.setTags(new HashMap<>())
-				.addSample("count", new LongValue(2));
+				.addSample("count", new LongValue(2)).reportedMetric();
 
 		FormattedMetric formattedMetric2 = new FormattedMetric(metric2,
 				new HashMap<>(), new HashMap<>(), "");
@@ -210,7 +210,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags)
-				.addSample("count", new LongValue(1));
+				.addSample("count", new LongValue(1)).reportedMetric();
 
 		FormattedMetric formattedMetric = new FormattedMetric(metric1,
 				new HashMap<>(), new HashMap<>(), "");
@@ -224,7 +224,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags2)
-				.addSample("count", new LongValue(2));
+				.addSample("count", new LongValue(2)).reportedMetric();
 
 		FormattedMetric formattedMetric2 = new FormattedMetric(metric2,
 				new HashMap<>(), new HashMap<>(), "");
@@ -267,7 +267,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags)
-				.addSample("count", new LongValue(1));
+				.addSample("count", new LongValue(1)).reportedMetric();
 
 		FormattedMetric formattedMetric = new FormattedMetric(metric1,
 				new HashMap<>(), new HashMap<>(), "");
@@ -281,7 +281,7 @@ class MetricThreadHelperTest
 				.setClassName(TestSource.class.getName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags2)
-				.addSample("count", new LongValue(2));
+				.addSample("count", new LongValue(2)).reportedMetric();
 
 		FormattedMetric formattedMetric2 = new FormattedMetric(metric2,
 				new HashMap<>(), new HashMap<>(), "");

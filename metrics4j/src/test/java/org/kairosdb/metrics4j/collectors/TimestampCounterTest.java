@@ -2,12 +2,18 @@ package org.kairosdb.metrics4j.collectors;
 
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.collectors.impl.TimestampCounter;
+import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
+import org.kairosdb.metrics4j.reporting.MetricValue;
+import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.util.Clock;
 
 import java.time.Instant;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -22,6 +28,8 @@ public class TimestampCounterTest
 	{
 		Clock clock = mock(Clock.class);
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample mockSample = mock(ReportedMetricImpl.SampleImpl.class);
+		when(reporter.put(anyString(), any())).thenReturn(mockSample);
 
 		//The reporting will occur 20sec apart
 		when(clock.now()).thenReturn(
@@ -53,18 +61,21 @@ public class TimestampCounterTest
 		counter.reportMetric(reporter);
 
 		Instant reportInstant = Instant.parse("2007-12-03T10:15:13.848Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(1)), eq(reportInstant));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
 
 		//The reporting timestamp should only increment one millisecond
 		reportInstant = Instant.parse("2007-12-03T10:15:13.849Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(1)), eq(reportInstant));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
 
 		reportInstant = Instant.parse("2007-12-03T10:15:57.049Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(1)), eq(reportInstant));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
 
 		//timestamp is within the minute and loopping around
 		reportInstant = Instant.parse("2007-12-03T10:15:10.009Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(1)), eq(reportInstant));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
+
+		verify(reporter, times(4)).put(eq("count"), eq(new LongValue(1)));
+		verify(reporter, times(4)).setContext(anyMap());
 
 		verifyNoMoreInteractions(reporter);
 	}
@@ -74,6 +85,8 @@ public class TimestampCounterTest
 	{
 		Clock clock = mock(Clock.class);
 		MetricReporter reporter = mock(MetricReporter.class);
+		ReportedMetric.Sample mockSample = mock(ReportedMetricImpl.SampleImpl.class);
+		when(reporter.put(anyString(), any())).thenReturn(mockSample);
 
 		//using zero so there is no offset from timestamp
 		when(clock.now()).thenReturn(0L);
@@ -90,10 +103,14 @@ public class TimestampCounterTest
 		counter.reportMetric(reporter);
 
 		Instant reportInstant = Instant.parse("2007-12-03T10:15:00.00Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(3)), eq(reportInstant));
+		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(3)));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
 
 		reportInstant = Instant.parse("2007-12-03T10:17:00.00Z");
-		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(2)), eq(reportInstant));
+		verify(reporter, times(1)).put(eq("count"), eq(new LongValue(2)));
+		verify(mockSample, times(1)).setTime(eq(reportInstant));
+
+		verify(reporter, times(1)).setContext(anyMap());
 
 		verifyNoMoreInteractions(reporter);
 
