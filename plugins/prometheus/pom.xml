@@ -4,23 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.kairosdb.metrics4jplugin</groupId>
-	<artifactId>m4j-prometheus</artifactId>
-	<version>1.0.0</version>
-
 	<parent>
 		<groupId>org.kairosdb</groupId>
 		<artifactId>metrics4j-all</artifactId>
-		<version>1.2.0</version>
+		<version>${revision}</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
+	<artifactId>m4j-prometheus</artifactId>
 	<name>metrics4j-prometheus</name>
 	<description>Metrics4j plugin to send metrics to Prometheus</description>
 	<url>https://github.com/kairosdb/metrics4j</url>
 
 	<scm>
-		<url/>
-		<connection/>
+		<url>https://github.com/kairosdb/metrics4j</url>
+		<connection>scm:git:https://github.com/kairosdb/metrics4j.git</connection>
 	</scm>
 
 	<licenses>
@@ -47,7 +45,7 @@
 		<dependency>
 			<groupId>org.kairosdb</groupId>
 			<artifactId>metrics4j</artifactId>
-			<version>1.0.0</version>
+			<version>${revision}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

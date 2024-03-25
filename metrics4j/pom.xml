@@ -4,23 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.kairosdb</groupId>
-	<artifactId>metrics4j</artifactId>
-	<version>1.0.0</version>
-
 	<parent>
 		<groupId>org.kairosdb</groupId>
 		<artifactId>metrics4j-all</artifactId>
-		<version>1.2.0</version>
+		<version>${revision}</version>
 	</parent>
 
+	<artifactId>metrics4j</artifactId>
 	<name>metrics4j</name>
 	<description>Java library for reporting metrics to any timeseries database.</description>
 	<url>https://github.com/kairosdb/metrics4j</url>
 
 	<scm>
-		<url/>
-		<connection/>
+		<url>https://github.com/kairosdb/metrics4j</url>
+		<connection>scm:git:https://github.com/kairosdb/metrics4j.git</connection>
 	</scm>
 
 	<licenses>
