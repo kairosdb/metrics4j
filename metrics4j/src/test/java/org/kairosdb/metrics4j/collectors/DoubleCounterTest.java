@@ -12,7 +12,6 @@ import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA
 import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

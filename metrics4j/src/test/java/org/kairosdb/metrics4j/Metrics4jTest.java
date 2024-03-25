@@ -2,7 +2,6 @@ package org.kairosdb.metrics4j;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

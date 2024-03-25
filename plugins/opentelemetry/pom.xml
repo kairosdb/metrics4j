@@ -6,12 +6,12 @@
 
 	<groupId>org.kairosdb.metrics4jplugin</groupId>
 	<artifactId>m4j-otel</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 	<parent>
 		<groupId>org.kairosdb</groupId>
 		<artifactId>metrics4j-all</artifactId>
-		<version>1.1.0</version>
+		<version>1.2.0</version>
 	</parent>
 
 	<name>metrics4j-otel</name>
@@ -47,13 +47,13 @@
 		<dependency>
 			<groupId>org.kairosdb</groupId>
 			<artifactId>metrics4j</artifactId>
-			<version>0.21.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.opentelemetry</groupId>
 			<artifactId>opentelemetry-exporter-otlp</artifactId>
-			<version>1.30.1</version>
+			<version>1.36.0</version>
 		</dependency>
 		<!--<dependency>
 			<groupId>org.kairosdb</groupId>

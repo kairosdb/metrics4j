@@ -5,7 +5,6 @@ import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class DefaultFormatterTest
 {

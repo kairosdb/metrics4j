@@ -1,6 +1,5 @@
 package org.kairosdb.metrics4j.collectors.impl;
 
-import com.sun.javafx.image.BytePixelSetter;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;

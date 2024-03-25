@@ -5,7 +5,6 @@ import org.kairosdb.metrics4j.collectors.impl.TimestampCounter;
 import org.kairosdb.metrics4j.internal.ReportedMetricImpl;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
-import org.kairosdb.metrics4j.reporting.MetricValue;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
 import org.kairosdb.metrics4j.util.Clock;
 

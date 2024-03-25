@@ -1,6 +1,5 @@
 package org.kairosdb.metrics4j.plugins;
 
-import javax.management.DynamicMBean;
 
 public interface TestMXBean
 {

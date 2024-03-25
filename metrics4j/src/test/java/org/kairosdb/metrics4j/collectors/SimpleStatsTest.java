@@ -7,7 +7,6 @@ import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
 import org.kairosdb.metrics4j.reporting.ReportedMetric;
-import org.mockito.ArgumentMatchers;
 
 import java.util.HashMap;
 
@@ -15,8 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_SUMMARY_VALUE;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyMapOf;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

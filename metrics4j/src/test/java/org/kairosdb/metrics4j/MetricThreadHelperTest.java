@@ -4,7 +4,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.collectors.impl.BagCollector;
-import org.kairosdb.metrics4j.collectors.impl.DoubleCounter;
 import org.kairosdb.metrics4j.collectors.impl.LongCounter;
 import org.kairosdb.metrics4j.configuration.MetricConfig;
 import org.kairosdb.metrics4j.configuration.TestFormatter;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.kairosdb.metrics4j.configuration.MetricConfig.CONFIG_SYSTEM_PROPERTY;
 import static org.kairosdb.metrics4j.configuration.MetricConfig.OVERRIDES_SYSTEM_PROPERTY;
 import static org.mockito.Mockito.mock;
