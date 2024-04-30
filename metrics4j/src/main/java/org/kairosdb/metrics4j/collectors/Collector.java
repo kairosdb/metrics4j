@@ -12,7 +12,7 @@ public interface Collector extends PostConstruct, MetricCollector
 	 The first instance of a collector is unmarshalled from configuration using
 	 hocon, all other instances are cloned from that first one so the clone
 	 method should pass along any configuration that was set.
-	 @return
+	 @return Clone of this collector
 	 */
 	Collector clone();
 }

@@ -30,8 +30,8 @@ public class StaticCollectorCollection extends MetricsGatherer implements Collec
 	 This method is only called by SourceInvocationHandler but it would never
 	 call into a StaticCollectorCollection as they are not used for interface
 	 invoked metrics.
-	 @param tagKey
-	 @return
+	 @param tagKey TagKey for collector
+	 @return MetricCollector
 	 */
 	@Override
 	public MetricCollector getCollector(TagKey tagKey)

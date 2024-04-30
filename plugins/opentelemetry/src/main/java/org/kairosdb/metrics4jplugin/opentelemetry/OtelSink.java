@@ -24,6 +24,7 @@ import io.opentelemetry.sdk.metrics.internal.data.ImmutableValueAtQuantile;
 import io.opentelemetry.sdk.metrics.internal.data.M4jFactory;
 import io.opentelemetry.sdk.resources.Resource;
 import lombok.Setter;
+import lombok.ToString;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.formatters.DefaultFormatter;
 import org.kairosdb.metrics4j.formatters.Formatter;
@@ -80,6 +81,7 @@ public class OtelSink implements MetricSink, Closeable
 		return in;
 	}
 
+	@ToString
 	private class SingleSample
 	{
 		private final String m_name;
@@ -298,6 +300,10 @@ public class OtelSink implements MetricSink, Closeable
 					singlePointData.getType(),
 					ImmutableSumData.create(isMonotonic, temporality, Collections.singleton(singlePointData.getPointData())));
 
+		}
+		else
+		{
+			logger.debug("Unsupported context type for metric {}", metric.getClassName());
 		}
 
 	return ret;

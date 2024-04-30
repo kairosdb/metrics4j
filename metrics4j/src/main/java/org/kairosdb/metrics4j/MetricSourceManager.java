@@ -332,6 +332,10 @@ public class MetricSourceManager
 		This method is provided for unit test purposes.  It lets you define
 		a collectors object for a specific metric call.  See the unit tests
 		in MetricSourceManagerTest to see how to use this method.
+		@param <T> Returned collector as defined by reporterClass
+		@param stats Metric collector that will be used in the code.  For unit testing this will likely be a mock
+		@param reporterClass  Reporter class
+		@return Proxy instance of reprter class
 	*/
 	public static <T> T setCollectorForSource(MetricCollector stats, Class<T> reporterClass)
 	{

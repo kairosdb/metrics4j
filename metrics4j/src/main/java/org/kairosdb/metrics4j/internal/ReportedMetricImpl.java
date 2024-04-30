@@ -65,8 +65,8 @@ public class ReportedMetricImpl implements ReportedMetric
 
 	/**
 	 Adds tags that override what was already set.
-	 @param tags
-	 @return
+	 @param tags Tags to add
+	 @return This reference
 	 */
 	public ReportedMetricImpl addTags(Map<String, String> tags)
 	{

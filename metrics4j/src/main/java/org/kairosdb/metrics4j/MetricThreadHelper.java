@@ -41,7 +41,7 @@ public class MetricThreadHelper
 	/**
 	 Sets the time which metrics will be reported with.  This only has effect on
 	 non aggregated collectors like the BagCollector.
-	 @param time
+	 @param time Timestamp to report the metric
 	 */
 	public static void setReportTime(Instant time)
 	{
@@ -60,7 +60,7 @@ public class MetricThreadHelper
 
 	/**
 	 Returns the set report time or Instance.MIN if not set.
-	 @return
+	 @return Report time for metric
 	 */
 	public static Instant getReportTime()
 	{
@@ -69,8 +69,8 @@ public class MetricThreadHelper
 
 	/**
 	 Adds a tag to all metrics that will be reported from the current thread.
-	 @param name
-	 @param value
+	 @param name Name of tag
+	 @param value Value of tag
 	 */
 	public static void addTag(String name, String value)
 	{
@@ -79,8 +79,8 @@ public class MetricThreadHelper
 
 	/**
 	 Returns a value of a tag if set on the thread, null otherwise.
-	 * @param name
-	 * @return
+	 * @param name Name of tag
+	 * @return Value of tag
 	 */
 	public static String getTag(String name)
 	{
@@ -89,7 +89,7 @@ public class MetricThreadHelper
 
 	/**
 	 Removes a single tag from the thread.
-	 @param name
+	 @param name Name of tag
 	 */
 	public static void removeTag(String name)
 	{
@@ -108,7 +108,7 @@ public class MetricThreadHelper
 
 	/**
 	 Iterator of all tags set on the thread.
-	 @return
+	 @return Iterator of all tag keys and values
 	 */
 	public static Iterator<Map.Entry<String, String>> getTagIterator()
 	{

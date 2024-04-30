@@ -53,8 +53,8 @@ public class SourceInvocationHandler implements InvocationHandler
 
 	/**
 	 Used to override a collector for a given set of arguments.  Used for unit testing.
-	 @param key
-	 @param statsObject
+	 @param key MethodArgKey
+	 @param statsObject Collector to use, typically a mock when used in unit tests.
 	 */
 	public void setCollector(MethodArgKey key, MetricCollector statsObject)
 	{
@@ -82,8 +82,8 @@ public class SourceInvocationHandler implements InvocationHandler
 
 	/**
 	 Called once for each unique key.  Results are cached
-	 @param key
-	 @return
+	 @param key MethodArgKey
+	 @return Context of key
 	 */
 	private CollectorContext lookupCollectorContext(MethodArgKey key)
 	{
@@ -121,7 +121,7 @@ public class SourceInvocationHandler implements InvocationHandler
 		{
 			Collector collector = collectors.next();
 
-			/**
+			/*
 			 If the key matches exactly the collector then we error if it doesn't
 			 match the return type
 			 */

@@ -6,11 +6,18 @@
 - [Section 1 (Developer)](#section-1--developer-)
   * [Using the library](#using-the-library)
   * [Different ways to report metrics](#different-ways-to-report-metrics)
+    + [Duration Helpers](#duration-helpers)
+    + [Annotations](#annotations)
+      - [Reported](#reported)
+      - [Snapshot](#snapshot)
+  * [Setting Tags on a Thread](#setting-tags-on-a-thread)
   * [Testing with the library](#testing-with-the-library)
 - [Section 2 (Admin)](#section-2--admin-)
   * [The Config Files](#the-config-files)
   * [Configuration](#configuration)
     - [Configuration Parameters](#configuration-parameters)
+      * [Java System Properties](#java-system-properties)
+      * [Environment Variables](#environment-variables)
     + [Sources](#sources)
       + [Overrides](#overrides)
       + [Metric Name](#metric-name)
@@ -19,14 +26,17 @@
       * [Getting available sources](#getting-available-sources)
       * [Disabling sources](#disabling-sources)
     + [Sinks](#sinks)
-      - [Slf4JMetricSink](#slf4jmetricsink)
-      - [TelnetSink](#telnetsink)
-      - [GraphitePlaintextSink](#graphiteplaintextsink)
-      - [InfluxSink](#influxsink)
-      - [PrometheusSink](#prometheussink)
-      - [KairosSink](#kairossink)
-      - [TimescaleDBSink](#timescaledbsink)
-      - [StatsDTCPSink](#statsdtcpsink)
+      - [Internal](#internal)
+        * [Slf4JMetricSink](#slf4jmetricsink)
+        * [TelnetSink](#telnetsink)
+        * [GraphitePlaintextSink](#graphiteplaintextsink)
+        * [StatsDTCPSink](#statsdtcpsink)
+      - [External](#external)
+        * [InfluxSink](#influxsink)
+        * [PrometheusSink](#prometheussink)
+        * [KairosSink](#kairossink)
+        * [OtelSink](#otelsink)
+        * [TimescaleDBSink](#timescaledbsink)
     + [Collectors](#collectors)
       - [BagCollector](#bagcollector)
       - [Chained Collectors](#chained-collectors)
@@ -574,7 +584,11 @@ under sources from the metric up towards the root.  The first `_sink` property
 found is used.  Different metrics can be sent to different sinks.  The `_sink` 
 property can be a string or a list so you can send a metric to multiple sinks.
 
-#### Slf4JMetricSink
+#### Internal
+Internal sinks are simple and built in as part of the metrics4j library.
+
+
+##### Slf4JMetricSink
 Reports metrics to an Slf4j logger.  The log-level attribute controls the log level (DEBUG, WARN, INFO, etc).
 ```hocon
 sinks: {
@@ -587,7 +601,7 @@ sinks: {
 
 * _log-level:_ (INFO, DEBUG, WARN, ERROR, TRACE), log level to use when reporting metrics
 
-#### TelnetSink
+##### TelnetSink
 
 Sends data using the telnet protocol supported by OpenTSDB and KairosDB.
 
@@ -613,7 +627,7 @@ respectively
 if set to MILLISECONDS the sink will use the 'putm' command
 
 
-#### GraphitePlaintextSink
+##### GraphitePlaintextSink
 
 Sends data using the plaintext protocol.  It takes three attributes for host, port
 and whether to include tags.
@@ -635,15 +649,34 @@ sinks: {
 * _protocol:_ (UDP/**TCP**) Protocol to use
 * _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
 
-#### InfluxSink
+##### StatsDTCPSink
 
-The Influx sink is a separate jar that needs to be placed in the classpath along 
-with its dependencies (it includes the apache httpclient).
+Sends metrics to a StatsD instance.  You can also set the source property _statsd_type_ to specify
+the type of metric, it defaults to 'g'
+
+* _host:_ Host to connect to
+* _port:_ Port to use
+* _protocol:_ (UDP/**TCP**) Protocol to use
+* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
+
+#### External
+External sinks are provided as plugins that have their own dependencies.  These
+are packaged and deployed separatedly from metrics4j.
+
+To use an external sink you specify __folder_ parameter as well as the __class_ parameter. 
+The folder path is the location of the sink jar and all of its dependencies.  A spearate
+class loader is used for the sink so the dependencies will not interfere with the application.
+
+##### InfluxSink
+
+External sink for sending data to InfluxDB.  Because both version 1 and 2 support the same 
+line protocol you can switch between them by changing the host-url metrics are sent to.
 
 ```hocon
 sinks: {
   influx: {
     _class: "org.kairosdb.metrics4jplugin.influxdb.InfluxSink"
+    _folder: "/path/to/sink/folder"
     host-url: "http://localhost:8086/write?db=mydb"
   }
 }
@@ -651,18 +684,20 @@ sinks: {
 
 * _host-url:_ url endpoint for influx
 
-#### PrometheusSink
+##### PrometheusSink
 
-The Prometheus sink is a separate jar that needs to be placed in the classpath along
-with its dependencies (it includes the prometheus simpleclient and simpleclient_httpserver).
+External sink that opens a port for a prometheus server to scrape the metrics from.
 
 Prometheus requires both a sink and a trigger to be defined.  They both need to be referenced
 in the sources section as well.
+
+The trigger is effectively when the server scrapes the endpoint.
 
 ```hocon
 sinks: {
   prometheus: {
     _class: "org.kairosdb.metrics4jplugin.prometheus.PrometheusSink"
+    _folder: "/path/to/sink/folder"
     listen-port: 9090
   }
 }
@@ -670,20 +705,22 @@ sinks: {
 triggers: {
   prometheus: {
     _class: "org.kairosdb.metrics4jplugin.prometheus.PrometheusTrigger"
+    _folder: "/path/to/sink/folder"
   }
 }
 ```
 
 * _listen-port:_ Port on which to listen for prometheus scrap requests
 
-#### KairosSink
+##### KairosSink
 
-The Kairos sink is a separate jar that needs to be placed in the classpath along
-with its dependencies.
+External sink for sending data to KairosDB.  Metrics can be sent either via http or telnet
+by specifying the appropriate configurations.
 
 ```hocon
 kairos: {
   _class: "org.kairosdb.metrics4jplugin.kairosdb.KairosSink"
+  _folder: "/path/to/sink/folder"
   host-url: "http://192.168.1.55:8080"
   #telnet-host: "192.168.1.55"
   #telnet-port: 4242
@@ -698,19 +735,29 @@ the kairosdb client.
 * _telnet-port:_ (**4242**) Telnet port
 * _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h", this can also be set as a prop in the source for specific metrics  
 
-#### TimescaleDBSink
+##### OtelSink
+
+External Open Telemetry sink for sending metrics via OTLP using grpc protocol.
+
+```hocon
+sinks: {
+  influx: {
+    _class: "org.kairosdb.metrics4jplugin.opentelemetry.OtelSink"
+    _folder: "/path/to/sink/folder"
+    endpoint: "http://localhost:4317"
+    name: "metrics4j"
+  }
+}
+```
+
+* _endpoint:_ (**http://localhost:4317**) Url for the grpc endpoint of the otlp collector.
+* _name:_ (**metrics4j**) Service name passed as part of the instrumentation scope info.
+
+##### TimescaleDBSink
 
 TODO: https://docs.timescale.com/latest/using-timescaledb/writing-data
 
-#### StatsDTCPSink
 
-Sends metrics to a StatsD instance.  You can also set the source property _statsd_type_ to specify
-the type of metric, it defaults to 'g'
-
-* _host:_ Host to connect to
-* _port:_ Port to use
-* _protocol:_ (UDP/**TCP**) Protocol to use
-* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
 
 ### Collectors
 A collector defines how to collect values from a source.  For reportSize() you could
@@ -951,6 +998,7 @@ metrics4j: {
         sausage: "double"
       }
       class-name-attributes: ["type", "name"]
+      default-metric-type: "counter"
     }
   }
   _dump-file: "/home/bhawkins/programs/kafka_2.13-2.5.1/dump.conf"
@@ -962,8 +1010,9 @@ metrics4j: {
 also supports CompositeData but this is a special case.
 * _class-name-attributes:_ A list of JMX attributes used to create the class name and how each JMX source shows up in the configuration file.
 Attributes not specified as part of the class name will show up as tags on the reported metric.
+* _default-metric-type:_ (**counter**) Set to either 'counter' or 'gauge'.  This tags metrics so downstream metric databases will know how to deal with numeric values.  Very important when using the open telemetry plugin.  You can override this value in the source with the _metric_type_ property, example below.
 
-The type can be overridden at the source level by adding the _jmx_type_ property.  For example
+The jmx type can be overridden at the source level by adding the _jmx_type_ property.  For example
 when reporting JMX metrics from Kakfa they declar the type to be `java.lang.Object`.  Most
 of the time that is a long value but in some cases it is an int, so for those, an exception
 is added directly to that source like in the example below.
@@ -975,6 +1024,7 @@ metrics4j: {
         UnderReplicatedPartitions.Value: {
           _prop: {
             jmx_type: "int"
+            metric_type: "gauge"
           }
         }
       }

@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  ChainedCollector lets you report metrics to more than one collector.
- @param <C>
+ @param <C> Type of collector to chain
  */
 @ToString
 @EqualsAndHashCode

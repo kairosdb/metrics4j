@@ -219,7 +219,7 @@ public class MetricConfig
 
 	/**
 	 Recursively parse through the sources elements
-	 @param root
+	 @param root Root of config to look for sources
 	 */
 	private void parseSources(Config root)
 	{
@@ -339,10 +339,10 @@ public class MetricConfig
 	}
 
 	/**
-	 *
-	 * @param baseConfig
-	 * @param overridesConfig
-	 * @return
+	 * Parses config files to generate new MetricConfig object
+	 * @param baseConfig Base config to be found in the classpath
+	 * @param overridesConfig Override config
+	 * @return MetricConfig object
 	 */
 	public static MetricConfig parseConfig(String baseConfig, String overridesConfig)
 	{
@@ -581,8 +581,8 @@ public class MetricConfig
 
 	/**
 	 Returns a map of tags that you can modify
-	 @param argKey
-	 @return
+	 @param argKey ArgKey used to find tags
+	 @return Map of tags and values.
 	 */
 	public Map<String, String> getTagsForKey(ArgKey argKey)
 	{
@@ -609,8 +609,8 @@ public class MetricConfig
 
 	/**
 	 returns immutable map of properties for the specified key context
-	 @param argKey
-	 @return
+	 @param argKey ArgKey used to find tags
+	 @return Map of properties
 	 */
 	public Map<String, String> getPropsForKey(ArgKey argKey)
 	{
@@ -628,8 +628,9 @@ public class MetricConfig
 	}
 
 	/**
-	 Adds a source that will be dumped out on shutdown.@param src
-	 @param helpText
+	 Adds a source that will be dumped out on shutdown.
+	 @param src Path to a metric source
+	 @param helpText Help text for source
 
 	 */
 	public void addDumpSource(String src, String helpText)
@@ -651,7 +652,7 @@ public class MetricConfig
 
 	/**
 	 Returns any configuration that was used in initializing metrics4j
-	 @param config
+	 @param config Config string
 	 @return String representation of value
 	 */
 	public String getConfigString(String config)
@@ -661,7 +662,7 @@ public class MetricConfig
 
 	/**
 	 Returns any configuration that was used in initializing metrics4j
-	 @param config
+	 @param config Config string
 	 @return ConfigValue object you can unwrap
 	 */
 	public ConfigValue getConfigValue(String config)

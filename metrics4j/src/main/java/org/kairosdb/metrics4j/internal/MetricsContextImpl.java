@@ -132,8 +132,8 @@ public class MetricsContextImpl implements MetricsContext
 
 	/**
 	 Caller must clone Collector
-	 @param name
-	 @return
+	 @param name Name of collector
+	 @return Collector
 	 */
 	public Collector getCollector(String name)
 	{
@@ -155,9 +155,13 @@ public class MetricsContextImpl implements MetricsContext
 	/**
 	 This assigns an instance of a collector to a trigger, associates a formatter
 	 and places it in the appropriate sink queues.+
-	 @param key
-	 @param collectors
-	 @param collectorTags
+	 @param key ArgKey for collector
+	 @param collectors Collectors to assign
+	 @param collectorTags Collector tags
+	 @param properties Properties for collector
+	 @param metricName Metric name that is assigned in config
+	 @param help Help text for collector
+	 @return Collector context
 	 */
 	public CollectorContext assignCollector(ArgKey key, CollectorCollection collectors, Map<String, String> collectorTags,
 			Map<String, String> properties, String metricName, String help)

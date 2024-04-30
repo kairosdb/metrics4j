@@ -30,8 +30,8 @@ public interface ReportedMetric
 		/**
 		 Sets context for this sample.  The object set is determined
 		 by the type of metric that is being reported.  See ReportingContext
-		 * @param obj
-		 * @return
+		 * @param obj Context to set
+		 * @return This reference
 		 */
 		Sample setSampleContext(Object obj);
 

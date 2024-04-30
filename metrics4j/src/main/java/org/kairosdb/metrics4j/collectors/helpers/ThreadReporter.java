@@ -18,15 +18,15 @@ public interface ThreadReporter
 {
 	/**
 	 Set the time for data points to be reported
-	 @param time
+	 @param time Timestamp to use when reporting metrics
 	 */
 	void setReportTime(long time);
 
 	/**
 	 This lets you put a tag to all data points submitted to sub interfaces of
 	 ThreadReporter
-	 @param name
-	 @param value
+	 @param name Name of tag to add to thread
+	 @param value Value of tag to add to thread
 	 */
 	void addTag(String name, String value);
 	void removeTag(String name);

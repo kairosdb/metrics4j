@@ -77,7 +77,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 
 	/**
 	 Not thread safe
-	 @return
+	 @return Call count
 	 */
 	public long getCount()
 	{

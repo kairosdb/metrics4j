@@ -10,8 +10,8 @@ import java.util.Set;
 
 /**
  Statically combines two maps without copying data.
- @param <K>
- @param <V>
+ @param <K> Key
+ @param <V> Value
  */
 @ToString
 @EqualsAndHashCode

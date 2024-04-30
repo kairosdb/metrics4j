@@ -9,6 +9,7 @@ import lombok.ToString;
 import org.kairosdb.metrics4j.MetricSourceManager;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.configuration.ConfigurationException;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
@@ -31,12 +32,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
+import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
+
 @ToString
 @EqualsAndHashCode
 public class JMXReporter implements Plugin, Closeable, NotificationListener
 {
 	private static final Logger logger = LoggerFactory.getLogger(JMXReporter.class);
 	public static final String JMX_TYPE_PROP = "jmx_type";
+	public static final String METRIC_TYPE= "metric_type";
 
 	private final Map<ObjectName, List<SourceKey>> m_sourceKeyMap = new HashMap<>();
 
@@ -44,6 +52,7 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 
 	private final Map<String, String> m_typeMap = new HashMap<>();
 	private List<String> m_classNameAttributes = Collections.emptyList();
+	private String m_defaultMetricType = TYPE_COUNTER_VALUE;
 
 	public JMXReporter()
 	{
@@ -67,6 +76,18 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	public void setClassNameAttributes(List<String> attributes)
 	{
 		m_classNameAttributes = attributes;
+	}
+
+	public void setDefaultMetricType(String defaultMetricType)
+	{
+		if (TYPE_GAUGE_VALUE.equals(defaultMetricType) || TYPE_COUNTER_VALUE.equals(defaultMetricType))
+		{
+			m_defaultMetricType = defaultMetricType;
+		}
+		else
+		{
+			throw new ConfigurationException("Default JMX metric type must be either 'gauge' or 'counter'");
+		}
 	}
 
 	@Override
@@ -155,38 +176,40 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 					Map<String, String> sourceProps = MetricSourceManager.getSourceProps(className, methodName);
 					type = sourceProps.getOrDefault(JMX_TYPE_PROP, type);
 
-					String helpText = null;
+					String metricType = sourceProps.getOrDefault(METRIC_TYPE, m_defaultMetricType);
+
+					String helpText = "";
 					if (!tags.isEmpty())
 						helpText = "tags:"+tags.keySet().stream().collect(Collectors.joining(","));
 
 					if (type.equals("int"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, helpText, new IntAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new IntAttributeSource(beanName, attribute.getName(), metricType));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("long"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, helpText, new LongAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new LongAttributeSource(beanName, attribute.getName(), metricType));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("float"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, helpText, new FloatAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new FloatAttributeSource(beanName, attribute.getName(), metricType));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("double"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, helpText, new DoubleAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new DoubleAttributeSource(beanName, attribute.getName(), metricType));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else if (type.equals("javax.management.openmbean.CompositeData"))
 					{
 						MetricSourceManager.addSource(className, methodName,
-								tags, helpText, new CompositeAttributeSource(beanName, attribute.getName()));
+								tags, helpText, new CompositeAttributeSource(beanName, attribute.getName(), metricType));
 						sourceKeys.add(new SourceKey(className, methodName, tags));
 					}
 					else
@@ -279,32 +302,37 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	{
 		protected final ObjectName m_objectName;
 		protected final String m_attribute;
+		protected final Map<String, String> m_contextProperties;
 
-		private AttributeSource(ObjectName objectName, String attribute)
+		private AttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
 			m_objectName = objectName;
 			m_attribute = attribute;
+			m_contextProperties = new HashMap<>();
+			m_contextProperties.put(TYPE_KEY, metricType);
+			m_contextProperties.put(AGGREGATION_KEY, AGGREGATION_CUMULATIVE_VALUE);
 		}
 
 		@Override
 		public void setContextProperties(Map<String, String> contextProperties)
 		{
-			//Nothing to do with them.
+			m_contextProperties.putAll(contextProperties);
 		}
 	}
 
 
 	private class IntAttributeSource extends AttributeSource
 	{
-		private IntAttributeSource(ObjectName objectName, String attribute)
+		private IntAttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
-			super(objectName, attribute);
+			super(objectName, attribute, metricType);
 		}
 
 		@Override
 		public void reportMetric(MetricReporter metricReporter)
 		{
 			Integer value = null;
+			metricReporter.setContext(m_contextProperties);
 
 			try
 			{
@@ -322,15 +350,16 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 
 	private class LongAttributeSource extends AttributeSource
 	{
-		private LongAttributeSource(ObjectName objectName, String attribute)
+		private LongAttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
-			super(objectName, attribute);
+			super(objectName, attribute, metricType);
 		}
 
 		@Override
 		public void reportMetric(MetricReporter metricReporter)
 		{
 			Long value = null;
+			metricReporter.setContext(m_contextProperties);
 
 			try
 			{
@@ -348,15 +377,16 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	private class FloatAttributeSource extends AttributeSource
 	{
 
-		private FloatAttributeSource(ObjectName objectName, String attribute)
+		private FloatAttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
-			super(objectName, attribute);
+			super(objectName, attribute, metricType);
 		}
 
 		@Override
 		public void reportMetric(MetricReporter metricReporter)
 		{
 			Float value = null;
+			metricReporter.setContext(m_contextProperties);
 
 			try
 			{
@@ -374,15 +404,16 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 	private class DoubleAttributeSource extends AttributeSource
 	{
 
-		private DoubleAttributeSource(ObjectName objectName, String attribute)
+		private DoubleAttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
-			super(objectName, attribute);
+			super(objectName, attribute, metricType);
 		}
 
 		@Override
 		public void reportMetric(MetricReporter metricReporter)
 		{
 			Double value = null;
+			metricReporter.setContext(m_contextProperties);
 
 			try
 			{
@@ -399,14 +430,16 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 
 	private class CompositeAttributeSource extends AttributeSource
 	{
-		private CompositeAttributeSource(ObjectName objectName, String attribute)
+		private CompositeAttributeSource(ObjectName objectName, String attribute, String metricType)
 		{
-			super(objectName, attribute);
+			super(objectName, attribute, metricType);
 		}
 
 		@Override
 		public void reportMetric(MetricReporter metricReporter)
 		{
+			metricReporter.setContext(m_contextProperties);
+
 			try
 			{
 				CompositeData data = (CompositeData) m_server.getAttribute(m_objectName, m_attribute);

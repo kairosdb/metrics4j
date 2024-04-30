@@ -15,7 +15,6 @@ import java.util.Objects;
 
 import static org.kairosdb.metrics4j.configuration.MetricConfig.PATH_SPLITTER_REGEX;
 
-@ToString
 public class MethodArgKey implements ArgKey
 {
 	private final Method m_method;
@@ -133,8 +132,8 @@ public class MethodArgKey implements ArgKey
 
 	/**
 	 We intentionally only use the config path for equals and hash
-	 @param o
-	 @return
+	 @param o Object to compare to
+	 @return If the objects are equal
 	 */
 	@Override
 	public boolean equals(Object o)

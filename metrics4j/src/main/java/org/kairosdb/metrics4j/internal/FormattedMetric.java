@@ -73,7 +73,7 @@ public class FormattedMetric
 	/**
 	 Returns context specific to this data point.  The returned map must be considered
 	 immutable.  Do not try to modify it.
-	 * @return
+	 * @return Context
 	 */
 	public Map<String, String> getContext()
 	{

@@ -1,24 +1,17 @@
 package org.kairosdb.metrics4j.collectors.helpers;
 
-import lombok.Setter;
 import org.kairosdb.metrics4j.collectors.Collector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.internal.DoubleTimeReporter;
 import org.kairosdb.metrics4j.internal.LongTimeReporter;
 import org.kairosdb.metrics4j.internal.TimeReporter;
 
-import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
-import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
 import static org.kairosdb.metrics4j.internal.ReportingContext.CHRONO_UNIT_KEY;
-import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
-import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
-import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 
 
 public abstract class TimerCollector implements DurationCollector
@@ -54,6 +47,7 @@ public abstract class TimerCollector implements DurationCollector
 
 	/**
 	 Unit to report metric as.  Supported units are NANOS, MICROS, MILLIS, SECONDS, MINUTES, HOURS, DAYS
+	 @param reportUnit Time unit
 	 */
 	public void setReportUnit(ChronoUnit reportUnit)
 	{
@@ -69,7 +63,7 @@ public abstract class TimerCollector implements DurationCollector
 
 	/**
 	 Report format is either LONG or DOUBLE.  Double truncates at 3 decimal places
-	 * @param reportFormat
+	 * @param reportFormat Report format
 	 */
 	public void setReportFormat(ReportFormat reportFormat)
 	{
