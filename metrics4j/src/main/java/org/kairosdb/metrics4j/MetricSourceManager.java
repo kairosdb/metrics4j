@@ -57,8 +57,8 @@ public class MetricSourceManager
 	 */
 	public static void setMetricConfig(MetricConfig config)
 	{
+		clearConfig();
 		s_metricConfig = config;
-		s_invocationMap.clear();
 	}
 
 	/**
@@ -66,6 +66,9 @@ public class MetricSourceManager
 	 */
 	public static void clearConfig()
 	{
+		if (s_metricConfig != null)
+			s_metricConfig.getShutdownHookOverride().shutdown();
+
 		s_metricConfig = null;
 		//todo Should not clear this out.  Need to leave it and clear each invocation hnadler of data.
 		s_invocationMap.clear();
