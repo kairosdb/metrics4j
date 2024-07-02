@@ -35,7 +35,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.1</revision>
+		<revision>1.0.2</revision>
 		<slf4j-version>2.0.12</slf4j-version>
 	</properties>
 
