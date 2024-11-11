@@ -12,11 +12,13 @@ public class LambdaArgKey implements ArgKey
 {
 	private final String m_className;
 	private final String m_methodName;
+	private String m_simpleClassName;
 
 	public LambdaArgKey(String className, String methodName)
 	{
 		m_className = className;
 		m_methodName = methodName;
+
 	}
 
 	@Override
@@ -45,5 +47,10 @@ public class LambdaArgKey implements ArgKey
 	public String getClassName()
 	{
 		return m_className;
+	}
+
+	@Override
+	public String getSimpleClassName() {
+		return m_simpleClassName;
 	}
 }

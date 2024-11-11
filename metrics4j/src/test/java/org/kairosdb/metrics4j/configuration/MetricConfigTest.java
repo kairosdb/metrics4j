@@ -129,6 +129,7 @@ class MetricConfigTest
 		ReportedMetric metric = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomething")
 				.setTags(new HashMap<>()).addSample("count", new LongValue(1)).reportedMetric();
 

@@ -36,6 +36,7 @@ public abstract class MetricsGatherer implements CollectorCollection
 			ReportedMetricImpl reportedMetric = new ReportedMetricImpl();
 			reportedMetric.setTime(now)
 					.setClassName(argKey.getClassName())
+					.setSimpleClassName(argKey.getSimpleClassName())
 					.setMethodName(argKey.getMethodName())
 					.setTags(entry.getKey().getTags());
 

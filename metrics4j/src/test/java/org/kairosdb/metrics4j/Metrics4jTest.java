@@ -99,6 +99,7 @@ public class Metrics4jTest
 
 		ReportedMetricImpl expected = new ReportedMetricImpl();
 		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setSimpleClassName("TestSource")
 				.setMethodName("countSomething")
 				//.setMetricName("my_metric.count_something")
 				.setTime(now)
@@ -138,6 +139,7 @@ public class Metrics4jTest
 
 		ReportedMetricImpl expected = new ReportedMetricImpl();
 		expected.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setSimpleClassName("TestSource")
 				.setMethodName("countOverride")
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "bob")) //Reported as single value
@@ -173,6 +175,7 @@ public class Metrics4jTest
 
 		ReportedMetricImpl expected1 = new ReportedMetricImpl();
 		expected1.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setSimpleClassName("TestSource")
 				.setMethodName("countNoOverride")
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "client1"))
@@ -185,6 +188,7 @@ public class Metrics4jTest
 
 		ReportedMetricImpl expected2 = new ReportedMetricImpl();
 		expected2.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setSimpleClassName("TestSource")
 				.setMethodName("countNoOverride")
 				.setTime(now)
 				.setTags(Collections.singletonMap("client", "client2"))
@@ -221,6 +225,7 @@ public class Metrics4jTest
 
 		ReportedMetricImpl expected1 = new ReportedMetricImpl();
 		expected1.setClassName("org.kairosdb.metrics4j.configuration.TestSource")
+				.setSimpleClassName("TestSource")
 				.setMethodName("testContext")
 				.setTime(now)
 				.setTags(Collections.singletonMap("tag", "my_tag"))

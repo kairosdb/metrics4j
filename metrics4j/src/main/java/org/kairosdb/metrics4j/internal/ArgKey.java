@@ -22,4 +22,6 @@ public interface ArgKey
 	String getMethodName();
 
 	String getClassName();
+
+	String getSimpleClassName();
 }

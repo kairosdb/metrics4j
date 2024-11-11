@@ -8,6 +8,8 @@ public interface ReportedMetric
 {
 	String getClassName();
 
+	String getSimpleClassName();
+
 	String getMethodName();
 
 	Map<String, String> getTags();

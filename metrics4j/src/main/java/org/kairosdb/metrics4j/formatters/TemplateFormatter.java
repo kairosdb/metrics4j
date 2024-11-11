@@ -52,6 +52,10 @@ public class TemplateFormatter implements Formatter
 			{
 				m_templateFragmentList.add(new PropertyTemplateFragment(ReportedMetric::getClassName));
 			}
+			else if ("simpleClassName".equals(tag))
+			{
+				m_templateFragmentList.add(new PropertyTemplateFragment(ReportedMetric::getSimpleClassName));
+			}
 			else if ("metricName".equals(tag))
 			{
 				m_templateFragmentList.add(new NameTemplateFragment());

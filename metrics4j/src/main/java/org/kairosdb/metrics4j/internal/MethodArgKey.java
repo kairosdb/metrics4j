@@ -20,10 +20,14 @@ public class MethodArgKey implements ArgKey
 	private final Method m_method;
 	private final Object[] m_args;
 	private final List<String> m_configPath;
+	private final String m_className;
+	private final String m_simpleClassName;
 
 	public MethodArgKey(Method method, Object[] args)
 	{
 		m_method = method;
+		m_className = m_method.getDeclaringClass().getName();
+		m_simpleClassName = m_method.getDeclaringClass().getSimpleName();
 		m_args = args;
 
 		m_configPath = new ArrayList<>();
@@ -121,7 +125,12 @@ public class MethodArgKey implements ArgKey
 	@Override
 	public String getClassName()
 	{
-		return m_method.getDeclaringClass().getName();
+		return m_className;
+	}
+
+	@Override
+	public String getSimpleClassName() {
+		return m_simpleClassName;
 	}
 
 	@Override

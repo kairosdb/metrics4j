@@ -105,6 +105,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomething")
 				.setTags(new HashMap<>())
 				.addSample("value", new LongValue(1)).setTime(reportTime).reportedMetric()
@@ -150,6 +151,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric1 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomething")
 				.setTags(myTags)
 				.addSample("count", new LongValue(1)).reportedMetric();
@@ -161,6 +163,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric2 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomething")
 				.setTags(new HashMap<>())
 				.addSample("count", new LongValue(2)).reportedMetric();
@@ -206,6 +209,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric1 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags)
 				.addSample("count", new LongValue(1)).reportedMetric();
@@ -220,6 +224,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric2 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags2)
 				.addSample("count", new LongValue(2)).reportedMetric();
@@ -263,6 +268,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric1 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags)
 				.addSample("count", new LongValue(1)).reportedMetric();
@@ -277,6 +283,7 @@ class MetricThreadHelperTest
 		ReportedMetric metric2 = new ReportedMetricImpl()
 				.setTime(now)
 				.setClassName(TestSource.class.getName())
+				.setSimpleClassName(TestSource.class.getSimpleName())
 				.setMethodName("countSomethingWithTag")
 				.setTags(myTags2)
 				.addSample("count", new LongValue(2)).reportedMetric();

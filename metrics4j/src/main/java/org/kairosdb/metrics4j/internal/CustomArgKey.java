@@ -12,10 +12,14 @@ import static org.kairosdb.metrics4j.configuration.MetricConfig.PATH_SPLITTER_RE
 public class CustomArgKey implements ArgKey
 {
 	private final MetricCollector m_collector;
+	private final String m_className;
+	private final String m_simpleClassName;
 
 	public CustomArgKey(MetricCollector collector)
 	{
 		m_collector = collector;
+		m_className = m_collector.getClass().getDeclaringClass().getName();
+		m_simpleClassName = m_collector.getClass().getDeclaringClass().getSimpleName();
 	}
 
 
@@ -36,13 +40,17 @@ public class CustomArgKey implements ArgKey
 	@Override
 	public String getMethodName()
 	{
-		return null;
+		return "";
 	}
-
 
 	@Override
 	public String getClassName()
 	{
-		return m_collector.getClass().getDeclaringClass().getName();
+		return m_className;
+	}
+
+	@Override
+	public String getSimpleClassName() {
+		return m_simpleClassName;
 	}
 }

@@ -57,6 +57,11 @@ public class MetricsGathererTest
 				{
 					return "org.TestClass";
 				}
+
+				@Override
+				public String getSimpleClassName() {
+					return "TestClass";
+				}
 			};
 		}
 

@@ -21,6 +21,7 @@ public class ReportedMetricImpl implements ReportedMetric
 	private Map<String, String> m_tags = Collections.emptyMap();
 	private final List<Sample> m_samples = new ArrayList<>();
 	private Map<String, String> m_context = Collections.emptyMap();
+	private String m_simpleClassName;
 
 
 	public ReportedMetricImpl setTime(Instant time)
@@ -29,6 +30,7 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
+	@Override
 	public String getClassName()
 	{
 		return m_className;
@@ -40,6 +42,18 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
+	@Override
+	public String getSimpleClassName() {
+		return m_simpleClassName;
+	}
+
+	public ReportedMetricImpl setSimpleClassName(String simpleClassName)
+	{
+		m_simpleClassName = simpleClassName;
+		return this;
+	}
+
+	@Override
 	public String getMethodName()
 	{
 		return m_methodName;
@@ -52,6 +66,7 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
+	@Override
 	public Map<String, String> getTags()
 	{
 		return m_tags;
@@ -74,6 +89,7 @@ public class ReportedMetricImpl implements ReportedMetric
 		return this;
 	}
 
+	@Override
 	public Map<String, String> getContext()
 	{
 		return m_context;
@@ -91,6 +107,7 @@ public class ReportedMetricImpl implements ReportedMetric
 		return sample;
 	}
 
+	@Override
 	public List<Sample> getSamples()
 	{
 		return m_samples;
