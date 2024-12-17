@@ -15,6 +15,7 @@ import org.kairosdb.metrics4j.triggers.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -149,6 +150,12 @@ public class MetricsContextImpl implements MetricsContext
 	public Trigger getTrigger(String name)
 	{
 		return m_triggers.getComponent(name).getTrigger();
+	}
+
+	public void flushMetrics()
+	{
+		Instant now = Instant.now();
+		m_triggers.getComponents().forEach(trigger -> trigger.reportMetrics(now));
 	}
 
 

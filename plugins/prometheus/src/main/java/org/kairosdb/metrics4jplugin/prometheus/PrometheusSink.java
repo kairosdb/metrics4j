@@ -1,8 +1,7 @@
 package org.kairosdb.metrics4jplugin.prometheus;
 
-import io.prometheus.client.Collector;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.metrics.exporter.httpserver.HTTPServer;
+import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import lombok.Setter;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.TriggerNotification;
@@ -57,6 +56,8 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 
 		try
 		{
+			PrometheusRegistry
+			HTTPServer.builder().registry()
 			m_httpServer = new HTTPServer(new InetSocketAddress(listenPort), this, true);
 		}
 		catch (IOException e)

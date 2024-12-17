@@ -2,7 +2,7 @@
   - [Have you ever wanted to ...](#have-you-ever-wanted-to-)
   * [Philosophy of using Metrics4j](#philosophy-of-using-metrics4j)
     + [Application Developer](#application-developer)
-    + [IT Administrator](#it-administrator)
+    + [System Administrator](#it-administrator)
 - [Section 1 (Developer)](#section-1--developer-)
   * [Using the library](#using-the-library)
   * [Different ways to report metrics](#different-ways-to-report-metrics)
@@ -81,7 +81,7 @@ All of the above is possible with Metrics4j.
 
 ## Philosophy of using Metrics4j
 The metrics4j library is designed to separate the role of the application developer
-from the IT administrator when it comes to reporting metrics.  When, how often and
+from the system administrator when it comes to reporting metrics.  When, how often and
 where metrics are reported is not the job of the developer.
 
 
@@ -92,8 +92,8 @@ with a clean, easy to use api.  The interpretation of those numbers, ie. is it a
 or a rate, is determined at runtime by the administrator along with where to send and how 
 often to send.
 
-### IT Administrator
-The IT Admin is the one that deploys the application and is able, by configuration at runtime,
+### System Administrator
+The System Admin is the one that deploys the application and is able, by configuration at runtime,
 to determine the following
 1. What metrics to send
 1. How often to send

@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.internal;
 import org.kairosdb.metrics4j.configuration.MissingReferenceException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,11 @@ public class ComponentTracker<T>
 		{
 			listener.newComponent(name, component);
 		}
+	}
+
+	public Collection<T> getComponents()
+	{
+		return m_components.values();
 	}
 
 	public T getComponent(String name)

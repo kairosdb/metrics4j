@@ -494,6 +494,9 @@ public class MetricConfig
 
 	private void shutdown()
 	{
+		log.debug("Flushing metrics before shutdown");
+		m_context.flushMetrics();
+
 		log.debug("Shutdown called for Metrics4j");
 		for (Closeable closeable : m_closeables)
 		{
