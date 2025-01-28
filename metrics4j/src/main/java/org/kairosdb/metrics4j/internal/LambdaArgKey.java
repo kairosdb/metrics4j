@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j.internal;
 
 import lombok.ToString;
+import org.kairosdb.metrics4j.util.NameParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class LambdaArgKey implements ArgKey
 	{
 		m_className = className;
 		m_methodName = methodName;
-
+		m_simpleClassName = NameParser.parseSimpleClassName(className);
 	}
 
 	@Override

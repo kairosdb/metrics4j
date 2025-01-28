@@ -243,7 +243,10 @@ public class MetricConfig
 						String metricName = root.getString(combinedPath);
 
 						if (!metricName.isEmpty())
-							m_mappedMetricNames.put(createList(path, i-1), metricName);
+						{
+							log.debug("Metric name {} found in path {}", metricName, path);
+							m_mappedMetricNames.put(createList(path, i - 1), metricName);
+						}
 					}
 					else if (internalProp.equals("_sink"))
 					{
@@ -551,7 +554,18 @@ public class MetricConfig
 
 	public String getMetricNameForKey(ArgKey key)
 	{
-		return m_mappedMetricNames.get(key.getConfigPath());
+		List<String> configPath = key.getConfigPath();
+		for (int i = configPath.size(); i >= 0; i--)
+		{
+			List<String> searchPath = new ArrayList<>(configPath.subList(0, i));
+			String metricName = m_mappedMetricNames.get(searchPath);
+
+			if (metricName != null)
+				return metricName;
+
+		}
+
+		return null;
 	}
 
 

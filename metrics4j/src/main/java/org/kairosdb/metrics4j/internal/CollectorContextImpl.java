@@ -68,6 +68,7 @@ public class CollectorContextImpl implements CollectorContext
 				FormattedMetric formattedMetric = new FormattedMetric(metric, m_props, m_tags, m_help);
 
 				for (ReportedMetric.Sample sample : metric.getSamples()) {
+					log.debug("Format for key {} sample {} metric name {}",m_argKey, sample, m_metricName);
 					String metricName = formatter.formatReportedMetric(metric, sample, m_metricName);
 
 					log.debug("Reporting metric {} to sink {}", metricName, sinkQueue.getSinkName());
