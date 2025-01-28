@@ -230,6 +230,7 @@ public class MetricConfig
 		for (Map.Entry<String, ConfigValue> entry : entries)
 		{
 			String[] path = entry.getKey().split(PATH_SPLITTER_REGEX);
+			path = sanitizePath(path);
 
 			for (int i = (path.length -1); i >= 0 ; i--)
 			{
@@ -333,6 +334,23 @@ public class MetricConfig
 				}
 			}
 		}
+	}
+
+	/*
+	Used to clean path elements that have quotes around them
+	 */
+	private String[] sanitizePath(String[] path)
+	{
+		String[] ret = new String[path.length];
+		for (int i = 0; i < path.length; i++)
+		{
+			if (path[i].startsWith("\"") && path[i].endsWith("\""))
+				ret[i] = path[i].substring(1, path[i].length()-1);
+			else
+				ret[i] = path[i];
+		}
+
+		return ret;
 	}
 
 	private static void registerIfNotNull(Config config, String path, Consumer<Config> register)
