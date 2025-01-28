@@ -1037,3 +1037,63 @@ metrics4j: {
 Once you have included the JMXReporter plugin add a _dump-file config and run your application.
 When you shutdown your application, all possible JMX metrics will be dumped to the config
 file so you can turn on and off metrics you are looking for.
+
+## External Helpers
+
+### Logback Appender
+
+The logback appender reports a count for each log level entry that is written.
+
+You can use this within your own application by including the m4j-logback jar as a 
+dependency or by copying the m4j-logback and metrics4j jar files into your applications 
+lib folder.
+
+The original use case for this addon was for reporting errors from Cassandra logs.  
+In the Cassandra use case JMXReporter (which contains metrics4j) was already being used to
+grab JMX data.  JMXReporter was removed and the metrics4j and m4j-logback jars were copied
+into the cassandra/lib folder.  Logback will autoload the appender (which in turn 
+will load metrics4j) so JMXReporter and the javaagent command was no longer needed.
+
+To enable the appender you add it to the following to the logback.xml file.
+```xml
+  ...
+  <!-- the name LogMetrics will show up as a tag on the reported metrics -->
+  <appender name="LogMetrics" class="org.kairosdb.metrics.metrics4jplugin.logback.Metrics4jAppender" />
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+
+    <appender-ref ref="LogMetrics" />
+  </root>
+```
+
+There are 6 metrics reported by this log appender
+```hocon
+sources {
+  org.kairosdb.metrics.metrics4jplugin.logback.LoggerStats {
+    debug {
+        "_help"="Number of calls made to the debug logger"
+    }
+    error {
+        "_help"="Number of calls made to the error logger"
+    }
+    info {
+        "_help"="Number of calls made to the info logger"
+    }
+    logCount {
+        "_help"="Number of calls made to the logger, with the level as a tag"
+    }
+    trace {
+        "_help"="Number of calls made to the trace logger"
+    }
+    warn {
+        "_help"="Number of calls made to the warn logger"
+    }
+  }
+}
+```
+
+The logCount metric is a bit redundant as it reports each of the log levels but 
+uses a tag to differentiate between the different levels.  This lets you customize 
+how you want the metric reported.  If you are only interested in the counts of errors
+then you can just turn on that metric alone.
