@@ -589,6 +589,8 @@ Internal sinks are simple and built in as part of the metrics4j library.
 
 
 ##### Slf4JMetricSink
+* _log-level:_ (INFO, DEBUG, WARN, ERROR, TRACE), log level to use when reporting metrics
+
 Reports metrics to an Slf4j logger.  The log-level attribute controls the log level (DEBUG, WARN, INFO, etc).
 ```hocon
 sinks: {
@@ -599,9 +601,14 @@ sinks: {
 }
 ```
 
-* _log-level:_ (INFO, DEBUG, WARN, ERROR, TRACE), log level to use when reporting metrics
 
 ##### TelnetSink
+* _host:_ Host to connect to
+* _port:_ Port to use
+* _protocol:_ (UDP/**TCP**) Protocol to use
+* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
+* _resolution:_ (SECONDS/**MILLISECONDS**) If set to SECONDS this sink will use the 'put' command
+  if set to MILLISECONDS the sink will use the 'putm' command
 
 Sends data using the telnet protocol supported by OpenTSDB and KairosDB.
 
@@ -619,15 +626,13 @@ sinks: {
 The resolution attribute can be either SECONDS or MILLISECONDS sending either a put or putm
 respectively
 
+
+##### GraphitePlaintextSink
+* _include-tags:_ includes tags for newer graphite version
 * _host:_ Host to connect to
 * _port:_ Port to use
 * _protocol:_ (UDP/**TCP**) Protocol to use
 * _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
-* _resolution:_ (SECONDS/**MILLISECONDS**) If set to SECONDS this sink will use the 'put' command
-if set to MILLISECONDS the sink will use the 'putm' command
-
-
-##### GraphitePlaintextSink
 
 Sends data using the plaintext protocol.  It takes three attributes for host, port
 and whether to include tags.
@@ -643,21 +648,16 @@ sinks: {
 }
 ```
 
-* _include-tags:_ includes tags for newer graphite version
+
+##### StatsDTCPSink
 * _host:_ Host to connect to
 * _port:_ Port to use
 * _protocol:_ (UDP/**TCP**) Protocol to use
 * _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
-
-##### StatsDTCPSink
 
 Sends metrics to a StatsD instance.  You can also set the source property _statsd_type_ to specify
 the type of metric, it defaults to 'g'
 
-* _host:_ Host to connect to
-* _port:_ Port to use
-* _protocol:_ (UDP/**TCP**) Protocol to use
-* _max-udp-packet-size:_ (**1024**) Max packet size when using UDP
 
 #### External
 External sinks are provided as plugins that have their own dependencies.  These
@@ -668,6 +668,7 @@ The folder path is the location of the sink jar and all of its dependencies.  A 
 class loader is used for the sink so the dependencies will not interfere with the application.
 
 ##### InfluxSink
+* _host-url:_ url endpoint for influx
 
 External sink for sending data to InfluxDB.  Because both version 1 and 2 support the same 
 line protocol you can switch between them by changing the host-url metrics are sent to.
@@ -682,9 +683,9 @@ sinks: {
 }
 ```
 
-* _host-url:_ url endpoint for influx
 
 ##### PrometheusSink
+* _listen-port:_ Port on which to listen for prometheus scrap requests
 
 External sink that opens a port for a prometheus server to scrape the metrics from.
 
@@ -710,9 +711,12 @@ triggers: {
 }
 ```
 
-* _listen-port:_ Port on which to listen for prometheus scrap requests
 
 ##### KairosSink
+* _host-url:_ (**http://localhost**) Url endpoint for sending http metrics to kairosdb
+* _telnet-host:_ (**null**) Telnet host to send metrics to kairosdb
+* _telnet-port:_ (**4242**) Telnet port
+* _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h", this can also be set as a prop in the source for specific metrics
 
 External sink for sending data to KairosDB.  Metrics can be sent either via http or telnet
 by specifying the appropriate configurations.
@@ -730,12 +734,10 @@ kairos: {
 Depending on which properties are set the sink will send either http or telnet using
 the kairosdb client.
 
-* _host-url:_ (**http://localhost**) Url endpoint for sending http metrics to kairosdb
-* _telnet-host:_ (**null**) Telnet host to send metrics to kairosdb
-* _telnet-port:_ (**4242**) Telnet port
-* _ttl:_ (**0s**) Optional ttl.  Can be specified like so "60s" or "24h", this can also be set as a prop in the source for specific metrics  
 
 ##### OtelSink
+* _endpoint:_ (**http://localhost:4317**) Url for the grpc endpoint of the otlp collector.
+* _name:_ (**metrics4j**) Service name passed as part of the instrumentation scope info.
 
 External Open Telemetry sink for sending metrics via OTLP using grpc protocol.
 
@@ -750,8 +752,6 @@ sinks: {
 }
 ```
 
-* _endpoint:_ (**http://localhost:4317**) Url for the grpc endpoint of the otlp collector.
-* _name:_ (**metrics4j**) Service name passed as part of the instrumentation scope info.
 
 ##### TimescaleDBSink
 
@@ -781,15 +781,19 @@ metrics4j {
 ```
 
 #### BagCollector
-This collector does not do any aggregation.  Whatever value was put into the collector
-is reported using the time of the put or the Instant if one was provided.
-BagCollector can collect Long, Double, Duration and String values.
-
 * _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
   the units values are reported in.  This only applies to Duration values.  Can be set as a source property.
 * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
 
+This collector does not do any aggregation.  Whatever value was put into the collector
+is reported using the time of the put or the Instant if one was provided.
+BagCollector can collect Long, Double, Duration and String values.
+
+
 #### Chained Collectors
+* _collectors:_ List of collectors to chain together
+* _prefixes:_ Prefix to add to each collector respectively
+
 There is a chain collector for each type of data: ChainedDoubleCollector, 
 ChainedDurationCollector, ChainedLongCollector, ChainedStringCollector, ChainedTimeCollector
 
@@ -823,74 +827,80 @@ metric being reported was `myMetric.value`, the chain collector would report two
 values `myMetric.count.value` and `myMetric.max.value`.  The prefix is applied
 to the last part of the metric.
 
-* _collectors:_ List of collectors to chain together
-* _prefixes:_ Prefix to add to each collector respectively
 
 #### DoubleCounter
-Counts up double values to be reported.  The counter can be reset when values are reported
-by setting reset: true in the conf
-
 * _reset:_ (true/false), when true the counter resets after reporting
 * _report-zero:_ (true/false), when set to false will not report zero values
 
-#### DoubleGauge
-Simple gauge that reports the most recently received value.
+Counts up double values to be reported.  The counter can be reset when values are reported
+by setting reset: true in the conf
 
+
+#### DoubleGauge
 * _reset:_ (true/false), when true the gauge sets to zero after reporting
 
+Simple gauge that reports the most recently received value.
+
+
 #### LastTime
+* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
+  the unites values are reported in.  Can be set as a source property.
+* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
+
 LastTime collects Duration metrics and when reporting it simply reports the last
 Duration it received.  The Duration is cleared once it is reported so it is
 only reported once.
 
-* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
-  the unites values are reported in.  Can be set as a source property.
-* * _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
 
 #### LongCounter
-Counts up long values to be reported.  The counter can be reset when values are reported
-by setting reset: true in the conf
-
 * _reset:_ (true/false), when true the counter resets after reporting
 * _report-zero:_ (true/false), when set to false will not report zero values
 
+Counts up long values to be reported.  The counter can be reset when values are reported
+by setting reset: true in the conf
+
+
 #### LongGauge
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
+
 Simple gauge that reports the most recently received value.
 
-* _reset:_ (true/false), when true the gauge sets to zero after reporting
 
 #### MaxLongGauge
+* _reset:_ (true/false), when true the gauge sets to zero after reporting
+
 Extends LongGauge and only stores and reports the max value over the reporting period.
 
-* _reset:_ (true/false), when true the gauge sets to zero after reporting
 
 #### NullCollector
 If you are familiar with /dev/null, this is the same concept.  A way of turning
 off certain metrics.
 
 #### PutCounter
-Counts the number of times the put method is called on a collector.  Can be used 
-with any data type.
-
 * _reset:_ (true/false), when true the counter resets after reporting
 * _report-zero:_ (true/false), when set to false will not report zero values
 
+Counts the number of times the put method is called on a collector.  Can be used 
+with any data type.
+
+
 #### SimpleStats
+* _report-zero:_ (true/false), when set to false will not report zero values
+
 This reports the min, max, sum, count and avg for the set of values received since
 last reporting.
 
-* _report-zero:_ (true/false), when set to false will not report zero values
 
 #### SimpleTimerMetric
+* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set
+  the units values are reported in.   Can be set as a source property.
+* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
+* _report-zero:_ (true/false), when set to false will not report zero values
+
 Used for reporting measured durations.  The collector reports min, max, total,
 count and avg for the measurements received during the last reporting period.
 Values are reported as milliseconds by default but maybe changed using the
 report-unit attribute.  The report-unit and report-format can also be passed as a prop in the sources.
-
-* _report-unit:_ (NANOS, MICROS, **MILLIS**, SECONDS, MINUTES, HOURS, DAYS), set 
-the units values are reported in.   Can be set as a source property.
-* _report-format:_ (DOUBLE, **LONG**), set the format.  Double is truncated at 3 decimals.  Can be set as a source property.
-* _report-zero:_ (true/false), when set to false will not report zero values
 
 #### StringReporter
 No aggregation is done in this collector.  All strings are reported with the time
@@ -903,6 +913,9 @@ provided.  The deltas are recorded as a SimpleTimerMetric
 Takes the same parameters as SimpleTimerMetric
 
 #### TimestampCounter
+* _increment-frequency:_ (20000) How often in milliseconds to increment the reporting timestamp.  Default 20sec.
+* _bucket-size:_ (60000) Size of timestamp counting bucket.  Default 1 min.
+
 This collector records a count of timestamps during a configurable bucket of time.
 The initial use of this collector was to count events going in and out of an event
 system where each event had a timestamp set when it went in.  
@@ -920,8 +933,6 @@ previous counts.
 For a detail description of how this works see: 
 https://github.com/kairosdb/metrics4j/wiki/TimestampCounter
 
-* _increment-frequency:_ (20000) How often in milliseconds to increment the reporting timestamp.  Default 20sec.
-* _bucket-size:_ (60000) Size of timestamp counting bucket.  Default 1 min.
 
 ### Formatters
 A formatter can change the name to your liking ie. underscore vs period
@@ -930,8 +941,21 @@ in the name.
 #### TemplateFormatter
 class = org.kairosdb.metrics4j.formatters.TemplateFormatter
 
-Pass a template attribute where you can placeholders for className, methodName,
-field and specific tags.
+* _template:_ template to use when formatting metric names, see below.
+
+TemplateFormatter lets you specify the resulting metric name using a template.  Template
+variables are specified using `%{var}` syntax.
+
+##### Template Variables
+* _className_ - Full class name from where the metric originated ie `com.project.MyStats`
+* _simpleClassName_ - Just the class name ie `MyStats`
+* _methodName_ - Name of the method called ie `uploadTime`
+* _field_ - The field from the collector ie `max` or `count`
+* _metricName_ - User specified field that is declared in the configuration.  The value is 
+specified in configuration using `_metric-name`
+* _tag._ - Provides a way to use a tag as part of the metric name ie `tag.host`
+
+Sample template configuration:
 
 ```hocon
 formatters: {
@@ -942,8 +966,8 @@ formatters: {
 }
 ```
 
-You can also use metricName which can be specified within the source.  This gives
-you the option to explicitly name a metrics
+Sample using user defined metricName:
+
 ```hocon
 formatters.CustomFormatter: {
   _class: "org.kairosdb.metrics4j.formatters.TemplateFormatter"
@@ -956,17 +980,19 @@ sources.com.kairosdb.CrazyClassNamePath: {
 ```
 
 **Note** The template formatter uses `%{}` so as to not be confused with `${}` used
-by hocon substitution - and so you can use both in a template. like so 
+by hocon substitution - you can use both in a template. like so 
 `template: ${metric-prefix}".%{className}.%{methodName}.%{tag.status}.%{field}"`  
 You only quote the template replace portion.
 
-* _template:_ template to use when formatting metric names, see above.
 
 ### Triggers
 The trigger tells metrics4j when to gather the metrics from the collectors and 
 report to the sinks.
 
 #### IntervalTrigger
+
+* _interval:_ Set the trigger interval to gather metrics.
+
 The IntervalTrigger lets you set a time for how often metrics are reported.  The
 following reports metrics every 5 seconds.  The interval property is a hocon duration. 
 https://github.com/lightbend/config/blob/master/HOCON.md#duration-format
@@ -978,9 +1004,6 @@ triggers: {
   }
 }
 ```
-
-* _interval:_ Set the trigger interval to gather metrics.
-
 
 ### Plugins
 
