@@ -14,6 +14,7 @@ import org.kairosdb.metrics4j.internal.FormattedMetric;
 import org.kairosdb.metrics4j.reporting.DoubleValue;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricValue;
+import org.kairosdb.metrics4j.reporting.StringValue;
 import org.kairosdb.metrics4j.sinks.MetricSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,8 @@ public class KairosSink implements MetricSink, Closeable
 					sendMetric.addDataPoint(sample.getTime().toEpochMilli(), ((LongValue)value).getValue());
 				else if (value instanceof DoubleValue)
 					sendMetric.addDataPoint(sample.getTime().toEpochMilli(), ((DoubleValue)value).getValue());
+				else if (value instanceof StringValue)
+					sendMetric.addDataPoint(sample.getTime().toEpochMilli(), value.getValueAsString());
 			}
 		}
 
