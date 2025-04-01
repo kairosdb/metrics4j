@@ -70,9 +70,9 @@ public abstract class MetricsGatherer implements CollectorCollection
 			else
 			{
 				agedMetricCollector.updateLastUsed();
+				ret.add(reportedMetric);
 			}
 
-			ret.add(reportedMetric);
 		}
 
 		return ret;

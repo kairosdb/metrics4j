@@ -25,10 +25,13 @@ public class SinkQueue
 	{
 		synchronized (m_queueLock)
 		{
-			List<FormattedMetric> metrics = m_metricList;
-			m_metricList = new ArrayList<>();
+			if (!m_metricList.isEmpty())
+			{
+				List<FormattedMetric> metrics = m_metricList;
+				m_metricList = new ArrayList<>();
 
-			m_sink.reportMetrics(metrics);
+				m_sink.reportMetrics(metrics);
+			}
 		}
 	}
 

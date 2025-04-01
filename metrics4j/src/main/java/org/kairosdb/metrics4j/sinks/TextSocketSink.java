@@ -143,7 +143,6 @@ public abstract class TextSocketSink implements MetricSink, Closeable
 
 		public void sendText(String msg)
 		{
-			logger.debug(msg);
 			if (m_textBuffer.size() + msg.length() + 1 > m_bufferSize)
 			{
 				retry(this::flush);

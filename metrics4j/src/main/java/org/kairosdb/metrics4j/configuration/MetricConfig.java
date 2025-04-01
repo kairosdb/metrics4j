@@ -123,7 +123,9 @@ public class MetricConfig
 		}
 		catch (ClassNotFoundException | MalformedURLException | IntrospectionException e)
 		{
-			throw new ConfigurationException("Unable to load plugin '"+objName+"' '"+className+"' for configuration element '"+config.origin().lineNumber()+"'");
+			log.debug("Plugin loading error", e);
+			throw new ConfigurationException("Unable to load plugin '"+objName+"' '"+className+
+					"' for configuration element '"+config.origin().lineNumber()+"', Error: "+e.getMessage());
 		}
 
 		return ret;

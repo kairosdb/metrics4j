@@ -2,6 +2,7 @@ package org.kairosdb.metrics4j.sinks;
 
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.internal.FormattedMetric;
+import org.kairosdb.metrics4j.reporting.StringValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,18 +53,34 @@ public class TelnetSink extends TextSocketSink
 
 		for (FormattedMetric metric : metrics)
 		{
+			logger.debug("Telnet sending {}", metric);
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
+				String command = m_command;
+				boolean stringValue = false;
+				if (sample.getValue() instanceof StringValue)
+				{
+					stringValue = true;
+					command = "puts ";
+				}
+
 				StringBuilder sb = new StringBuilder();
-				sb.append(m_command)
+				sb.append(command)
 						.append(sample.getMetricName()).append(" ");
 
-				if (resolution.equals(MILLISECONDS))
+				if (resolution.equals(MILLISECONDS) || stringValue) //String values are only sent with millisecond time
 					sb.append(sample.getTime().toEpochMilli());
 				else
 					sb.append(sample.getTime().getEpochSecond());
 
-				sb.append(" ").append(sample.getValue().getValueAsString());
+				if (stringValue)
+				{
+					sb.append(" \"").append(sample.getValue().getValueAsString()).append("\"");
+				}
+				else
+				{
+					sb.append(" ").append(sample.getValue().getValueAsString());
+				}
 
 				for (Map.Entry<String, String> tag : metric.getTags().entrySet())
 				{
