@@ -353,4 +353,13 @@ public class OtelSink implements MetricSink, Closeable
 	{
 		m_exporter.shutdown();
 	}
+
+	@Override
+	public String toString()
+	{
+		return "OtelSink{" +
+				"endpoint='" + endpoint + '\'' +
+				", name='" + name + '\'' +
+				'}';
+	}
 }

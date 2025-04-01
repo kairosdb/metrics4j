@@ -101,4 +101,12 @@ public class InfluxSink implements MetricSink, Closeable
 	{
 		m_httpClient.close();
 	}
+
+	@Override
+	public String toString()
+	{
+		return "InfluxSink{" +
+				"hostUrl='" + hostUrl + '\'' +
+				'}';
+	}
 }

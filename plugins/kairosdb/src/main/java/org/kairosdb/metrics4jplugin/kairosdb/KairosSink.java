@@ -48,6 +48,7 @@ public class KairosSink implements MetricSink, Closeable
 	{
 		MetricBuilder builder = MetricBuilder.getInstance();
 
+		logger.debug("Reporting {} metrics", metrics.size());
 		for (FormattedMetric metric : metrics)
 		{
 			String metricTtl = metric.getProps().get("ttl");
@@ -57,6 +58,7 @@ public class KairosSink implements MetricSink, Closeable
 			else
 				timeout = ttl.getSeconds();
 
+			logger.debug("Reporting {} samples for metrics {}", metric.getSamples().size(), metric);
 			for (FormattedMetric.Sample sample : metric.getSamples())
 			{
 				Metric sendMetric = builder.addMetric(sample.getMetricName())
@@ -66,6 +68,7 @@ public class KairosSink implements MetricSink, Closeable
 					sendMetric.addTtl((int)timeout);
 
 				MetricValue value = sample.getValue();
+				logger.debug("Sending value {}", value);
 				if (value instanceof LongValue)
 					sendMetric.addDataPoint(sample.getTime().toEpochMilli(), ((LongValue)value).getValue());
 				else if (value instanceof DoubleValue)
@@ -116,5 +119,15 @@ public class KairosSink implements MetricSink, Closeable
 	public void close() throws IOException
 	{
 		m_client.close();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "KairosSink{" +
+				"telnetPort=" + telnetPort +
+				", hostUrl='" + hostUrl + '\'' +
+				", telnetHost='" + telnetHost + '\'' +
+				'}';
 	}
 }

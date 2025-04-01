@@ -53,4 +53,10 @@ public class STDOutSink implements MetricSink
 	{
 		return DEFAULT_FORMATTER;
 	}
+
+	@Override
+	public String toString()
+	{
+		return "STDOutSink{}";
+	}
 }

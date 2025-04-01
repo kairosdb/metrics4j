@@ -73,4 +73,14 @@ public class GraphitePlaintextSink extends TextSocketSink
 	{
 		super.init(context);
 	}
+
+	@Override
+	public String toString()
+	{
+		return "GraphitePlaintextSink{" +
+				"m_host='" + m_host + '\'' +
+				", m_port=" + m_port +
+				", m_protocol=" + m_protocol +
+				'}';
+	}
 }

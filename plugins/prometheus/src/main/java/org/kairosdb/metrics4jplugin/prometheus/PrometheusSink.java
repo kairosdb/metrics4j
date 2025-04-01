@@ -140,4 +140,12 @@ public class PrometheusSink  extends CollectorRegistry implements MetricSink, Cl
 	{
 		return metricFamilySamples();
 	}
+
+	@Override
+	public String toString()
+	{
+		return "PrometheusSink{" +
+				"listenPort=" + listenPort +
+				'}';
+	}
 }

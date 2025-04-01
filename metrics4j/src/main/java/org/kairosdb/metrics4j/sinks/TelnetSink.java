@@ -75,7 +75,8 @@ public class TelnetSink extends TextSocketSink
 
 				if (stringValue)
 				{
-					sb.append(" \"").append(sample.getValue().getValueAsString()).append("\"");
+					String escapedValue = sample.getValue().getValueAsString().replace("\\", "\\\\").replace("\"", "\\\"");
+					sb.append(" \"").append(escapedValue).append("\"");
 				}
 				else
 				{
@@ -101,5 +102,14 @@ public class TelnetSink extends TextSocketSink
 		super.init(context);
 	}
 
-
+	@Override
+	public String toString()
+	{
+		return "TelnetSink{" +
+				"m_command='" + m_command + '\'' +
+				", m_port=" + m_port +
+				", m_host='" + m_host + '\'' +
+				", m_protocol=" + m_protocol +
+				'}';
+	}
 }

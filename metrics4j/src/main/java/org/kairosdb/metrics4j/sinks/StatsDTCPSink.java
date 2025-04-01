@@ -46,4 +46,14 @@ public class StatsDTCPSink extends TextSocketSink
 	{
 		return DEFAULT_FORMATTER;
 	}
+
+	@Override
+	public String toString()
+	{
+		return "StatsDTCPSink{" +
+				"m_host='" + m_host + '\'' +
+				", m_port=" + m_port +
+				", m_protocol=" + m_protocol +
+				'}';
+	}
 }

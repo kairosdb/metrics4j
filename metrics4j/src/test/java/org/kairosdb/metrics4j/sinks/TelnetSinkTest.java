@@ -104,7 +104,7 @@ class TelnetSinkTest
 
 		sink.reportMetrics(Collections.singletonList(metric));
 
-		assertThat(sink.getSentText()).isEqualTo("puts FormattedName 962715600000 \"Happy Birthday\" host=localhost");
+		assertThat(sink.getSentText()).isEqualTo("puts FormattedName 962715600000 \"Happy Birthday \\\"Brian\\\"\" host=localhost");
 	}
 
 }
