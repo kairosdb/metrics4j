@@ -191,6 +191,9 @@ class MetricConfigTest
 
 		key = new LambdaArgKey("org.kairosdb.jmxreporter.JMXReporter", "something");
 		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
+
+		key = new LambdaArgKey("java.lang.Environment.test", "something");
+		assertThat(metricConfig.isDisabled(key)).isEqualTo(false);
 	}
 
 

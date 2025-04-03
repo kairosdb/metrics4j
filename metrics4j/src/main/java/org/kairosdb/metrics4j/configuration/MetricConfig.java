@@ -322,7 +322,13 @@ public class MetricConfig
 					}
 					else if (internalProp.equals("_disabled"))
 					{
-						Boolean value = (Boolean)entry.getValue().unwrapped();
+						Object valueObj = entry.getValue().unwrapped();
+						Boolean value;
+						if (valueObj instanceof String)
+							value = Boolean.valueOf((String)valueObj);
+						else
+							value = (Boolean) valueObj;
+
 						m_disabledPaths.put(createList(path, i - 1), value);
 					}
 					else if (internalProp.equals("_help"))
