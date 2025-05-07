@@ -153,8 +153,13 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 
 	private void registerMBean(ObjectName beanName)
 	{
+		logger.debug("Inspecting JMX bean: {}", beanName.toString());
+
 		if (m_sourceKeyMap.containsKey(beanName))
+		{
+			logger.debug("Rejecting JMX bean: {}", beanName.toString());
 			return;
+		}
 		
 		List<SourceKey> sourceKeys = new ArrayList<>();
 		try
@@ -177,6 +182,8 @@ public class JMXReporter implements Plugin, Closeable, NotificationListener
 					type = sourceProps.getOrDefault(JMX_TYPE_PROP, type);
 
 					String metricType = sourceProps.getOrDefault(METRIC_TYPE, m_defaultMetricType);
+
+					logger.debug("Inspecting JMX class: {} method: {}", className, methodName);
 
 					String helpText = "";
 					if (!tags.isEmpty())

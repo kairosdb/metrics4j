@@ -10,6 +10,9 @@ import org.kairosdb.metrics4j.internal.LongLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandlerImpl;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandlerRecorder;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandlerRuntime;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 import org.kairosdb.metrics4j.internal.TagKey;
 import org.kairosdb.metrics4j.internal.adapters.DoubleMethodCollectorAdapter;
@@ -353,6 +356,42 @@ public class MetricSourceManager
 				});
 
 		return (T)proxyInstance;
+	}
+
+	public static <T> void record(Class<T> reporterClass)
+	{
+		MetricConfig metricConfig = getMetricConfig();
+
+		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(metricConfig));
+		handler.setImplementation(new SourceInvocationHandlerRecorder());
+	}
+
+	public static <T> T verify(Class<T> reporterClass)
+	{
+		MetricConfig metricConfig = getMetricConfig();
+
+		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(metricConfig));
+		SourceInvocationHandlerImpl impl = handler.getImplementation();
+
+		if (impl instanceof SourceInvocationHandlerRuntime)
+		{
+			//todo
+			//Need to return a fake handler to capture the call they want to check
+			Object proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
+					(proxy, method, args) -> {
+						//todo fix this cannot be null
+						handler.setCollector(new MethodArgKey(method, args), null);
+						return null;
+					});
+		}
+		else
+		{
+			//Throw runtime exception that you didn't start recording for this object
+			throw new RuntimeException("You must call MetricSourceManager.record("+reporterClass.getName()+" before you can verify metric calls.");
+		}
+
+
+		return null;
 	}
 
 	public MetricsContext getMetricsContext()

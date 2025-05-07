@@ -10,6 +10,7 @@ import org.kairosdb.metrics4j.collectors.LongCollector;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.collectors.StringCollector;
 import org.kairosdb.metrics4j.collectors.TimeCollector;
+import org.kairosdb.metrics4j.collectors.helpers.AllCollectors;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.LongValue;
 import org.kairosdb.metrics4j.reporting.MetricReporter;
@@ -30,8 +31,7 @@ import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 /**
  Counts the number of times put is called to pass on a metric.
  */
-public class PutCounter extends TimerCollector implements LongCollector, DoubleCollector,
-		StringCollector, DurationCollector, TimeCollector, MetricCollector
+public class PutCounter extends TimerCollector implements AllCollectors
 {
 	private Map<String, String> m_reportContext = new HashMap<>();
 	@EqualsAndHashCode.Exclude
