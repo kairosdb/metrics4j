@@ -78,7 +78,7 @@ public class CollectorContextImpl implements CollectorContext
 				sinkQueue.addMetric(formattedMetric);
 			}
 			else {
-				log.warn("No formatter configured for metric {}", metric.getMethodName());
+				log.warn("No formatter configured for metric {} {}", metric.getClassName(), metric.getMethodName());
 			}
 		}
 	}
