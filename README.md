@@ -257,8 +257,8 @@ add the user as a tag using `MetricThreadHelper.addTag("user", username)` and if
 the database insert is done on the same thread the tag will be added to that metric.
 
 ## Testing with the library
-As any good developer will do you will want to test your code to make sure
-it reports metrics.
+Metrics4j provides two mechanisms to verify that the metric apis are being called
+from withing your code.  The first lets you mock the collector that is returned.
 The following example is using mockito but any mock library will work.
 
 ```java
@@ -276,6 +276,23 @@ parameters
 ```java
 verify(myCounter).put(42);
 ```
+
+The second option is to use the `MetricSourceManager.record()` method and pass
+in the class you want to start recording.
+
+```java
+MetricSourceManager.record(MessageSizeReporter.class);
+```
+
+The record method must be called sometime before the metric is reported, doesn't matter when.
+A metric call can then be verified with the `MetricSourceManager.verify()` method.
+
+```java
+MetricSourceManager.verify(MessageSizeReporter.class, 1).reportSize("localhost").put(42);
+```
+
+This will verify that `reportSize` was called with 'localhost' as the param and 42 was set on the collector.
+The optional parameter to verify is the number of times the call is expected - default is 1.
 
 # Section 2 (Admin)
 

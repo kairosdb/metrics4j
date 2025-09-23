@@ -1,6 +1,7 @@
 package org.kairosdb.metrics4j;
 
 import org.kairosdb.metrics4j.annotation.Key;
+import org.kairosdb.metrics4j.annotation.Value;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
 
