@@ -95,7 +95,7 @@ public abstract class TextSocketSink implements MetricSink, Closeable
 				flush.apply();
 				success = true;
 			}
-			catch (IOException e)
+			catch (Exception e)
 			{
 				logger.warn("Failed sending metrics to host {}", m_host);
 				logger.warn("Flush exception", e);

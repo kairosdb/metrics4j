@@ -8,8 +8,10 @@ import org.kairosdb.metrics4j.internal.DoubleLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.LambdaArgKey;
 import org.kairosdb.metrics4j.internal.LongLambdaCollectorAdaptor;
 import org.kairosdb.metrics4j.internal.MethodArgKey;
-import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandlerAdapter;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
+import org.kairosdb.metrics4j.internal.testing.SourceInvocationHandlerRecorder;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 import org.kairosdb.metrics4j.internal.TagKey;
 import org.kairosdb.metrics4j.internal.adapters.DoubleMethodCollectorAdapter;
@@ -17,6 +19,8 @@ import org.kairosdb.metrics4j.internal.adapters.DurationMethodCollectorAdapter;
 import org.kairosdb.metrics4j.internal.adapters.LongMethodCollectorAdapter;
 import org.kairosdb.metrics4j.internal.adapters.MethodSnapshotAdapter;
 import org.kairosdb.metrics4j.internal.adapters.StringMethodCollectorAdapter;
+import org.kairosdb.metrics4j.internal.testing.VerifyCollector;
+import org.kairosdb.metrics4j.internal.testing.VerifyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +50,7 @@ import static java.util.Objects.requireNonNull;
 public class MetricSourceManager
 {
 	private static final Logger log = LoggerFactory.getLogger(MetricSourceManager.class);
-	private static final Map<Class, SourceInvocationHandler> s_invocationMap = new ConcurrentHashMap<>();
+	private static final Map<Class, SourceInvocationHandlerAdapter> s_invocationMap = new ConcurrentHashMap<>();
 	private static final Map<ArgKey, StaticCollectorCollection> s_staticCollectors = new ConcurrentHashMap<>();
 
 	private static volatile MetricConfig s_metricConfig;
@@ -136,7 +140,7 @@ public class MetricSourceManager
 					metricConfig.addDumpSource(className+"."+method.getName(), helpText);
 				}
 			}
-			return new SourceInvocationHandler(metricConfig);
+			return new SourceInvocationHandlerAdapter(metricConfig);
 		});
 
 		//not sure if we should cache proxy instances or create new ones each time.
@@ -344,13 +348,53 @@ public class MetricSourceManager
 	{
 		MetricConfig metricConfig = getMetricConfig();
 
-		SourceInvocationHandler handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandler(metricConfig));
+		SourceInvocationHandlerAdapter handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandlerAdapter(metricConfig));
 
 		Object proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
 				(proxy, method, args) -> {
 					handler.setCollector(new MethodArgKey(method, args), stats);
 					return null;
 				});
+
+		return (T)proxyInstance;
+	}
+
+	public static <T> void record(Class<T> reporterClass)
+	{
+		MetricConfig metricConfig = getMetricConfig();
+
+		SourceInvocationHandlerAdapter handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandlerAdapter(metricConfig));
+		handler.setImplementation(new SourceInvocationHandlerRecorder());
+	}
+
+	public static <T> T verify(Class<T> reporterClass)
+	{
+		return verify(reporterClass, 1);
+	}
+
+	public static <T> T verify(Class<T> reporterClass, int times)
+	{
+		MetricConfig metricConfig = getMetricConfig();
+
+		SourceInvocationHandlerAdapter handler = s_invocationMap.computeIfAbsent(reporterClass, (klass) -> new SourceInvocationHandlerAdapter(metricConfig));
+		SourceInvocationHandler impl = handler.getImplementation();
+
+		Object proxyInstance = null;
+		if (impl instanceof SourceInvocationHandlerRecorder)
+		{
+			//Return a fake handler to capture the call they want to check
+			proxyInstance = Proxy.newProxyInstance(reporterClass.getClassLoader(), new Class[]{reporterClass},
+					(proxy, method, args) -> {
+						VerifyCollector verifyCollector = new VerifyCollector((SourceInvocationHandlerRecorder) impl, new MethodArgKey(method, args), times);
+
+						return verifyCollector;
+					});
+		}
+		else
+		{
+			//Throw runtime exception that you didn't start recording for this object
+			throw new VerifyException("You must call MetricSourceManager.record("+reporterClass.getName()+" before you can verify metric calls.");
+		}
 
 		return (T)proxyInstance;
 	}

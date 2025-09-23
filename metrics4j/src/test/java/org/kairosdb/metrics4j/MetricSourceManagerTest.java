@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.kairosdb.metrics4j.annotation.Key;
 import org.kairosdb.metrics4j.annotation.Reported;
 import org.kairosdb.metrics4j.annotation.Snapshot;
+import org.kairosdb.metrics4j.annotation.Value;
 import org.kairosdb.metrics4j.collectors.DoubleCollector;
 import org.kairosdb.metrics4j.collectors.DurationCollector;
 import org.kairosdb.metrics4j.collectors.LongCollector;
@@ -139,6 +140,8 @@ class MetricSourceManagerTest
 		LongCounter reportCounter();
 		LongCollector badParameter(@Key("port")int value);
 		LongCollector noAnnotation(String value);
+		//todo - someday I want to be able to do this
+		//void reportSize(@Key("host")String host, @Value long value);
 	}
 
 	@Test
@@ -152,7 +155,12 @@ class MetricSourceManagerTest
 		assertThat(exception.getMessage()).isEqualTo("You have specified a return type on org.kairosdb.metrics4j.MetricSourceManagerTest$BadMetric.reportCounter that is not a generic collector interface as found in org.kairosdb.metrics4j.collectors");
 	}
 
-	
+	/*@Test
+	public void test_noCollectorMethod()
+	{
+		BadMetric source = MetricSourceManager.getSource(BadMetric.class);
+		source.reportSize("host", 42);
+	}*/
 
 	@Test
 	public void test_missingAnnotation()

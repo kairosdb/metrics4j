@@ -3,6 +3,7 @@ package org.kairosdb.metrics4j.collectors.impl;
 import org.kairosdb.metrics4j.MetricThreadHelper;
 import org.kairosdb.metrics4j.MetricsContext;
 import org.kairosdb.metrics4j.collectors.*;
+import org.kairosdb.metrics4j.collectors.helpers.AllCollectors;
 import org.kairosdb.metrics4j.collectors.helpers.TimerCollector;
 import org.kairosdb.metrics4j.reporting.*;
 
@@ -24,7 +25,7 @@ import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
  is reported using the time of the put or the Instant if one was provided.  This collector
  will also honor any request time set on the thread via MetricThreadHelper
  */
-public class BagCollector extends TimerCollector implements LongCollector, DoubleCollector, StringCollector
+public class BagCollector extends TimerCollector implements AllCollectors
 {
 	private Map<String, String> m_reportContext = new HashMap<>();
 	private final Object m_bagLock = new Object();
@@ -126,6 +127,18 @@ public class BagCollector extends TimerCollector implements LongCollector, Doubl
 	public void put(Instant time, String value)
 	{
 		m_bag.add(new TimedValue(time, new StringValue(value)));
+	}
+
+	@Override
+	public void put(Instant value)
+	{
+		put(Instant.now(), value);
+	}
+
+	@Override
+	public void put(Instant time, Instant value)
+	{
+		put(time, value.getEpochSecond());
 	}
 
 	private class TimedValue
