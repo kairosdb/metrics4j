@@ -36,6 +36,14 @@ public class SourceInvocationHandlerRuntime implements SourceInvocationHandler
 				lookupCollectorContext(k));
 	}
 
+	/**
+	 * Clears out the stats map - used after unit tests to clear out any mock collectors
+	 */
+	public void resetStats()
+	{
+		m_statsMap.clear();
+	}
+
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
 	{

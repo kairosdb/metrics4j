@@ -11,6 +11,7 @@ import org.kairosdb.metrics4j.internal.MethodArgKey;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandlerAdapter;
 import org.kairosdb.metrics4j.collectors.MetricCollector;
 import org.kairosdb.metrics4j.internal.SourceInvocationHandler;
+import org.kairosdb.metrics4j.internal.SourceInvocationHandlerRuntime;
 import org.kairosdb.metrics4j.internal.testing.SourceInvocationHandlerRecorder;
 import org.kairosdb.metrics4j.internal.StaticCollectorCollection;
 import org.kairosdb.metrics4j.internal.TagKey;
@@ -359,6 +360,32 @@ public class MetricSourceManager
 		return (T)proxyInstance;
 	}
 
+	/**
+	 	Used to reset all collectors after a unit test is complete.  Make this call in your afterTest or afterMethod
+	 	cleanup code.
+	 */
+	public static void resetCollectors()
+	{
+		s_invocationMap.forEach((klass, invocationHandler) ->
+		{
+			SourceInvocationHandler implementation = invocationHandler.getImplementation();
+			if (implementation instanceof SourceInvocationHandlerRuntime)
+			{
+				((SourceInvocationHandlerRuntime)implementation).resetStats();
+			}
+			else
+			{
+				invocationHandler.setImplementation(new SourceInvocationHandlerRuntime(getMetricConfig()));
+			}
+		});
+	}
+
+	/**
+	 * Changes the invocation handler for a given stats class to one that records method calls instead of reporting metrics
+	 * Used for unit testing to verify metrics are reported
+	 * @param reporterClass Stats class to start recording calls on.
+	 * @param <T>
+	 */
 	public static <T> void record(Class<T> reporterClass)
 	{
 		MetricConfig metricConfig = getMetricConfig();
@@ -367,11 +394,24 @@ public class MetricSourceManager
 		handler.setImplementation(new SourceInvocationHandlerRecorder());
 	}
 
+	/**
+	 * Used to verify a particular metric was reported.  See the readme for examples.
+	 * @param reporterClass
+	 * @return
+	 * @param <T>
+	 */
 	public static <T> T verify(Class<T> reporterClass)
 	{
 		return verify(reporterClass, 1);
 	}
 
+	/**
+	 * Used to verify a particular metric was reported.  See the readme for examples.
+	 * @param reporterClass
+	 * @param times Number of times to expect the call to be made.
+	 * @return
+	 * @param <T>
+	 */
 	public static <T> T verify(Class<T> reporterClass, int times)
 	{
 		MetricConfig metricConfig = getMetricConfig();

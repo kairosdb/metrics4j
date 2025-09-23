@@ -32,6 +32,6 @@ public class SourceInvocationHandlerRecorder implements SourceInvocationHandler
 
 	public CollectorRecorder getCollectorRecorder(MethodArgKey methodArgKey)
 	{
-		return m_counters.get(methodArgKey);
+		return m_counters.computeIfAbsent(methodArgKey, (mak) -> new CollectorRecorder());
 	}
 }
