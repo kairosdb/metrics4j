@@ -47,7 +47,9 @@ public class StringReporter implements StringCollector
 	@Override
 	public Collector clone()
 	{
-		return new StringReporter();
+		StringReporter ret = new StringReporter();
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override

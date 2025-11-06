@@ -303,7 +303,7 @@ public class OtelSink implements MetricSink, Closeable
 		}
 		else
 		{
-			logger.debug("Unsupported context type for metric {}", metric.getClassName());
+			logger.debug("Unsupported context type '{}' for metric {} {}", metricType, metric.getClassName(), metric.getMethodName());
 		}
 
 	return ret;

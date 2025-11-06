@@ -32,6 +32,7 @@ public class LastTime extends TimerCollector implements DurationCollector, Metri
 		LastTime ret = new LastTime();
 		ret.setReportUnit(getReportUnit());
 		ret.setReportFormat(getReportFormat());
+		ret.m_reportContext = m_reportContext;
 
 		return ret;
 	}

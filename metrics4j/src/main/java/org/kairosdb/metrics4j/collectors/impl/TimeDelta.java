@@ -51,6 +51,7 @@ public class TimeDelta extends SimpleTimerMetric implements TimeCollector
 		ret.setReportUnit(getReportUnit());
 		ret.setReportFormat(getReportFormat());
 		ret.reportZero = reportZero;
+		ret.m_reportContext = m_reportContext;
 
 		return ret;
 	}

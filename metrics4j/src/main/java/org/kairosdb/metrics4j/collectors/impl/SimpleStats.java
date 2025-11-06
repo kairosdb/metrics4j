@@ -92,7 +92,9 @@ public class SimpleStats implements LongCollector, MetricCollector
 	@Override
 	public Collector clone()
 	{
-		return new SimpleStats(reportZero);
+		SimpleStats ret = new SimpleStats(reportZero);
+		ret.m_reportContext = m_reportContext;
+		return ret;
 	}
 
 	@Override

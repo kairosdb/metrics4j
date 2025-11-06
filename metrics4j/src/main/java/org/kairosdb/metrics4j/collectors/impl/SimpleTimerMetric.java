@@ -150,6 +150,7 @@ public class SimpleTimerMetric extends TimerCollector implements DurationCollect
 		ret.setReportUnit(getReportUnit());
 		ret.setReportFormat(getReportFormat());
 		ret.reportZero = reportZero;
+		ret.m_reportContext = m_reportContext;
 		return ret;
 	}
 
