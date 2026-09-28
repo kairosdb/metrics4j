@@ -15,10 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_CUMULATIVE_VALUE;
-import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_DELTA_VALUE;
-import static org.kairosdb.metrics4j.internal.ReportingContext.AGGREGATION_KEY;
-import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_COUNTER_VALUE;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_GAUGE_VALUE;
 import static org.kairosdb.metrics4j.internal.ReportingContext.TYPE_KEY;
 

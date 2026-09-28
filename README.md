@@ -760,7 +760,7 @@ External Open Telemetry sink for sending metrics via OTLP using grpc protocol.
 
 ```hocon
 sinks: {
-  influx: {
+  otel: {
     _class: "org.kairosdb.metrics4jplugin.opentelemetry.OtelSink"
     _folder: "/path/to/sink/folder"
     endpoint: "http://localhost:4317"
