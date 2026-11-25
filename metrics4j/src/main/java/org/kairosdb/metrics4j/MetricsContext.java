@@ -27,6 +27,8 @@ public interface MetricsContext
 	void registerCollectorNotification(CollectorNotification notification);
 
 	List<Collector> getCollectorsForKey(ArgKey key);
+	List<Formatter> getFormattersForKey(ArgKey key);
+	List<MetricSink> getSinksForKey(ArgKey key);
 
 	void registerTrigger(String name, Trigger trigger);
 

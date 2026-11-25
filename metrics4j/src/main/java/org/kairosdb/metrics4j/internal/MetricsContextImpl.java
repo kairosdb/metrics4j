@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ToString
 public class MetricsContextImpl implements MetricsContext
@@ -120,7 +121,19 @@ public class MetricsContextImpl implements MetricsContext
 			return Collections.emptyList();
 	}
 
-	private TriggerMetricCollection getTriggerForKey(ArgKey key)
+	@Override
+	public List<Formatter> getFormattersForKey(ArgKey key)
+	{
+    	return m_formatters.getComponentsForKey(key).stream().map(AssignedFormatter::getFormatter).collect(Collectors.toList());
+    }
+
+	@Override
+	public List<MetricSink> getSinksForKey(ArgKey key)
+	{
+		return m_sinks.getComponentsForKey(key).stream().map(SinkQueue::getSink).collect(Collectors.toList());
+	}
+
+    private TriggerMetricCollection getTriggerForKey(ArgKey key)
 	{
 		TriggerMetricCollection triggerMetricCollection = m_triggers.getComponentForKey(key);
 		if (triggerMetricCollection == null)
